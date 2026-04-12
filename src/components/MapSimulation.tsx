@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, ImageOverlay, Marker, useMapEvents, useMap, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Target, Search, Crosshair, Map as MapIcon, Settings, CheckCircle2 } from 'lucide-react';
@@ -19,10 +19,6 @@ let DefaultIcon = L.icon({
   shadowSize: [41, 41]
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-
-// Base arbitrary grid for the SVG. Leaflet maps the SVG 1:1 to these bounds.
-const BASE_W = 10000;
-const BASE_H = 10000;
 
 const Button = ({ children, onClick, variant = 'primary', className = '', disabled=false }: any) => {
   const baseStyle = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2";
@@ -254,12 +250,19 @@ export default function MapSimulation() {
         </div>
       </div>
 
-      <div className="flex-1 relative bg-[#e5e5e5] cursor-crosshair">
+      <div className="flex-1 relative bg-white cursor-crosshair">
         <MapContainer
-          center={[BASE_H / 2, BASE_W / 2]} zoom={1} minZoom={-3} maxZoom={5}
-          crs={L.CRS.Simple} className="w-full h-full" style={{ background: '#e5e5e5' }}
+          center={[-108, 74]} zoom={1} minZoom={0} maxZoom={9}
+          maxBounds={[[-216.14, 0], [0, 147.89]]} maxBoundsViscosity={1.0}
+          crs={L.CRS.Simple} className="w-full h-full" style={{ background: '#ffffff' }}
         >
-          <ImageOverlay url="/map.svg" bounds={[[-10000, -10000], [20000, 20000]]} />
+          <TileLayer 
+            url="/maptiles/{z}/{y}/{x}.png" 
+            noWrap={true} 
+            minNativeZoom={0}
+            maxNativeZoom={6}
+            bounds={[[-216.14, 0], [0, 147.89]]} 
+          />
           <ClickHandler onMapClick={handleMapClick} />
           <MapController center={targetRaw} />
           

@@ -24,4 +24,6 @@ dist-ssr
 *.sw?
 
 resources/
-public/map.svg
+public/map.png
+public/maptiles
+public/vips-properties.xml
