@@ -1,22 +1,21 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api/map';
+import { api } from './api';
+import { API_ROUTES } from '../const/apiConfig';
 
 export const mapService = {
   getAllMaps: async () => {
-    const response = await axios.get(`${API_URL}/all`);
+    const response = await api.get(API_ROUTES.MAP + '/all');
     return response.data;
   },
 
   getMapById: async (id: string) => {
-    const response = await axios.get(`${API_URL}/${id}`);
+    const response = await api.get(API_ROUTES.MAP + `/${id}`);
     return response.data;
   },
 
   uploadMap: async (file: File, onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await axios.post(`${API_URL}/upload`, formData, {
+    const response = await api.post(API_ROUTES.MAP + '/upload', formData, {
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -28,7 +27,7 @@ export const mapService = {
   },
 
   calibrateMap: async (mapId: string, calibrationData: any) => {
-    const response = await axios.post(`${API_URL}/calibrate`, {
+    const response = await api.post(API_ROUTES.MAP + '/calibrate', {
       mapId,
       calibrationData
     });
