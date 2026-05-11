@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Target, Search, Crosshair, Map as MapIcon, Settings, CheckCircle2, UploadCloud, MapPinned } from 'lucide-react';
+import { Map as MapIcon, CheckCircle2, UploadCloud, MapPinned } from 'lucide-react';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -21,26 +21,11 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { mapService } from '../services/map.service';
-
-const Button = ({ children, onClick, variant = 'primary', className = '', disabled=false }: any) => {
-  const baseStyle = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2";
-  const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
-    outline: "border border-slate-200 bg-white hover:bg-slate-100 text-slate-900",
-    success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm",
-  };
-  return (
-    <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant as keyof typeof variants]} ${className}`}>
-      {children}
-    </button>
-  );
-};
-
-const Input = ({ value, onChange, placeholder, className = '', disabled=false }: any) => (
-  <input type="number" value={value} onChange={onChange} placeholder={placeholder} disabled={disabled}
-    className={`flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 ${className}`}
-  />
-);
+import { BASE_URL } from '../const/apiConfig';
+import { CalibrationPanel } from './simulation/CalibrationPanel';
+import { WeatherPanel } from './simulation/WeatherPanel';
+import { TargetPanel } from './simulation/TargetPanel';
+import { WeatherOverlay } from './simulation/WeatherOverlay';
 
 function ClickHandler({ onMapClick }: { onMapClick: (e: L.LeafletMouseEvent) => void }) {
   useMapEvents({ click: onMapClick }); return null;
@@ -66,6 +51,8 @@ export default function MapSimulation() {
   const [targetRaw, setTargetRaw] = useState<L.LatLng | null>(null);
 
   const [isCalibrated, setIsCalibrated] = useState(false);
+  const [showCalibration, setShowCalibration] = useState(true);
+  const [showWeather, setShowWeather] = useState(true);
   const [isSelectingFor, setIsSelectingFor] = useState<'p1' | 'p2' | null>(null);
   const [p1, setP1] = useState<CalibrationPoint>({ rawX: null, rawY: null, realX: '', realY: '' });
   const [p2, setP2] = useState<CalibrationPoint>({ rawX: null, rawY: null, realX: '', realY: '' });
@@ -73,6 +60,18 @@ export default function MapSimulation() {
 
   const [searchX, setSearchX] = useState('');
   const [searchY, setSearchY] = useState('');
+
+  // Weather State
+  const [weatherActive, setWeatherActive] = useState(false);
+  const [weatherData, setWeatherData] = useState({
+    season: 'MÙA HÈ',
+    angle: 315,
+    speed: 5,
+    tkkMin: 28,
+    tkkMax: 35,
+    tmdMin: 30,
+    tmdMax: 37
+  });
 
   const fetchMaps = async () => {
     try {
@@ -174,6 +173,7 @@ export default function MapSimulation() {
       await mapService.calibrateMap(currentMap.id, calData);
       // Update local state copy to avoid recalibrating again next time
       setCurrentMap({ ...currentMap, calibration: calData }); 
+      setShowCalibration(false);
     } catch (e) {
       console.error("Lưu hiệu chuẩn thất bại");
     }
@@ -278,101 +278,42 @@ export default function MapSimulation() {
 
         <div className={`p-4 flex-1 overflow-y-auto space-y-6 ${(!currentMap || currentMap.status !== 'ready') ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* STEP 1: CALIBRATION */}
-          <div className={`space-y-4 p-4 rounded-xl border ${isCalibrated ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-blue-50/50 border-blue-200 shadow-sm'}`}>
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-              <div className="flex items-center gap-2">
-                <Settings size={18} className={isCalibrated ? "text-slate-400" : "text-blue-600"} />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">1. Hiệu chuẩn</h2>
-              </div>
-              {isCalibrated && <Button variant="outline" onClick={() => setIsCalibrated(false)} className="h-7 text-xs px-2">Căn lại</Button>}
-            </div>
+          <CalibrationPanel 
+            isCalibrated={isCalibrated} setIsCalibrated={setIsCalibrated}
+            showCalibration={showCalibration} setShowCalibration={setShowCalibration}
+            p1={p1} setP1={setP1}
+            p2={p2} setP2={setP2}
+            isSelectingFor={isSelectingFor} setIsSelectingFor={setIsSelectingFor}
+            calculateCalibration={calculateCalibration}
+          />
 
-            {!isCalibrated && (
-              <p className="text-xs text-slate-600 my-2">Áp 2 Điểm mốc để quy đổi từ tọa độ ảnh sang Mét (VN-2000).</p>
-            )}
+          {/* STEP 2: WEATHER */}
+          <WeatherPanel 
+            isCalibrated={isCalibrated}
+            showWeather={showWeather} setShowWeather={setShowWeather}
+            weatherActive={weatherActive} setWeatherActive={setWeatherActive}
+            weatherData={weatherData} setWeatherData={setWeatherData}
+          />
 
-            {/* Point 1 */}
-            <div className="space-y-2 bg-white p-3 rounded-md border border-slate-200">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-700">📌 Điểm mốc 1</span>
-                <Button variant={isSelectingFor === 'p1' ? 'primary' : 'outline'} onClick={() => setIsSelectingFor('p1')} className="h-7 text-xs px-2">
-                  {isSelectingFor === 'p1' ? 'Chọn trên Map...' : p1.rawX ? 'Sửa điểm Map' : 'Click lên Map'}
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <Input value={p1.realX} onChange={(e:any) => setP1({...p1, realX: e.target.value})} placeholder="X thật" disabled={isCalibrated} />
-                <Input value={p1.realY} onChange={(e:any) => setP1({...p1, realY: e.target.value})} placeholder="Y thật" disabled={isCalibrated} />
-              </div>
-            </div>
-
-            {/* Point 2 */}
-            <div className="space-y-2 bg-white p-3 rounded-md border border-slate-200">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-700">📌 Điểm mốc 2</span>
-                <Button variant={isSelectingFor === 'p2' ? 'primary' : 'outline'} onClick={() => setIsSelectingFor('p2')} className="h-7 text-xs px-2">
-                  {isSelectingFor === 'p2' ? 'Chọn trên Map...' : p2.rawX ? 'Sửa điểm Map' : 'Click lên Map'}
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <Input value={p2.realX} onChange={(e:any) => setP2({...p2, realX: e.target.value})} placeholder="X thật" disabled={isCalibrated} />
-                <Input value={p2.realY} onChange={(e:any) => setP2({...p2, realY: e.target.value})} placeholder="Y thật" disabled={isCalibrated} />
-              </div>
-            </div>
-
-            {!isCalibrated && (
-               <Button onClick={calculateCalibration} variant="primary" className="w-full mt-2 font-bold shadow-md">
-                 Lưu Hệ Tọa Độ Map
-               </Button>
-            )}
-          </div>
-
-          {/* STEP 2: FIND & CHECK COORDS */}
-          <div className={`space-y-6 transition-opacity ${!isCalibrated && 'opacity-30 pointer-events-none'}`}>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <Crosshair size={18} className="text-slate-600" />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">Tọa độ Click</h2>
-              </div>
-              
-              <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 shadow-inner">
-                {currentRealCoords ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between border-b pb-1 border-slate-200">
-                      <span className="text-xs font-semibold text-slate-500">X (Easting M)</span>
-                      <span className="font-mono text-sm font-bold text-blue-700">{currentRealCoords.x.toFixed(1)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-xs font-semibold text-slate-500">Y (Northing M)</span>
-                      <span className="font-mono text-sm font-bold text-rose-600">{currentRealCoords.y.toFixed(1)}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 italic text-center">Nhấp chuột trái lên bản đồ</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <Target size={18} className="text-slate-600" />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">Tìm điểm thả khói</h2>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <Input value={searchX} onChange={(e:any) => setSearchX(e.target.value)} placeholder="Nhập X thật..." />
-                <Input value={searchY} onChange={(e:any) => setSearchY(e.target.value)} placeholder="Nhập Y thật..." />
-              </div>
-              <Button onClick={handleSearch} variant="success" className="w-full gap-2 font-bold shadow-md">
-                <Search size={16} /> Di chuyển tới điểm
-              </Button>
-            </div>
-            
-          </div>
+          {/* STEP 3: FIND & CHECK COORDS */}
+          <TargetPanel 
+            isCalibrated={isCalibrated}
+            currentRealCoords={currentRealCoords}
+            searchX={searchX} setSearchX={setSearchX}
+            searchY={searchY} setSearchY={setSearchY}
+            handleSearch={handleSearch}
+          />
         </div>
       </div>
 
       <div className="flex-1 relative bg-white flex flex-col">
+        {/* Lớp Weather Overlay */}
+        <WeatherOverlay 
+          weatherActive={weatherActive} 
+          currentMapStatus={currentMap?.status} 
+          weatherData={weatherData} 
+        />
+
         {currentMap?.status === 'ready' ? (
           <MapContainer
             key={currentMap.id}
@@ -382,7 +323,7 @@ export default function MapSimulation() {
             style={{ background: '#ffffff' }}
           >
             <TileLayer 
-              url={`http://localhost:3000/uploads/maptiles/${currentMap.id}/{z}/{y}/{x}.png`}
+              url={`${BASE_URL}/uploads/maptiles/${currentMap.id}/{z}/{y}/{x}.png`}
               noWrap={true} 
               minNativeZoom={0}
               maxNativeZoom={maxNativeZ}
