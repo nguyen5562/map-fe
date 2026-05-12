@@ -49,7 +49,7 @@ export const TargetPanel = ({
               <Input value={searchY} onChange={(e:any) => setSearchY(e.target.value)} placeholder="Nhập Y thật..." />
             </div>
             <Button onClick={handleSearch} variant="success" className="w-full gap-2 font-bold shadow-md mt-1">
-              <Search size={16} /> Bay tới điểm
+              <Search size={16} /> Đi tới điểm
             </Button>
           </div>
        </div>
