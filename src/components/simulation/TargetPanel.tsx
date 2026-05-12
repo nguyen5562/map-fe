@@ -20,7 +20,7 @@ export const TargetPanel = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Crosshair size={14} className="text-slate-500" />
-              <h3 className="text-xs font-bold text-slate-600">Tọa độ Click chuột trên Map</h3>
+              <h3 className="text-xs font-bold text-slate-600">Tọa độ nhấp chuột trên bản đồ</h3>
             </div>
             <div className="bg-slate-50 rounded-lg border border-slate-200 p-3 shadow-inner">
               {currentRealCoords ? (
@@ -43,10 +43,10 @@ export const TargetPanel = ({
           <div className="border-t border-slate-100"></div>
 
           <div className="space-y-2">
-            <h3 className="text-xs font-bold text-slate-600">Di chuyển đến Tọa độ (m)</h3>
+            <h3 className="text-xs font-bold text-slate-600">Di chuyển đến tọa độ (m)</h3>
             <div className="grid grid-cols-2 gap-3">
-              <Input value={searchX} onChange={(e:any) => setSearchX(e.target.value)} placeholder="Nhập X thật..." />
-              <Input value={searchY} onChange={(e:any) => setSearchY(e.target.value)} placeholder="Nhập Y thật..." />
+              <Input value={searchX} onChange={(e:any) => setSearchX(e.target.value)} placeholder="Nhập X..." />
+              <Input value={searchY} onChange={(e:any) => setSearchY(e.target.value)} placeholder="Nhập Y..." />
             </div>
             <Button onClick={handleSearch} variant="success" className="w-full gap-2 font-bold shadow-md mt-1">
               <Search size={16} /> Đi tới điểm

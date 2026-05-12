@@ -26,7 +26,7 @@ export const CalibrationPanel = ({
       {showCalibration && (
         <div className="space-y-4 mt-2">
           {!isCalibrated && (
-            <p className="text-xs text-slate-600 my-2">Áp 2 Điểm mốc để quy đổi từ tọa độ ảnh sang Mét (VN-2000).</p>
+            <p className="text-xs text-slate-600 my-2">Áp 2 điểm mốc để quy đổi từ tọa độ ảnh sang Mét (VN-2000).</p>
           )}
 
           {/* Point 1 */}
