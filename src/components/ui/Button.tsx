@@ -4,6 +4,7 @@ export const Button = ({ children, onClick, variant = 'primary', className = '',
     primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
     outline: "border border-slate-200 bg-white hover:bg-slate-100 text-slate-900",
     success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm",
+    danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
   };
   return (
     <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant as keyof typeof variants]} ${className}`}>

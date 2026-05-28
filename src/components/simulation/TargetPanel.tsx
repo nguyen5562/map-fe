@@ -13,7 +13,7 @@ export const TargetPanel = ({
     <div className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${!isCalibrated && 'opacity-30 pointer-events-none'}`}>
        <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
           <Target size={18} className="text-slate-600" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">3. Tìm điểm mục tiêu</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">8. Tìm điểm mục tiêu</h2>
        </div>
 
        <div className="space-y-4 mt-2">
