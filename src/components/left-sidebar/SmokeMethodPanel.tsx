@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Route } from 'lucide-react';
-import { Input } from '../ui/Input';
+import { useState } from "react";
+import { Route } from "lucide-react";
+import { Input } from "../ui/Input";
 
 type SmokeMethodData = {
-  lineType: 'Thẳng' | 'Vòng';
+  lineType: "Thẳng" | "Vòng";
   areaEnabled: boolean;
   area: string;
 };
@@ -22,7 +22,7 @@ export const SmokeMethodPanel = ({
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
-        !isCalibrated ? 'opacity-30 pointer-events-none' : ''
+        !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
       <div
@@ -35,9 +35,7 @@ export const SmokeMethodPanel = ({
             5. Phương pháp phát khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">
-          {showPanel ? '▼' : '▲'}
-        </span>
+        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
       </div>
 
       {showPanel && (
@@ -50,24 +48,24 @@ export const SmokeMethodPanel = ({
             <div className="flex gap-2">
               <button
                 onClick={() =>
-                  setSmokeMethodData({ ...smokeMethodData, lineType: 'Thẳng' })
+                  setSmokeMethodData({ ...smokeMethodData, lineType: "Thẳng" })
                 }
                 className={`flex-1 h-9 rounded-lg text-sm font-bold border-2 transition-all duration-200 ${
-                  smokeMethodData.lineType === 'Thẳng'
-                    ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200'
-                    : 'bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600'
+                  smokeMethodData.lineType === "Thẳng"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200"
+                    : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
                 }`}
               >
                 Thẳng
               </button>
               <button
                 onClick={() =>
-                  setSmokeMethodData({ ...smokeMethodData, lineType: 'Vòng' })
+                  setSmokeMethodData({ ...smokeMethodData, lineType: "Vòng" })
                 }
                 className={`flex-1 h-9 rounded-lg text-sm font-bold border-2 transition-all duration-200 ${
-                  smokeMethodData.lineType === 'Vòng'
-                    ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200'
-                    : 'bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600'
+                  smokeMethodData.lineType === "Vòng"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200"
+                    : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
                 }`}
               >
                 Vòng
@@ -89,14 +87,14 @@ export const SmokeMethodPanel = ({
                   })
                 }
                 className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
-                  smokeMethodData.areaEnabled ? 'bg-teal-600' : 'bg-slate-300'
+                  smokeMethodData.areaEnabled ? "bg-teal-600" : "bg-slate-300"
                 }`}
               >
                 <div
                   className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
                     smokeMethodData.areaEnabled
-                      ? 'translate-x-4'
-                      : 'translate-x-0.5'
+                      ? "translate-x-4"
+                      : "translate-x-0.5"
                   }`}
                 ></div>
               </button>

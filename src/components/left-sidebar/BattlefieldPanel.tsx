@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Layers, Calculator } from 'lucide-react';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
+import { useState } from "react";
+import { Layers, Calculator } from "lucide-react";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
 
 type BattlefieldData = {
   routes: string;
@@ -25,35 +25,35 @@ export const BattlefieldPanel = ({
 
   const fields = [
     {
-      key: 'routes' as const,
-      label: 'Các tuyến (điện)',
-      placeholder: 'Nhập số tuyến...',
-      icon: '📍',
+      key: "routes" as const,
+      label: "Các tuyến (điện)",
+      placeholder: "Nhập số tuyến...",
+      icon: "📍",
     },
     {
-      key: 'firePoints' as const,
-      label: 'Vị trí điểm hỏa',
-      placeholder: 'Nhập vị trí điểm hỏa...',
-      icon: '🔥',
+      key: "firePoints" as const,
+      label: "Vị trí điểm hỏa",
+      placeholder: "Nhập vị trí điểm hỏa...",
+      icon: "🔥",
     },
     {
-      key: 'commandPost' as const,
-      label: 'Vị trí chỉ huy, quan sát',
-      placeholder: 'Nhập vị trí chỉ huy...',
-      icon: '🎖️',
+      key: "commandPost" as const,
+      label: "Vị trí chỉ huy, quan sát",
+      placeholder: "Nhập vị trí chỉ huy...",
+      icon: "🎖️",
     },
     {
-      key: 'reserveUnit' as const,
-      label: 'Vị trí bộ phận dự bị, bảo đảm',
-      placeholder: 'Nhập vị trí dự bị...',
-      icon: '🛡️',
+      key: "reserveUnit" as const,
+      label: "Vị trí bộ phận dự bị, bảo đảm",
+      placeholder: "Nhập vị trí dự bị...",
+      icon: "🛡️",
     },
   ];
 
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
-        !isCalibrated ? 'opacity-30 pointer-events-none' : ''
+        !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
       {/* Header */}
@@ -67,9 +67,7 @@ export const BattlefieldPanel = ({
             7. Thành phần, cấu trúc trận địa khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">
-          {showPanel ? '▼' : '▲'}
-        </span>
+        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
       </div>
 
       {showPanel && (

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Shield } from 'lucide-react';
-import { Input } from '../ui/Input';
+import { useState, useEffect } from "react";
+import { Shield } from "lucide-react";
+import { Input } from "../ui/Input";
 
 type TargetDefenseData = {
   targetType: string;
@@ -36,7 +36,7 @@ export const TargetDefensePanel = ({
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
-        !isCalibrated ? 'opacity-30 pointer-events-none' : ''
+        !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
       {/* Header */}
@@ -50,9 +50,7 @@ export const TargetDefensePanel = ({
             2. Mục tiêu bảo vệ
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">
-          {showPanel ? '▼' : '▲'}
-        </span>
+        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
       </div>
 
       {showPanel && (
@@ -130,7 +128,7 @@ export const TargetDefensePanel = ({
                   area: e.target.value,
                 })
               }
-              placeholder="Trận địa hỏa lực"
+              placeholder="Diện tích mục tiêu"
             />
             <p className="text-[10px] text-slate-400 mt-1">
               Tự tính = Dài × Rộng, hoặc nhập thủ công
@@ -159,10 +157,11 @@ export const TargetDefensePanel = ({
             </div>
             {targetDefenseData.area && targetDefenseData.coverageMultiplier && (
               <p className="text-xs text-amber-700 font-semibold mt-2">
-                = {(
+                ={" "}
+                {(
                   parseFloat(targetDefenseData.area) *
                   parseFloat(targetDefenseData.coverageMultiplier)
-                ).toLocaleString()}{' '}
+                ).toLocaleString()}{" "}
                 m²
               </p>
             )}

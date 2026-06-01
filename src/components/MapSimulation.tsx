@@ -29,8 +29,9 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 import { mapService } from "../services/map.service";
 import { BASE_URL } from "../const/apiConfig";
-import { WeatherOverlay, GasMarker } from "./simulation";
-import { LeftSidebar, RightSidebar } from "./sidebar";
+import { WeatherOverlay, GasMarker } from "./map";
+import { LeftSidebar } from "./left-sidebar";
+import { RightSidebar } from "./right-sidebar";
 
 function ClickHandler({
   onMapClick,
@@ -110,7 +111,7 @@ export default function MapSimulation() {
     length: "",
     width: "",
     area: "",
-    coverageMultiplier: "",
+    coverageMultiplier: "1",
   });
 
   // Smoke Config State (Mục 4, 5, 6)
@@ -147,8 +148,14 @@ export default function MapSimulation() {
   // windDirection = hướng gió thổi ĐẾN (e.g. "Đông" = gió thổi về Đông)
   // Overlay internally adds +180°, so subtract 180° to compensate
   const DIRECTION_ANGLES: Record<string, number> = {
-    "Bắc": 0, "Đông Bắc": 45, "Đông": 90, "Đông Nam": 135,
-    "Nam": 180, "Tây Nam": 225, "Tây": 270, "Tây Bắc": 315,
+    Bắc: 0,
+    "Đông Bắc": 45,
+    Đông: 90,
+    "Đông Nam": 135,
+    Nam: 180,
+    "Tây Nam": 225,
+    Tây: 270,
+    "Tây Bắc": 315,
   };
   const baseDirectionAngle = DIRECTION_ANGLES[weatherData.windDirection] ?? 0;
   const computedAngle = baseDirectionAngle - 180 + weatherData.alpha;
@@ -410,7 +417,11 @@ export default function MapSimulation() {
               bounds={dynamicBounds}
             />
             <ClickHandler onMapClick={handleMapClick} />
-            <MapController center={targetRaw} isSidebarOpen={isSidebarOpen} isRightSidebarOpen={isRightSidebarOpen} />
+            <MapController
+              center={targetRaw}
+              isSidebarOpen={isSidebarOpen}
+              isRightSidebarOpen={isRightSidebarOpen}
+            />
 
             {/* Calibration Markers */}
             {p1.rawX && !isCalibrated && (

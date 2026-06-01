@@ -6,16 +6,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import {
-  CalibrationPanel,
-  TargetDefensePanel,
-  WeatherPanel,
-  SmokeTimePanel,
-  SmokeMethodPanel,
-  SmokeVehiclePanel,
-  BattlefieldPanel,
-  TargetPanel,
-} from "../simulation";
+import { CalibrationPanel } from "./CalibrationPanel";
+import { TargetDefensePanel } from "./TargetDefensePanel";
+import { WeatherPanel } from "./WeatherPanel";
+import { SmokeTimePanel } from "./SmokeTimePanel";
+import { SmokeMethodPanel } from "./SmokeMethodPanel";
+import { SmokeVehiclePanel } from "./SmokeVehiclePanel";
+import { BattlefieldPanel } from "./BattlefieldPanel";
+import { TargetPanel } from "./TargetPanel";
 
 type LeftSidebarProps = {
   // Sidebar toggle
@@ -199,7 +197,7 @@ export const LeftSidebar = ({
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-800">
-                Mô phỏng Khí tài
+                Tính toán Khí tài phát khói
               </h1>
               <p className="text-sm font-medium flex items-center gap-1">
                 Trạng thái:{" "}
@@ -303,11 +301,7 @@ export const LeftSidebar = ({
           isSidebarOpen ? "left-[340px] border-l-0" : "left-0 border-l"
         }`}
       >
-        {isSidebarOpen ? (
-          <ChevronLeft size={16} />
-        ) : (
-          <ChevronRight size={16} />
-        )}
+        {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
     </div>
   );

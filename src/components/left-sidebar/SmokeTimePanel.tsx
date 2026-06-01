@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Clock } from 'lucide-react';
-import { Input } from '../ui/Input';
+import { useState } from "react";
+import { Clock } from "lucide-react";
+import { Input } from "../ui/Input";
 
 export const SmokeTimePanel = ({
   isCalibrated,
@@ -16,7 +16,7 @@ export const SmokeTimePanel = ({
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
-        !isCalibrated ? 'opacity-30 pointer-events-none' : ''
+        !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
       <div
@@ -29,9 +29,7 @@ export const SmokeTimePanel = ({
             4. Thời gian thả khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">
-          {showPanel ? '▼' : '▲'}
-        </span>
+        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
       </div>
 
       {showPanel && (

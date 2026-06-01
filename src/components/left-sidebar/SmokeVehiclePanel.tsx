@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { Truck } from 'lucide-react';
+import { useState } from "react";
+import { Truck } from "lucide-react";
 
 const VEHICLES = [
-  { id: 'HPK-2.5', name: 'HPK-2.5', desc: 'Hộp phát khói' },
-  { id: 'TPK', name: 'TPK', desc: 'Thùng thả khói' },
-  { id: 'KH-1', name: 'KH-1', desc: 'Xe thả khói' },
-  { id: 'TDA-M', name: 'TDA-M', desc: 'Xe thả khói' },
-  { id: 'UNG_DUNG', name: 'ỨNG DỤNG', desc: 'Ứng dụng khác' },
+  { id: "HPK-2.5", name: "HPK-2.5", desc: "Hộp phát khói" },
+  { id: "TPK", name: "TPK", desc: "Thùng thả khói" },
+  { id: "KH-1", name: "KH-1", desc: "Xe thả khói" },
+  { id: "TDA-M", name: "TDA-M", desc: "Xe thả khói" },
+  { id: "UNG_DUNG", name: "ỨNG DỤNG", desc: "Ứng dụng khác" },
 ];
 
 export const SmokeVehiclePanel = ({
@@ -31,7 +31,7 @@ export const SmokeVehiclePanel = ({
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
-        !isCalibrated ? 'opacity-30 pointer-events-none' : ''
+        !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
       <div
@@ -44,9 +44,7 @@ export const SmokeVehiclePanel = ({
             6. Lựa chọn phương tiện thả khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">
-          {showPanel ? '▼' : '▲'}
-        </span>
+        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
       </div>
 
       {showPanel && (
@@ -61,8 +59,8 @@ export const SmokeVehiclePanel = ({
                   title={v.desc}
                   className={`px-3 h-9 rounded-lg text-sm font-bold border-2 transition-all duration-200 ${
                     isSelected
-                      ? 'bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-200'
-                      : 'bg-white text-slate-600 border-slate-300 hover:border-orange-400 hover:text-orange-600'
+                      ? "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-200"
+                      : "bg-white text-slate-600 border-slate-300 hover:border-orange-400 hover:text-orange-600"
                   }`}
                 >
                   {v.name}

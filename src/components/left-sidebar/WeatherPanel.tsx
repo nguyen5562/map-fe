@@ -33,9 +33,9 @@ export const WeatherPanel = ({
             e.stopPropagation();
             const newState = !weatherActive;
             setWeatherActive(newState);
-            if (newState) setShowWeather(false);
+            // if (newState) setShowWeather(false);
           }} className="h-7 text-xs px-2">
-            {weatherActive ? 'Tắt hiển thị' : 'Bật hiển thị'}
+            {weatherActive ? 'Tắt' : 'Hiển thị'}
           </Button>
           <span className="text-slate-400 text-xs ml-1">{showWeather ? '▼' : '▲'}</span>
         </div>
