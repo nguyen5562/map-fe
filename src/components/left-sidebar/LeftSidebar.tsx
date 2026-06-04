@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useRef, useState } from "react";
 import { CalibrationPanel } from "./CalibrationPanel";
 import { TargetDefensePanel } from "./TargetDefensePanel";
 import { WeatherPanel } from "./WeatherPanel";
@@ -14,6 +15,7 @@ import { SmokeMethodPanel } from "./SmokeMethodPanel";
 import { SmokeVehiclePanel } from "./SmokeVehiclePanel";
 import { BattlefieldPanel } from "./BattlefieldPanel";
 import { TargetPanel } from "./TargetPanel";
+import { UploadProgressDialog } from "./UploadProgressDialog";
 
 type LeftSidebarProps = {
   // Sidebar toggle
@@ -27,6 +29,7 @@ type LeftSidebarProps = {
   isUploading: boolean;
   uploadProgress: number;
   handleUpload: (e: any) => void;
+  handleUploadFile: (file: File) => void;
 
   // Calibration
   isCalibrated: boolean;
@@ -87,7 +90,7 @@ export const LeftSidebar = ({
   setCurrentMap,
   isUploading,
   uploadProgress,
-  handleUpload,
+  handleUploadFile,
   isCalibrated,
   setIsCalibrated,
   showCalibration,
@@ -123,71 +126,109 @@ export const LeftSidebar = ({
   setSearchY,
   handleSearch,
 }: LeftSidebarProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
+
+  const handleFileChosen = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadedFileName(file.name);
+    setShowProgress(true);
+    handleUploadFile(file);
+    // Reset input để có thể chọn lại cùng file
+    e.target.value = "";
+  };
+
   return (
     <div
       className={`relative h-full transition-all duration-300 ease-in-out flex-shrink-0 z-[1001] ${
         isSidebarOpen ? "w-[340px]" : "w-0"
       }`}
     >
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png, image/jpeg"
+        className="hidden"
+        onChange={handleFileChosen}
+        disabled={isUploading}
+      />
+
+      {/* Progress Dialog — hiện sau khi chọn file */}
+      <UploadProgressDialog
+        isOpen={showProgress}
+        onClose={() => setShowProgress(false)}
+        fileName={uploadedFileName}
+        isUploading={isUploading}
+        uploadProgress={uploadProgress}
+        mapStatus={currentMap?.status}
+      />
+
       {/* SIDEBAR CONTENT */}
       <div
         className={`absolute top-0 left-0 w-[340px] h-full bg-white border-r border-slate-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Map Library Header */}
+        {/* ── Map Library Header ── */}
         <div className="p-4 border-b border-slate-200 bg-slate-100/50">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1">
             <MapPinned size={14} /> Thư viện Bản đồ
           </h2>
-          <div className="flex gap-2">
-            <select
-              className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={currentMap?.id || ""}
-              onChange={(e) => {
-                const smap = maps.find((m) => m.id === e.target.value);
-                if (smap) setCurrentMap(smap);
-              }}
-            >
-              <option value="" disabled>
-                Chọn một bản đồ để thao tác...
+
+          {/* Dropdown chọn bản đồ */}
+          <select
+            className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+            value={currentMap?.id || ""}
+            onChange={(e) => {
+              const smap = maps.find((m) => m.id === e.target.value);
+              if (smap) setCurrentMap(smap);
+            }}
+          >
+            <option value="" disabled>
+              Chọn một bản đồ để thao tác...
+            </option>
+            {maps.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name} {m.status !== "ready" ? "(Đang xử lý...)" : ""}
               </option>
-              {maps.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} {m.status !== "ready" ? "(Đang xử lý...)" : ""}
-                </option>
-              ))}
-            </select>
-            <label
-              className={`flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-300 rounded-md cursor-pointer text-slate-700 shadow-sm transition-all overflow-hidden ${isUploading ? "w-24 px-2" : "w-10 px-0"}`}
-            >
-              {isUploading ? (
-                <div className="flex flex-col items-center justify-center w-full gap-1">
-                  <span className="text-[10px] font-bold text-blue-600 leading-none">
-                    {uploadProgress}%
-                  </span>
-                  <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
-                    <div
-                      className="bg-blue-600 h-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ) : (
-                <UploadCloud size={18} />
-              )}
-              <input
-                type="file"
-                className="hidden"
-                accept="image/png, image/jpeg"
-                onChange={handleUpload}
-                disabled={isUploading}
-              />
-            </label>
-          </div>
+            ))}
+          </select>
+
+          {/* Nút Tải lên — click thẳng vào file picker */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="w-full flex items-center justify-center gap-2 h-9 rounded-md text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: isUploading
+                ? "#e2e8f0"
+                : "linear-gradient(135deg, #1d4ed8, #3b82f6)",
+              color: isUploading ? "#94a3b8" : "#ffffff",
+              border: "none",
+              boxShadow: isUploading
+                ? "none"
+                : "0 2px 8px rgba(59,130,246,0.35)",
+              letterSpacing: "0.01em",
+            }}
+          >
+            {isUploading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                <UploadCloud size={15} />
+                Tải lên bản đồ mới
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Status Header */}
+        {/* ── Status Header ── */}
         <div className="p-4 border-b border-slate-100 bg-slate-50">
           <div className="flex items-center gap-3">
             <div
@@ -215,7 +256,7 @@ export const LeftSidebar = ({
           </div>
         </div>
 
-        {/* Scrollable Panels Area */}
+        {/* ── Scrollable Panels ── */}
         <div
           className={`p-4 flex-1 overflow-y-auto space-y-6 ${!currentMap || currentMap.status !== "ready" ? "opacity-50 pointer-events-none" : ""}`}
         >
@@ -241,7 +282,18 @@ export const LeftSidebar = ({
             setTargetDefenseData={setTargetDefenseData}
           />
 
-          {/* STEP 3: WEATHER */}
+          {/* STEP 3: FIND & CHECK COORDS (chuyển lên từ mục 8) */}
+          <TargetPanel
+            isCalibrated={isCalibrated}
+            currentRealCoords={currentRealCoords}
+            searchX={searchX}
+            setSearchX={setSearchX}
+            searchY={searchY}
+            setSearchY={setSearchY}
+            handleSearch={handleSearch}
+          />
+
+          {/* STEP 4: WEATHER */}
           <WeatherPanel
             isCalibrated={isCalibrated}
             showWeather={showWeather}
@@ -252,44 +304,34 @@ export const LeftSidebar = ({
             setWeatherData={setWeatherData}
           />
 
-          {/* STEP 4: SMOKE TIME */}
+          {/* STEP 5: SMOKE TIME */}
           <SmokeTimePanel
             isCalibrated={isCalibrated}
             smokeTime={smokeTime}
             setSmokeTime={setSmokeTime}
           />
 
-          {/* STEP 5: SMOKE METHOD */}
+          {/* STEP 6: SMOKE METHOD */}
           <SmokeMethodPanel
             isCalibrated={isCalibrated}
             smokeMethodData={smokeMethodData}
             setSmokeMethodData={setSmokeMethodData}
+            targetDefenseData={targetDefenseData}
           />
 
-          {/* STEP 6: SMOKE VEHICLE */}
+          {/* STEP 7: SMOKE VEHICLE */}
           <SmokeVehiclePanel
             isCalibrated={isCalibrated}
             selectedVehicles={selectedVehicles}
             setSelectedVehicles={setSelectedVehicles}
           />
 
-          {/* STEP 7: BATTLEFIELD STRUCTURE */}
+          {/* STEP 8: BATTLEFIELD STRUCTURE */}
           <BattlefieldPanel
             isCalibrated={isCalibrated}
             battlefieldData={battlefieldData}
             setBattlefieldData={setBattlefieldData}
             onCalculate={onCalculate}
-          />
-
-          {/* STEP 8: FIND & CHECK COORDS */}
-          <TargetPanel
-            isCalibrated={isCalibrated}
-            currentRealCoords={currentRealCoords}
-            searchX={searchX}
-            setSearchX={setSearchX}
-            searchY={searchY}
-            setSearchY={setSearchY}
-            handleSearch={handleSearch}
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { Wind } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { DatePickerInput } from '../ui/DatePickerInput';
 
 const DIRECTIONS = [
   { name: 'Bắc', short: 'B', angle: 0 },
@@ -26,7 +27,7 @@ export const WeatherPanel = ({
       <div className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer" onClick={() => setShowWeather(!showWeather)}>
         <div className="flex items-center gap-2">
           <Wind size={18} className="text-blue-600" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">3. Khí tượng</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">4. Khí tượng</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button variant={weatherActive ? 'primary' : 'outline'} onClick={(e: any) => {
@@ -43,15 +44,14 @@ export const WeatherPanel = ({
 
       {showWeather && (
         <div className="space-y-4 mt-2">
-          {/* Season */}
+          {/* Thời gian tác chiến */}
           <div>
-            <label className="text-xs font-semibold text-slate-500">Mùa</label>
-            <select value={weatherData.season} onChange={(e) => setWeatherData({ ...weatherData, season: e.target.value })} className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
-              <option value="MÙA XUÂN">Mùa Xuân</option>
-              <option value="MÙA HÈ">Mùa Hè</option>
-              <option value="MÙA THU">Mùa Thu</option>
-              <option value="MÙA ĐÔNG">Mùa Đông</option>
-            </select>
+            <label className="text-xs font-semibold text-slate-500">Thời gian tác chiến</label>
+            <DatePickerInput
+              value={weatherData.combatTime ?? ''}
+              onChange={(val: string) => setWeatherData({ ...weatherData, combatTime: val })}
+              placeholder="DD.MM.YY"
+            />
           </div>
 
           {/* Wind Direction Compass */}
@@ -96,7 +96,6 @@ export const WeatherPanel = ({
                 {/* Direction buttons */}
                 {DIRECTIONS.map((dir) => {
                   const isSelected = dir.name === weatherData.windDirection;
-                  // Position each label around the circle
                   const rad = (dir.angle - 90) * (Math.PI / 180);
                   const radius = 62;
                   const cx = 70 + radius * Math.cos(rad);
@@ -147,30 +146,37 @@ export const WeatherPanel = ({
           </div>
 
           {/* Speed */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <label className="text-xs font-semibold text-slate-500">Tốc độ gió (m/s)</label>
-              <Input value={weatherData.speed} onChange={(e: any) => setWeatherData({ ...weatherData, speed: Number(e.target.value) })} placeholder="m/s" />
-            </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">Tốc độ gió (m/s)</label>
+            <Input value={weatherData.speed} onChange={(e: any) => setWeatherData({ ...weatherData, speed: Number(e.target.value) })} placeholder="m/s" />
+          </div>
+
+          {/* Lượng mây */}
+          <div>
+            <label className="text-xs font-semibold text-slate-500">Lượng mây (%)</label>
+            <Input
+              value={weatherData.rainfall ?? ""}
+              onChange={(e: any) => setWeatherData({ ...weatherData, rainfall: e.target.value })}
+              placeholder="VD: 0"
+            />
           </div>
 
           {/* Temperatures */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <label className="text-xs font-semibold text-slate-500">tº Không khí (°C)</label>
-              <div className="flex gap-2 items-center">
-                <Input value={weatherData.tkkMin} onChange={(e: any) => setWeatherData({ ...weatherData, tkkMin: Number(e.target.value) })} placeholder="Từ" />
-                <span className="text-slate-400 font-bold">-</span>
-                <Input value={weatherData.tkkMax} onChange={(e: any) => setWeatherData({ ...weatherData, tkkMax: Number(e.target.value) })} placeholder="Đến" />
-              </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">tº Không khí (°C)</label>
+            <div className="flex gap-2 items-center">
+              <Input value={weatherData.tkkMin} onChange={(e: any) => setWeatherData({ ...weatherData, tkkMin: Number(e.target.value) })} placeholder="Từ" />
+              <span className="text-slate-400 font-bold">-</span>
+              <Input value={weatherData.tkkMax} onChange={(e: any) => setWeatherData({ ...weatherData, tkkMax: Number(e.target.value) })} placeholder="Đến" />
             </div>
-            <div className="col-span-2">
-              <label className="text-xs font-semibold text-slate-500">tº Mặt đất (°C)</label>
-              <div className="flex gap-2 items-center">
-                <Input value={weatherData.tmdMin} onChange={(e: any) => setWeatherData({ ...weatherData, tmdMin: Number(e.target.value) })} placeholder="Từ" />
-                <span className="text-slate-400 font-bold">-</span>
-                <Input value={weatherData.tmdMax} onChange={(e: any) => setWeatherData({ ...weatherData, tmdMax: Number(e.target.value) })} placeholder="Đến" />
-              </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-500">tº Mặt đất (°C)</label>
+            <div className="flex gap-2 items-center">
+              <Input value={weatherData.tmdMin} onChange={(e: any) => setWeatherData({ ...weatherData, tmdMin: Number(e.target.value) })} placeholder="Từ" />
+              <span className="text-slate-400 font-bold">-</span>
+              <Input value={weatherData.tmdMax} onChange={(e: any) => setWeatherData({ ...weatherData, tmdMax: Number(e.target.value) })} placeholder="Đến" />
             </div>
           </div>
         </div>

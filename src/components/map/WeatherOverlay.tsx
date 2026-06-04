@@ -12,7 +12,7 @@ export const WeatherOverlay = ({
       className="absolute top-4 right-4 z-[1000] pointer-events-none flex flex-col items-center"
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      <div className="w-[260px] aspect-square border-[2px] border-slate-900 flex flex-col justify-between p-3">
+      <div className="w-[260px] aspect-square border-[4px] border-slate-900 flex flex-col justify-between p-3">
         <div
           className="font-bold text-2xl tracking-widest text-center text-slate-900 drop-shadow-md"
           style={{
@@ -20,7 +20,12 @@ export const WeatherOverlay = ({
               "1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff",
           }}
         >
-          {weatherData.season.toUpperCase()}
+          {weatherData.combatTime
+            ? (() => {
+                const [d, m, y] = weatherData.combatTime.split('.');
+                return `${m}.${d}.${y}`;
+              })()
+            : '--.--.--'}
         </div>
 
         <div className="flex-1 relative flex items-center justify-center my-2">

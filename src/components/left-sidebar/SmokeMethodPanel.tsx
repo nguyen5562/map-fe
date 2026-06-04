@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { Route } from "lucide-react";
-import { Input } from "../ui/Input";
 
 type SmokeMethodData = {
   lineType: "Thẳng" | "Vòng";
   areaEnabled: boolean;
-  area: string;
 };
 
 export const SmokeMethodPanel = ({
   isCalibrated,
   smokeMethodData,
   setSmokeMethodData,
+  targetDefenseData,
 }: {
   isCalibrated: boolean;
   smokeMethodData: SmokeMethodData;
   setSmokeMethodData: (data: SmokeMethodData) => void;
+  targetDefenseData: any;
 }) => {
   const [showPanel, setShowPanel] = useState(true);
 
@@ -32,7 +32,7 @@ export const SmokeMethodPanel = ({
         <div className="flex items-center gap-2">
           <Route size={18} className="text-teal-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            5. Phương pháp phát khói
+            6. Phương pháp phát khói
           </h2>
         </div>
         <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
@@ -99,26 +99,20 @@ export const SmokeMethodPanel = ({
                 ></div>
               </button>
             </div>
-            {smokeMethodData.areaEnabled && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 whitespace-nowrap">
-                  Diện tích
-                </span>
-                <Input
-                  value={smokeMethodData.area}
-                  onChange={(e: any) =>
-                    setSmokeMethodData({
-                      ...smokeMethodData,
-                      area: e.target.value,
-                    })
-                  }
-                  placeholder="Diện tích"
-                />
-                <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
-                  m²
-                </span>
-              </div>
-            )}
+            {smokeMethodData.areaEnabled && (() => {
+              const base = parseFloat(targetDefenseData?.area || '0');
+              const mult = parseFloat(targetDefenseData?.coverageMultiplier || '1');
+              const computed = isNaN(base) || isNaN(mult) ? null : base * mult;
+              return (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-slate-500 whitespace-nowrap">Diện tích</span>
+                  <div className="flex-1 h-9 flex items-center px-3 rounded-md border border-slate-200 bg-slate-50 text-sm font-bold text-teal-700">
+                    {computed !== null ? computed.toLocaleString('vi-VN') : <span className="text-slate-400 font-normal">Chưa có dữ liệu mục 2</span>}
+                  </div>
+                  <span className="text-sm text-slate-500 font-medium whitespace-nowrap">m²</span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

@@ -4,9 +4,10 @@ export const Input = ({
   placeholder,
   className = "",
   disabled = false,
+  type = "number",
 }: any) => (
   <input
-    type="number"
+    type={type}
     value={value}
     onChange={onChange}
     placeholder={placeholder}

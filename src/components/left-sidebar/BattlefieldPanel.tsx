@@ -64,7 +64,7 @@ export const BattlefieldPanel = ({
         <div className="flex items-center gap-2">
           <Layers size={18} className="text-rose-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            7. Thành phần, cấu trúc trận địa khói
+            8. Thành phần, cấu trúc trận địa khói
           </h2>
         </div>
         <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>

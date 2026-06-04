@@ -26,7 +26,7 @@ export const SmokeTimePanel = ({
         <div className="flex items-center gap-2">
           <Clock size={18} className="text-violet-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            4. Thời gian thả khói
+            5. Thời gian thả khói
           </h2>
         </div>
         <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>

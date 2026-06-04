@@ -103,7 +103,7 @@ export default function MapSimulation() {
   const [searchX, setSearchX] = useState("");
   const [searchY, setSearchY] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
 
   // Target Defense State (Mục 2)
   const [targetDefenseData, setTargetDefenseData] = useState({
@@ -119,7 +119,6 @@ export default function MapSimulation() {
   const [smokeMethodData, setSmokeMethodData] = useState({
     lineType: "Thẳng" as "Thẳng" | "Vòng",
     areaEnabled: false,
-    area: "",
   });
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
 
@@ -134,7 +133,7 @@ export default function MapSimulation() {
   // Weather State
   const [weatherActive, setWeatherActive] = useState(false);
   const [weatherData, setWeatherData] = useState({
-    season: "MÙA HÈ",
+    combatTime: '01.05.26',
     windDirection: "Tây Bắc",
     alpha: 0,
     speed: 5,
@@ -213,6 +212,22 @@ export default function MapSimulation() {
   const handleUpload = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
+    setIsUploading(true);
+    setUploadProgress(0);
+    try {
+      const newMap = await mapService.uploadMap(file, (percent) => {
+        setUploadProgress(percent);
+      });
+      setCurrentMap(newMap);
+      fetchMaps();
+    } catch (e) {
+      alert("Upload thất bại");
+    }
+    setIsUploading(false);
+    setUploadProgress(0);
+  };
+
+  const handleUploadFile = async (file: File) => {
     setIsUploading(true);
     setUploadProgress(0);
     try {
@@ -348,6 +363,7 @@ export default function MapSimulation() {
         isUploading={isUploading}
         uploadProgress={uploadProgress}
         handleUpload={handleUpload}
+        handleUploadFile={handleUploadFile}
         isCalibrated={isCalibrated}
         setIsCalibrated={setIsCalibrated}
         showCalibration={showCalibration}

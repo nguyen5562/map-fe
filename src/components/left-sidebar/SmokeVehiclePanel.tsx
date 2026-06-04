@@ -6,7 +6,7 @@ const VEHICLES = [
   { id: "TPK", name: "TPK", desc: "Thùng thả khói" },
   { id: "KH-1", name: "KH-1", desc: "Xe thả khói" },
   { id: "TDA-M", name: "TDA-M", desc: "Xe thả khói" },
-  { id: "UNG_DUNG", name: "ỨNG DỤNG", desc: "Ứng dụng khác" },
+  { id: "KHOI_UNG_DUNG", name: "KHÓI ỨNG DỤNG", desc: "Khói ứng dụng" },
 ];
 
 export const SmokeVehiclePanel = ({
@@ -41,7 +41,7 @@ export const SmokeVehiclePanel = ({
         <div className="flex items-center gap-2">
           <Truck size={18} className="text-orange-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            6. Lựa chọn phương tiện thả khói
+            7. Lựa chọn phương tiện thả khói
           </h2>
         </div>
         <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
