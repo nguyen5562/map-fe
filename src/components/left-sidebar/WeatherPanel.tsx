@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Wind } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -21,6 +22,8 @@ export const WeatherPanel = ({
   weatherData, setWeatherData
 }: any) => {
   const selectedDir = DIRECTIONS.find(d => d.name === weatherData.windDirection) || DIRECTIONS[0];
+  const secondaryDir = DIRECTIONS.find(d => d.name === weatherData.secondaryWindDirection) || null;
+  const [activeWindTab, setActiveWindTab] = useState<'primary' | 'secondary'>('primary');
 
   return (
     <div className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${!isCalibrated ? 'opacity-30 pointer-events-none' : ''}`}>
@@ -56,7 +59,49 @@ export const WeatherPanel = ({
 
           {/* Wind Direction Compass */}
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-2 block">Hướng gió chính</label>
+            <label className="text-xs font-semibold text-slate-500 mb-2 block">Hướng gió</label>
+
+            {/* TAB SELECTOR FOR WIND DIRECTION */}
+            <div className="flex gap-2 mb-3 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setActiveWindTab("primary")}
+                className={`flex-1 py-1 px-2 rounded-md text-xs font-bold transition-all duration-200 ${
+                  activeWindTab === "primary"
+                    ? "bg-white text-blue-700 shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
+                }`}
+              >
+                Gió chính ({selectedDir.short})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveWindTab("secondary")}
+                className={`flex-1 py-1 px-2 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                  activeWindTab === "secondary"
+                    ? "bg-white text-amber-700 shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
+                }`}
+              >
+                <span>Gió phụ ({secondaryDir ? secondaryDir.short : "Chưa chọn"})</span>
+                {weatherData.secondaryWindDirection && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWeatherData({ ...weatherData, secondaryWindDirection: null });
+                      if (activeWindTab === "secondary") {
+                        setActiveWindTab("primary");
+                      }
+                    }}
+                    className="text-slate-400 hover:text-red-500 font-bold px-1 rounded hover:bg-slate-200/50"
+                    title="Hủy chọn gió phụ"
+                  >
+                    ×
+                  </span>
+                )}
+              </button>
+            </div>
+
             <div className="flex items-center gap-4">
               {/* Compass Rose */}
               <div className="relative w-[140px] h-[140px] flex-shrink-0">
@@ -71,7 +116,8 @@ export const WeatherPanel = ({
                   <line x1="25" y1="25" x2="115" y2="115" stroke="#e2e8f0" strokeWidth="0.8" strokeDasharray="3,3" />
                   <line x1="115" y1="25" x2="25" y2="115" stroke="#e2e8f0" strokeWidth="0.8" strokeDasharray="3,3" />
                 </svg>
-                {/* Wind arrow indicator - points toward selected wind direction */}
+
+                {/* Wind arrow indicator - Primary (solid blue) */}
                 <div
                   className="absolute inset-0 transition-transform duration-300 ease-out"
                   style={{ transform: `rotate(${selectedDir.angle}deg)` }}
@@ -93,23 +139,64 @@ export const WeatherPanel = ({
                   </svg>
                 </div>
 
+                {/* Wind arrow indicator - Secondary (dashed amber) */}
+                {secondaryDir && (
+                  <div
+                    className="absolute inset-0 transition-transform duration-300 ease-out"
+                    style={{ transform: `rotate(${secondaryDir.angle}deg)` }}
+                  >
+                    <svg className="absolute w-full h-full" viewBox="0 0 140 140">
+                      <polygon
+                        points="70,15 65,35 70,30 75,35"
+                        fill="#f59e0b"
+                        stroke="#d97706"
+                        strokeWidth="0.5"
+                      />
+                      <line x1="70" y1="35" x2="70" y2="85" stroke="#f59e0b" strokeWidth="2" strokeDasharray="3,3" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                )}
+
                 {/* Direction buttons */}
                 {DIRECTIONS.map((dir) => {
-                  const isSelected = dir.name === weatherData.windDirection;
+                  const isPrimary = dir.name === weatherData.windDirection;
+                  const isSecondary = dir.name === weatherData.secondaryWindDirection;
                   const rad = (dir.angle - 90) * (Math.PI / 180);
                   const radius = 62;
                   const cx = 70 + radius * Math.cos(rad);
                   const cy = 70 + radius * Math.sin(rad);
 
+                  let btnClassName = 'bg-white text-slate-500 border border-slate-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 hover:scale-105';
+                  if (isPrimary) {
+                    btnClassName = 'bg-blue-600 text-white shadow-lg shadow-blue-300/50 scale-110 ring-2 ring-blue-300';
+                  } else if (isSecondary) {
+                    btnClassName = 'bg-amber-500 text-white shadow-md shadow-amber-300/50 scale-110 border-2 border-dashed border-amber-300 ring-2 ring-amber-200';
+                  }
+
                   return (
                     <button
                       key={dir.name}
-                      onClick={() => setWeatherData({ ...weatherData, windDirection: dir.name })}
-                      className={`absolute flex items-center justify-center rounded-full text-[10px] font-bold transition-all duration-200 focus:outline-none
-                        ${isSelected
-                          ? 'w-7 h-7 bg-blue-600 text-white shadow-lg shadow-blue-300/50 scale-110 ring-2 ring-blue-300'
-                          : 'w-6 h-6 bg-white text-slate-500 border border-slate-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 hover:scale-105'
-                        }`}
+                      onClick={() => {
+                        if (activeWindTab === "primary") {
+                          setWeatherData({
+                            ...weatherData,
+                            windDirection: dir.name,
+                            secondaryWindDirection: dir.name === weatherData.secondaryWindDirection ? null : weatherData.secondaryWindDirection
+                          });
+                        } else {
+                          if (dir.name === weatherData.windDirection) {
+                            alert("Hướng gió phụ không được trùng hướng gió chính!");
+                            return;
+                          }
+                          setWeatherData({
+                            ...weatherData,
+                            secondaryWindDirection: dir.name
+                          });
+                        }
+                      }}
+                      className={`absolute flex items-center justify-center rounded-full text-[10px] font-bold transition-all duration-200 focus:outline-none w-6 h-6 ${
+                        isPrimary || isSecondary ? 'w-7 h-7' : ''
+                      } ${btnClassName}`}
                       style={{
                         left: `${cx}px`,
                         top: `${cy}px`,
@@ -125,9 +212,17 @@ export const WeatherPanel = ({
 
               {/* Direction info + alpha */}
               <div className="flex-1 space-y-3">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                  <span className="text-[10px] text-blue-500 font-medium uppercase tracking-wider">Hướng đã chọn</span>
-                  <p className="text-sm font-bold text-blue-800 mt-0.5">{selectedDir.name} ({selectedDir.angle}°)</p>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 space-y-1">
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Hướng chính</span>
+                    <p className="text-xs font-bold text-slate-700">{selectedDir.name} ({selectedDir.angle}°)</p>
+                  </div>
+                  {secondaryDir && (
+                    <div className="border-t border-slate-100 pt-1">
+                      <span className="text-[9px] text-amber-500 font-semibold uppercase tracking-wider">Hướng phụ</span>
+                      <p className="text-xs font-bold text-amber-700">{secondaryDir.name} ({secondaryDir.angle}°)</p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-500">Góc lệch α (°)</label>
@@ -136,7 +231,7 @@ export const WeatherPanel = ({
                     onChange={(e: any) => setWeatherData({ ...weatherData, alpha: Number(e.target.value) })}
                     placeholder="0"
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Lệch so với hướng chính</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Lệch so với hướng chính bắc</p>
                 </div>
                 <div className="text-[10px] text-slate-400 border-t border-slate-100 pt-2">
                   Góc tổng hợp: <span className="font-bold text-slate-600">{(selectedDir.angle + (weatherData.alpha || 0))}°</span>

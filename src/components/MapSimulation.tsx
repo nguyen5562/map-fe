@@ -135,6 +135,7 @@ export default function MapSimulation() {
   const [weatherData, setWeatherData] = useState({
     combatTime: '01.05.26',
     windDirection: "Tây Bắc",
+    secondaryWindDirection: null as string | null,
     alpha: 0,
     speed: 5,
     tkkMin: 28,
@@ -158,7 +159,15 @@ export default function MapSimulation() {
   };
   const baseDirectionAngle = DIRECTION_ANGLES[weatherData.windDirection] ?? 0;
   const computedAngle = baseDirectionAngle - 180 + weatherData.alpha;
-  const weatherDataWithAngle = { ...weatherData, angle: computedAngle };
+
+  const baseSecondaryDirectionAngle = weatherData.secondaryWindDirection ? DIRECTION_ANGLES[weatherData.secondaryWindDirection] : null;
+  const computedSecondaryAngle = baseSecondaryDirectionAngle !== null ? baseSecondaryDirectionAngle - 180 : null;
+
+  const weatherDataWithAngle = {
+    ...weatherData,
+    angle: computedAngle,
+    secondaryAngle: computedSecondaryAngle
+  };
 
   const fetchMaps = async () => {
     try {

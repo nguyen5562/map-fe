@@ -29,45 +29,150 @@ export const WeatherOverlay = ({
         </div>
 
         <div className="flex-1 relative flex items-center justify-center my-2">
-          <div
-            className="relative"
-            style={{ transform: `rotate(${weatherData.angle + 180}deg)` }}
-          >
+          <div className="relative w-[180px] h-[180px] flex items-center justify-center">
             <svg
-              width="60"
-              height="120"
-              viewBox="0 0 60 120"
+              width="180"
+              height="180"
+              viewBox="0 0 180 180"
               className="overflow-visible drop-shadow-md"
             >
-              <line
-                x1="30"
-                y1="15"
-                x2="30"
-                y2="42"
-                stroke="#0f172a"
-                strokeWidth="3"
-              />
-              <line
-                x1="30"
-                y1="78"
-                x2="30"
-                y2="105"
-                stroke="#0f172a"
-                strokeWidth="3"
-              />
-              <polygon points="30,0 20,20 30,16 40,20" fill="#0f172a" />
-              <polyline
-                points="15,120 30,105 45,120"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth="3"
-              />
+              {/* PRIMARY WIND ARROW */}
+              <g
+                style={{
+                  transform: `rotate(${weatherData.angle + 180}deg)`,
+                  transformOrigin: "90px 90px",
+                }}
+              >
+                <line
+                  x1="90"
+                  y1="25"
+                  x2="90"
+                  y2="70"
+                  stroke="#0f172a"
+                  strokeWidth="3"
+                />
+                <line
+                  x1="90"
+                  y1="110"
+                  x2="90"
+                  y2="155"
+                  stroke="#0f172a"
+                  strokeWidth="3"
+                />
+                <polygon points="90,10 80,30 90,26 100,30" fill="#0f172a" />
+                <polyline
+                  points="75,170 90,155 105,170"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth="3"
+                />
+                {/* Wind speed text outline at tail */}
+                <text
+                  x="103"
+                  y="165"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fontWeight="bold"
+                  fontSize="22"
+                  textAnchor="start"
+                  transform={`rotate(${- (weatherData.angle + 180)}, 103, 165)`}
+                  style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                >
+                  {getBeaufort(weatherData.speed)}
+                </text>
+                {/* Wind speed text at tail */}
+                <text
+                  x="103"
+                  y="165"
+                  fill="#0f172a"
+                  fontWeight="bold"
+                  fontSize="22"
+                  textAnchor="start"
+                  transform={`rotate(${- (weatherData.angle + 180)}, 103, 165)`}
+                  style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                >
+                  {getBeaufort(weatherData.speed)}
+                </text>
+              </g>
+
+              {/* SECONDARY WIND ARROW (Dashed) */}
+              {weatherData.secondaryAngle !== null && (
+                <g
+                  style={{
+                    transform: `rotate(${weatherData.secondaryAngle + 180}deg)`,
+                    transformOrigin: "90px 90px",
+                  }}
+                >
+                  <line
+                    x1="90"
+                    y1="25"
+                    x2="90"
+                    y2="70"
+                    stroke="#0f172a"
+                    strokeWidth="3"
+                    strokeDasharray="5,5"
+                  />
+                  <line
+                    x1="90"
+                    y1="110"
+                    x2="90"
+                    y2="155"
+                    stroke="#0f172a"
+                    strokeWidth="3"
+                    strokeDasharray="5,5"
+                  />
+                  <polygon points="90,10 80,30 90,26 100,30" fill="#0f172a" />
+                  <polyline
+                    points="75,170 90,155 105,170"
+                    fill="none"
+                    stroke="#0f172a"
+                    strokeWidth="3"
+                    strokeDasharray="5,5"
+                  />
+                  {/* Secondary wind speed text outline at tail */}
+                  <text
+                    x="103"
+                    y="165"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fontWeight="bold"
+                    fontSize="22"
+                    textAnchor="start"
+                    transform={`rotate(${- (weatherData.secondaryAngle + 180)}, 103, 165)`}
+                    style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                  >
+                    {getBeaufort(weatherData.speed)}
+                  </text>
+                  {/* Secondary wind speed text at tail */}
+                  <text
+                    x="103"
+                    y="165"
+                    fill="#0f172a"
+                    fontWeight="bold"
+                    fontSize="22"
+                    textAnchor="start"
+                    transform={`rotate(${- (weatherData.secondaryAngle + 180)}, 103, 165)`}
+                    style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                  >
+                    {getBeaufort(weatherData.speed)}
+                  </text>
+                </g>
+              )}
             </svg>
 
+            {/* Center Circle */}
             <div
-              className="absolute top-1/2 left-1/2 w-9 h-9 rounded-full border-[3px] border-slate-900 bg-transparent flex items-center justify-center shadow-inner"
+              className="absolute w-9 h-9 rounded-full border-[3px] border-slate-900 bg-white flex items-center justify-center shadow-inner"
               style={{
-                transform: `translate(-50%, -50%) rotate(-${weatherData.angle + 180}deg)`,
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
               }}
             >
               <span
@@ -80,17 +185,6 @@ export const WeatherOverlay = ({
               >
                 {weatherData.speed}
               </span>
-            </div>
-
-            <div
-              className="absolute -bottom-1 left-[40px] font-bold text-2xl text-slate-900 drop-shadow-md"
-              style={{
-                transform: `rotate(-${weatherData.angle + 180}deg)`,
-                textShadow:
-                  "1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff",
-              }}
-            >
-              {getBeaufort(weatherData.speed)}
             </div>
           </div>
         </div>
