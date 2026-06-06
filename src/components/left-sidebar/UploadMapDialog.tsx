@@ -3,7 +3,6 @@ import {
   UploadCloud,
   X,
   FileImage,
-  CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 
@@ -25,13 +24,11 @@ export function UploadMapDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadDone, setUploadDone] = useState(false);
 
   // Reset state khi mở lại dialog
   useEffect(() => {
     if (isOpen) {
       setSelectedFile(null);
-      setUploadDone(false);
     }
   }, [isOpen]);
 
