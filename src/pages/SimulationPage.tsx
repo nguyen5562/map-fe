@@ -29,11 +29,11 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 import { mapService } from "../services/map.service";
 import { BASE_URL } from "../const/apiConfig";
-import { WeatherOverlay, GasMarker } from "./map";
-import { LeftSidebar } from "./left-sidebar";
-import { RightSidebar } from "./right-sidebar";
-import type { SmokeTimeRange } from "./left-sidebar/SmokeTimePanel";
-import type { BattlefieldData } from "./left-sidebar/BattlefieldPanel";
+import { WeatherOverlay, GasMarker } from "../components/map";
+import { LeftSidebar } from "../components/left-sidebar";
+import { RightSidebar } from "../components/right-sidebar";
+import type { SmokeTimeRange } from "../components/left-sidebar/SmokeTimePanel";
+import type { BattlefieldData } from "../components/left-sidebar/BattlefieldPanel";
 
 function ClickHandler({
   onMapClick,
@@ -73,7 +73,7 @@ type CalibrationPoint = {
   realY: string;
 };
 
-export default function MapSimulation() {
+export default function SimulationPage() {
   const [maps, setMaps] = useState<any[]>([]);
   const [currentMap, setCurrentMap] = useState<any | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -369,7 +369,7 @@ export default function MapSimulation() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
+    <div className="flex h-full bg-slate-50 font-sans text-slate-900 overflow-hidden">
       {/* LEFT SIDEBAR — Thông số đầu vào */}
       <LeftSidebar
         isSidebarOpen={isSidebarOpen}
