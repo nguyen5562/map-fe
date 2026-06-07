@@ -5,8 +5,10 @@ import {
   MapPinned,
   ChevronLeft,
   ChevronRight,
+  Calculator,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import type { SmokeTimeRange } from "./SmokeTimePanel";
 import { CalibrationPanel } from "./CalibrationPanel";
 import { TargetDefensePanel } from "./TargetDefensePanel";
 import { WeatherPanel } from "./WeatherPanel";
@@ -57,8 +59,8 @@ type LeftSidebarProps = {
   setWeatherData: (v: any) => void;
 
   // Smoke Time (Mục 4)
-  smokeTime: string;
-  setSmokeTime: (v: string) => void;
+  smokeTime: SmokeTimeRange;
+  setSmokeTime: (v: SmokeTimeRange) => void;
 
   // Smoke Method (Mục 5)
   smokeMethodData: any;
@@ -331,8 +333,22 @@ export const LeftSidebar = ({
             isCalibrated={isCalibrated}
             battlefieldData={battlefieldData}
             setBattlefieldData={setBattlefieldData}
-            onCalculate={onCalculate}
           />
+
+          {/* TÍNH TOÁN — standalone, ngoài panel */}
+          <button
+            onClick={onCalculate}
+            disabled={!isCalibrated}
+            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: "linear-gradient(135deg, #dc2626, #ef4444)",
+              color: "#ffffff",
+              boxShadow: "0 4px 14px rgba(220,38,38,0.4)",
+            }}
+          >
+            <Calculator size={18} />
+            TÍNH TOÁN
+          </button>
         </div>
       </div>
 

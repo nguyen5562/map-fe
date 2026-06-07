@@ -83,12 +83,12 @@ export const WeatherPanel = ({
                     : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
                 }`}
               >
-                <span>Gió phụ ({secondaryDir ? secondaryDir.short : "Chưa chọn"})</span>
+                <span>Gió phụ ({secondaryDir ? secondaryDir.short : "T"})</span>
                 {weatherData.secondaryWindDirection && (
                   <span
                     onClick={(e) => {
                       e.stopPropagation();
-                      setWeatherData({ ...weatherData, secondaryWindDirection: null });
+                      setWeatherData({ ...weatherData, secondaryWindDirection: null, secondaryWindAngle: null });
                       if (activeWindTab === "secondary") {
                         setActiveWindTab("primary");
                       }
@@ -181,7 +181,9 @@ export const WeatherPanel = ({
                           setWeatherData({
                             ...weatherData,
                             windDirection: dir.name,
-                            secondaryWindDirection: dir.name === weatherData.secondaryWindDirection ? null : weatherData.secondaryWindDirection
+                            windAngle: dir.angle,          // lưu angle để tính toán
+                            secondaryWindDirection: dir.name === weatherData.secondaryWindDirection ? null : weatherData.secondaryWindDirection,
+                            secondaryWindAngle: dir.name === weatherData.secondaryWindDirection ? null : weatherData.secondaryWindAngle,
                           });
                         } else {
                           if (dir.name === weatherData.windDirection) {
@@ -190,7 +192,8 @@ export const WeatherPanel = ({
                           }
                           setWeatherData({
                             ...weatherData,
-                            secondaryWindDirection: dir.name
+                            secondaryWindDirection: dir.name,
+                            secondaryWindAngle: dir.angle,  // lưu angle để tính toán
                           });
                         }
                       }}

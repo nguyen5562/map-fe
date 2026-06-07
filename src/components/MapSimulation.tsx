@@ -32,6 +32,8 @@ import { BASE_URL } from "../const/apiConfig";
 import { WeatherOverlay, GasMarker } from "./map";
 import { LeftSidebar } from "./left-sidebar";
 import { RightSidebar } from "./right-sidebar";
+import type { SmokeTimeRange } from "./left-sidebar/SmokeTimePanel";
+import type { BattlefieldData } from "./left-sidebar/BattlefieldPanel";
 
 function ClickHandler({
   onMapClick,
@@ -115,7 +117,9 @@ export default function MapSimulation() {
   });
 
   // Smoke Config State (Mục 4, 5, 6)
-  const [smokeTime, setSmokeTime] = useState("");
+  const [smokeTime, setSmokeTime] = useState<SmokeTimeRange>({
+    fromH: "", fromM: "", toH: "", toM: "",
+  });
   const [smokeMethodData, setSmokeMethodData] = useState({
     lineType: "Thẳng" as "Thẳng" | "Vòng",
     areaEnabled: false,
@@ -123,11 +127,11 @@ export default function MapSimulation() {
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
 
   // Battlefield Structure State (Mục 7)
-  const [battlefieldData, setBattlefieldData] = useState({
+  const [battlefieldData, setBattlefieldData] = useState<BattlefieldData>({
     routes: "",
-    firePoints: "",
-    commandPost: "",
-    reserveUnit: "",
+    firePoints: { distance: "", direction: "Bắc" },
+    commandPost: { distance: "", direction: "Bắc" },
+    reserveUnit: { distance: "", direction: "Bắc" },
   });
 
   // Weather State
@@ -135,9 +139,12 @@ export default function MapSimulation() {
   const [weatherData, setWeatherData] = useState({
     combatTime: '01.05.26',
     windDirection: "Tây Bắc",
-    secondaryWindDirection: null as string | null,
+    windAngle: 315,              // angle (°) of primary wind — dùng để tính toán
+    secondaryWindDirection: "Tây" as string | null,
+    secondaryWindAngle: 270 as number | null,  // angle (°) of secondary wind
     alpha: 0,
     speed: 5,
+    rainfall: 50,               // Lượng mây mặc định (%)
     tkkMin: 28,
     tkkMax: 35,
     tmdMin: 30,
@@ -157,10 +164,11 @@ export default function MapSimulation() {
     Tây: 270,
     "Tây Bắc": 315,
   };
-  const baseDirectionAngle = DIRECTION_ANGLES[weatherData.windDirection] ?? 0;
+  // Ưu tiên dùng windAngle đã lưu sẵn (số), fallback sang lookup tên nếu cần
+  const baseDirectionAngle = weatherData.windAngle ?? (DIRECTION_ANGLES[weatherData.windDirection] ?? 0);
   const computedAngle = baseDirectionAngle - 180 + weatherData.alpha;
 
-  const baseSecondaryDirectionAngle = weatherData.secondaryWindDirection ? DIRECTION_ANGLES[weatherData.secondaryWindDirection] : null;
+  const baseSecondaryDirectionAngle = weatherData.secondaryWindAngle ?? (weatherData.secondaryWindDirection ? DIRECTION_ANGLES[weatherData.secondaryWindDirection] : null);
   const computedSecondaryAngle = baseSecondaryDirectionAngle !== null ? baseSecondaryDirectionAngle - 180 : null;
 
   const weatherDataWithAngle = {

@@ -1,6 +1,16 @@
-import { useState, useEffect } from "react";
-import { Shield } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Shield, ChevronDown } from "lucide-react";
 import { Input } from "../ui/Input";
+
+const TARGET_TYPES = [
+  "Trận địa hỏa lực",
+  "Sở chỉ huy",
+  "Kho tàng",
+  "Cầu đường",
+  "Bến vượt",
+  "Trận địa tên lửa",
+  "Đội hình hành quân",
+];
 
 type TargetDefenseData = {
   targetType: string;
@@ -20,18 +30,39 @@ export const TargetDefensePanel = ({
   setTargetDefenseData: (data: TargetDefenseData) => void;
 }) => {
   const [showPanel, setShowPanel] = useState(true);
+  const [comboOpen, setComboOpen] = useState(false);
+  const [comboInput, setComboInput] = useState(targetDefenseData.targetType);
+  const comboRef = useRef<HTMLDivElement>(null);
 
-  // Auto-calculate area when length and width change
+  // Sync comboInput when targetType changes externally
   useEffect(() => {
-    const l = parseFloat(targetDefenseData.length);
-    const w = parseFloat(targetDefenseData.width);
-    if (!isNaN(l) && !isNaN(w) && l > 0 && w > 0) {
-      setTargetDefenseData({
-        ...targetDefenseData,
-        area: (l * w).toFixed(0),
-      });
-    }
-  }, [targetDefenseData.length, targetDefenseData.width]);
+    setComboInput(targetDefenseData.targetType);
+  }, [targetDefenseData.targetType]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (comboRef.current && !comboRef.current.contains(e.target as Node)) {
+        setComboOpen(false);
+        // Commit whatever was typed
+        setTargetDefenseData({ ...targetDefenseData, targetType: comboInput });
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [comboInput, targetDefenseData]);
+
+  const filteredOptions = TARGET_TYPES.filter((t) =>
+    t.toLowerCase().includes(comboInput.toLowerCase())
+  );
+
+  const handleSelect = (value: string) => {
+    setComboInput(value);
+    setTargetDefenseData({ ...targetDefenseData, targetType: value });
+    setComboOpen(false);
+  };
+
+
 
   return (
     <div
@@ -55,30 +86,48 @@ export const TargetDefensePanel = ({
 
       {showPanel && (
         <div className="space-y-3 mt-2">
-          {/* Mục tiêu bảo vệ */}
-          <div>
+          {/* Mục tiêu bảo vệ — Combobox */}
+          <div ref={comboRef}>
             <label className="text-xs font-semibold text-slate-500">
               Mục tiêu bảo vệ
             </label>
-            <select
-              value={targetDefenseData.targetType}
-              onChange={(e) =>
-                setTargetDefenseData({
-                  ...targetDefenseData,
-                  targetType: e.target.value,
-                })
-              }
-              className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold mt-1"
-            >
-              <option value="Trận địa hỏa lực">Trận địa hỏa lực</option>
-              <option value="Sở chỉ huy">Sở chỉ huy</option>
-              <option value="Kho tàng">Kho tàng</option>
-              <option value="Cầu đường">Cầu đường</option>
-              <option value="Bến vượt">Bến vượt</option>
-              <option value="Trận địa tên lửa">Trận địa tên lửa</option>
-              <option value="Đội hình hành quân">Đội hình hành quân</option>
-              <option value="Khác">Khác</option>
-            </select>
+            <div className="relative mt-1">
+              <input
+                type="text"
+                value={comboInput}
+                onChange={(e) => {
+                  setComboInput(e.target.value);
+                  setTargetDefenseData({ ...targetDefenseData, targetType: e.target.value });
+                  setComboOpen(true);
+                }}
+                onFocus={() => setComboOpen(true)}
+                placeholder="Chọn hoặc nhập tên mục tiêu..."
+                className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setComboOpen((o) => !o)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <ChevronDown size={15} className={`transition-transform ${comboOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {comboOpen && filteredOptions.length > 0 && (
+                <ul className="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white shadow-lg max-h-52 overflow-auto text-sm">
+                  {filteredOptions.map((opt) => (
+                    <li
+                      key={opt}
+                      onMouseDown={() => handleSelect(opt)}
+                      className={`px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-blue-700 ${
+                        comboInput === opt ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-700"
+                      }`}
+                    >
+                      {opt}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           {/* Chiều dài & Chiều rộng */}
@@ -130,9 +179,7 @@ export const TargetDefensePanel = ({
               }
               placeholder="Diện tích mục tiêu"
             />
-            <p className="text-[10px] text-slate-400 mt-1">
-              Tự tính = Dài × Rộng, hoặc nhập thủ công
-            </p>
+
           </div>
 
           {/* Yêu cầu diện tích màn khói cần bao phủ */}

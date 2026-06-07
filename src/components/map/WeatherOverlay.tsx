@@ -1,5 +1,11 @@
 import { getBeaufort, getStability, renderTemp } from "../../utils/weather";
 
+const UTM_FONT = "'UTM Helvetins', 'Times New Roman', Times, serif";
+
+// ── Kích thước ô vuông ──────────────────────────────────────────────────────
+const SIZE = 280;   // px — width = height
+const BORDER = 6;   // px — độ dày viền
+
 export const WeatherOverlay = ({
   weatherActive,
   currentMapStatus,
@@ -7,216 +13,160 @@ export const WeatherOverlay = ({
 }: any) => {
   if (!weatherActive || currentMapStatus !== "ready") return null;
 
+  // SVG diagram geometry
+  const svgSize = 160;
+  const cx = svgSize / 2;   // 80
+  const cy = svgSize / 2;   // 80
+
+  const ArrowHead = () => (
+    <polygon points={`${cx},4 ${cx - 10},24 ${cx + 10},24`} fill="#0f172a" />
+  );
+
+  const ArrowTail = () => (
+    <polyline
+      points={`${cx - 12},148 ${cx},136 ${cx + 12},148`}
+      fill="none"
+      stroke="#0f172a"
+      strokeWidth="4"
+    />
+  );
+
+  const beaufortText = (angle: number, speed: number) => (
+    <>
+      <text
+        x={cx + 11} y={142}
+        fill="none" stroke="#ffffff" strokeWidth="3.5"
+        strokeLinecap="round" strokeLinejoin="round"
+        fontWeight="bold" fontSize="18" textAnchor="start"
+        transform={`rotate(${-angle}, ${cx + 11}, 142)`}
+        style={{ fontFamily: UTM_FONT }}
+      >{getBeaufort(speed)}</text>
+      <text
+        x={cx + 11} y={142}
+        fill="#0f172a" fontWeight="bold" fontSize="18" textAnchor="start"
+        transform={`rotate(${-angle}, ${cx + 11}, 142)`}
+        style={{ fontFamily: UTM_FONT }}
+      >{getBeaufort(speed)}</text>
+    </>
+  );
+
+  const rotAngle = weatherData.angle + 180;
+  const secAngle = weatherData.secondaryAngle !== null
+    ? weatherData.secondaryAngle + 180
+    : null;
+
+  const tkkStr = renderTemp(weatherData.tkkMin, weatherData.tkkMax);
+  const tmdStr = renderTemp(weatherData.tmdMin, weatherData.tmdMax);
+  const stability = getStability(
+    weatherData.tkkMin, weatherData.tkkMax,
+    weatherData.tmdMin, weatherData.tmdMax,
+  );
+  const dateStr = weatherData.combatTime
+    ? (() => { const [d, m, y] = weatherData.combatTime.split("."); return `${m}.${d}.${y}`; })()
+    : "--.--.--";
+
   return (
     <div
-      className="absolute top-4 right-4 z-[1000] pointer-events-none flex flex-col items-center"
-      style={{ fontFamily: "'Times New Roman', Times, serif" }}
+      style={{
+        position: "absolute",
+        top: 16,
+        right: 16,
+        zIndex: 1000,
+        pointerEvents: "none",
+        width: SIZE,
+        height: SIZE,
+        border: `${BORDER}px solid #0f172a`,
+        borderRadius: 0,
+        background: "transparent",
+        boxSizing: "border-box",
+        overflow: "visible",
+      }}
     >
-      <div className="w-[260px] aspect-square border-[4px] border-slate-900 flex flex-col justify-between p-3">
-        <div
-          className="font-bold text-2xl tracking-widest text-center text-slate-900 drop-shadow-md"
-          style={{
-            textShadow:
-              "1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff",
-          }}
+      {/* ── Ngày tháng ── */}
+      <div style={{
+        position: "absolute",
+        top: 10,
+        left: 0, right: 0,
+        textAlign: "center",
+        fontFamily: UTM_FONT,
+        fontWeight: "bold",
+        fontSize: 20,
+        letterSpacing: 2,
+        color: "#0f172a",
+        textShadow: "1px 1px 0 #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff",
+      }}>
+        {dateStr}
+      </div>
+
+      {/* ── Sơ đồ gió ── */}
+      <div style={{
+        position: "absolute",
+        top: 40,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: svgSize,
+        height: svgSize,
+      }}>
+        <svg
+          width={svgSize}
+          height={svgSize}
+          viewBox={`0 0 ${svgSize} ${svgSize}`}
+          style={{ overflow: "visible" }}
         >
-          {weatherData.combatTime
-            ? (() => {
-                const [d, m, y] = weatherData.combatTime.split('.');
-                return `${m}.${d}.${y}`;
-              })()
-            : '--.--.--'}
-        </div>
+          {/* PRIMARY */}
+          <g style={{ transform: `rotate(${rotAngle}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
+            <line x1={cx} y1={24} x2={cx} y2={62} stroke="#0f172a" strokeWidth="4" />
+            <line x1={cx} y1={98} x2={cx} y2={136} stroke="#0f172a" strokeWidth="4" />
+            <ArrowHead />
+            <ArrowTail />
+            {beaufortText(rotAngle, weatherData.speed)}
+          </g>
 
-        <div className="flex-1 relative flex items-center justify-center my-2">
-          <div className="relative w-[180px] h-[180px] flex items-center justify-center">
-            <svg
-              width="180"
-              height="180"
-              viewBox="0 0 180 180"
-              className="overflow-visible drop-shadow-md"
-            >
-              {/* PRIMARY WIND ARROW */}
-              <g
-                style={{
-                  transform: `rotate(${weatherData.angle + 180}deg)`,
-                  transformOrigin: "90px 90px",
-                }}
-              >
-                <line
-                  x1="90"
-                  y1="25"
-                  x2="90"
-                  y2="70"
-                  stroke="#0f172a"
-                  strokeWidth="3"
-                />
-                <line
-                  x1="90"
-                  y1="110"
-                  x2="90"
-                  y2="155"
-                  stroke="#0f172a"
-                  strokeWidth="3"
-                />
-                <polygon points="90,10 80,30 90,26 100,30" fill="#0f172a" />
-                <polyline
-                  points="75,170 90,155 105,170"
-                  fill="none"
-                  stroke="#0f172a"
-                  strokeWidth="3"
-                />
-                {/* Wind speed text outline at tail */}
-                <text
-                  x="103"
-                  y="165"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fontWeight="bold"
-                  fontSize="22"
-                  textAnchor="start"
-                  transform={`rotate(${- (weatherData.angle + 180)}, 103, 165)`}
-                  style={{ fontFamily: "'Times New Roman', Times, serif" }}
-                >
-                  {getBeaufort(weatherData.speed)}
-                </text>
-                {/* Wind speed text at tail */}
-                <text
-                  x="103"
-                  y="165"
-                  fill="#0f172a"
-                  fontWeight="bold"
-                  fontSize="22"
-                  textAnchor="start"
-                  transform={`rotate(${- (weatherData.angle + 180)}, 103, 165)`}
-                  style={{ fontFamily: "'Times New Roman', Times, serif" }}
-                >
-                  {getBeaufort(weatherData.speed)}
-                </text>
-              </g>
+          {/* SECONDARY (dashed) */}
+          {secAngle !== null && (
+            <g style={{ transform: `rotate(${secAngle}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
+              <line x1={cx} y1={24} x2={cx} y2={62} stroke="#0f172a" strokeWidth="4" strokeDasharray="10,6" />
+              <line x1={cx} y1={98} x2={cx} y2={136} stroke="#0f172a" strokeWidth="4" strokeDasharray="10,6" />
+              <ArrowHead />
+              <ArrowTail />
+              {beaufortText(secAngle, weatherData.secondarySpeed ?? weatherData.speed)}
+            </g>
+          )}
 
-              {/* SECONDARY WIND ARROW (Dashed) */}
-              {weatherData.secondaryAngle !== null && (
-                <g
-                  style={{
-                    transform: `rotate(${weatherData.secondaryAngle + 180}deg)`,
-                    transformOrigin: "90px 90px",
-                  }}
-                >
-                  <line
-                    x1="90"
-                    y1="25"
-                    x2="90"
-                    y2="70"
-                    stroke="#0f172a"
-                    strokeWidth="3"
-                    strokeDasharray="5,5"
-                  />
-                  <line
-                    x1="90"
-                    y1="110"
-                    x2="90"
-                    y2="155"
-                    stroke="#0f172a"
-                    strokeWidth="3"
-                    strokeDasharray="5,5"
-                  />
-                  <polygon points="90,10 80,30 90,26 100,30" fill="#0f172a" />
-                  <polyline
-                    points="75,170 90,155 105,170"
-                    fill="none"
-                    stroke="#0f172a"
-                    strokeWidth="3"
-                    strokeDasharray="5,5"
-                  />
-                  {/* Secondary wind speed text outline at tail */}
-                  <text
-                    x="103"
-                    y="165"
-                    fill="none"
-                    stroke="#ffffff"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fontWeight="bold"
-                    fontSize="22"
-                    textAnchor="start"
-                    transform={`rotate(${- (weatherData.secondaryAngle + 180)}, 103, 165)`}
-                    style={{ fontFamily: "'Times New Roman', Times, serif" }}
-                  >
-                    {getBeaufort(weatherData.speed)}
-                  </text>
-                  {/* Secondary wind speed text at tail */}
-                  <text
-                    x="103"
-                    y="165"
-                    fill="#0f172a"
-                    fontWeight="bold"
-                    fontSize="22"
-                    textAnchor="start"
-                    transform={`rotate(${- (weatherData.secondaryAngle + 180)}, 103, 165)`}
-                    style={{ fontFamily: "'Times New Roman', Times, serif" }}
-                  >
-                    {getBeaufort(weatherData.speed)}
-                  </text>
-                </g>
-              )}
-            </svg>
+          {/* Center circle */}
+          <circle cx={cx} cy={cy} r={16} fill="white" stroke="#0f172a" strokeWidth="4" />
+          <text
+            x={cx} y={cy + 6}
+            textAnchor="middle"
+            fontWeight="bold" fontSize="16"
+            fill="#0f172a"
+            style={{ fontFamily: UTM_FONT }}
+          >{weatherData.speed}</text>
+        </svg>
+      </div>
 
-            {/* Center Circle */}
-            <div
-              className="absolute w-9 h-9 rounded-full border-[3px] border-slate-900 bg-white flex items-center justify-center shadow-inner"
-              style={{
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }}
-            >
-              <span
-                className="font-bold text-xl text-slate-900"
-                style={{
-                  lineHeight: 1,
-                  textShadow:
-                    "1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff",
-                }}
-              >
-                {weatherData.speed}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="text-left font-bold text-xl leading-tight space-y-0.5 text-slate-900 drop-shadow-md pl-1"
-          style={{
-            textShadow:
-              "1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff",
-          }}
-        >
-          <div>
-            tºkk: {renderTemp(weatherData.tkkMin, weatherData.tkkMax)}ºC
-          </div>
-          <div>
-            tºmđ: {renderTemp(weatherData.tmdMin, weatherData.tmdMax)}ºC
-          </div>
-          <div
-            className="text-center text-2xl tracking-wider mt-2 uppercase text-slate-900 drop-shadow-lg"
-            style={{
-              textShadow:
-                "1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff",
-            }}
-          >
-            {getStability(
-              weatherData.tkkMin,
-              weatherData.tkkMax,
-              weatherData.tmdMin,
-              weatherData.tmdMax,
-            )}
-          </div>
-        </div>
+      {/* ── Nhiệt độ & ổn định ── */}
+      <div style={{
+        position: "absolute",
+        bottom: 10,
+        left: 10,
+        right: 10,
+        fontFamily: UTM_FONT,
+        fontWeight: "bold",
+        fontSize: 16,
+        lineHeight: 1.6,
+        color: "#0f172a",
+        textShadow: "1px 1px 0 #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff",
+      }}>
+        <div>tºkk: {tkkStr}ºC</div>
+        <div>tºmđ: {tmdStr}ºC</div>
+        <div style={{
+          textAlign: "center",
+          fontSize: 20,
+          letterSpacing: 2,
+          marginTop: 4,
+          textTransform: "uppercase",
+        }}>{stability}</div>
       </div>
     </div>
   );

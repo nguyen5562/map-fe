@@ -67,16 +67,16 @@
 }
 
 
-/* ===== UTM HELVETINS FONT (đặt file UTMHelvetins.ttf vào /public/) ===== */
+/* ===== UTM HELVETINS FONT ===== */
 @font-face {
   font-family: 'UTM Helvetins';
-  src: url('/UTMHelvetins.ttf') format('truetype');
+  src: url('/UTMHelvetIns.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'UTM Helvetins';
-  src: url('/UTMHelvetinsBold.ttf') format('truetype');
+  src: url('/UTMHelvetIns.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
 }
@@ -89,3 +89,7 @@
   padding: 0 !important;
 }
 
+/* ===== WEATHER OVERLAY: force square corners ===== */
+.weather-overlay-box {
+  border-radius: 0 !important;
+}
