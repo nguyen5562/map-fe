@@ -369,7 +369,7 @@ export default function SimulationPage() {
   ];
 
   return (
-    <div className="flex h-full bg-slate-50 font-sans text-slate-900 overflow-hidden">
+    <div className="flex h-full overflow-hidden bg-slate-50 font-sans text-slate-900">
       {/* LEFT SIDEBAR — Thông số đầu vào */}
       <LeftSidebar
         isSidebarOpen={isSidebarOpen}

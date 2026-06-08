@@ -227,7 +227,7 @@ export const RightSidebar = ({
               title="Xuất báo cáo Word"
             >
               <FileText size={14} />
-              XUẤT FILE WORD
+              XUẤT THUYẾT MINH
             </button>
             <button
               className="flex items-center justify-center gap-1.5 h-9 rounded-md bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"

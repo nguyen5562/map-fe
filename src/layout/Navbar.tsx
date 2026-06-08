@@ -1,9 +1,9 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Map, BookOpen, LogOut, User } from 'lucide-react';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Map, BookOpen, LogOut, User } from "lucide-react";
 
 const NAV_ITEMS = [
-  { path: '/simulation', label: 'Mô phỏng', icon: Map },
-  { path: '/docs', label: 'Tài liệu', icon: BookOpen },
+  { path: "/simulation", label: "Mô phỏng", icon: Map },
+  { path: "/docs", label: "Tài liệu", icon: BookOpen },
 ];
 
 export default function Navbar() {
@@ -11,8 +11,8 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    sessionStorage.removeItem('auth');
-    navigate('/login');
+    sessionStorage.removeItem("auth");
+    navigate("/login");
   };
 
   return (
@@ -28,15 +28,16 @@ export default function Navbar() {
       {/* Nav links */}
       <div className="flex items-center gap-1">
         {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
-          const active = location.pathname === path || location.pathname.startsWith(path);
+          const active =
+            location.pathname === path || location.pathname.startsWith(path);
           return (
             <Link
               key={path}
               to={path}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 active
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/10'
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/30"
+                  : "text-slate-400 hover:text-white hover:bg-white/10"
               }`}
             >
               <Icon size={13} />

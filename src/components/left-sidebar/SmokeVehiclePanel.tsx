@@ -22,9 +22,9 @@ export const SmokeVehiclePanel = ({
 
   const toggleVehicle = (id: string) => {
     if (selectedVehicles.includes(id)) {
-      setSelectedVehicles(selectedVehicles.filter((v) => v !== id));
+      setSelectedVehicles([]);
     } else {
-      setSelectedVehicles([...selectedVehicles, id]);
+      setSelectedVehicles([id]);
     }
   };
 
@@ -70,7 +70,7 @@ export const SmokeVehiclePanel = ({
           </div>
           {selectedVehicles.length > 0 && (
             <p className="text-[10px] text-slate-400 mt-2">
-              Đã chọn: {selectedVehicles.length} phương tiện
+              Đã chọn: {VEHICLES.find((v) => v.id === selectedVehicles[0])?.desc} ({VEHICLES.find((v) => v.id === selectedVehicles[0])?.name})
             </p>
           )}
         </div>
