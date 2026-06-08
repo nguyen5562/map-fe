@@ -18,7 +18,7 @@ export const TargetPanel = ({
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <Target size={18} className="text-slate-600" />
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-          3. Tìm điểm mục tiêu
+          3. Chọn vị trí trận địa khói
         </h2>
       </div>
 

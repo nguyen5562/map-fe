@@ -25,3 +25,5 @@ dist-ssr
 
 .env
 public/demo_wind.jpg
+.agents
+skills-lock.json

@@ -121,7 +121,7 @@ const SECTIONS: Section[] = [
     id: "lectures",
     roman: "II",
     title: "Bài giảng & Tài liệu huấn luyện",
-    subtitle: "Trường Sĩ quan Phòng hóa — Bộ môn Khí tài & Trang bị",
+    subtitle: "Trường Sĩ quan Phòng hóa — Khoa Chiến thuật",
     icon: <GraduationCap size={20} className="text-violet-500" />,
     accent: "violet",
     items: [

@@ -80,7 +80,6 @@ export default function SimulationPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const [clickedRaw, setClickedRaw] = useState<L.LatLng | null>(null);
-  const [targetRaw, setTargetRaw] = useState<L.LatLng | null>(null);
 
   const [isCalibrated, setIsCalibrated] = useState(false);
   const [showCalibration, setShowCalibration] = useState(true);
@@ -106,6 +105,11 @@ export default function SimulationPage() {
   const [searchY, setSearchY] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+
+  const [pointsList, setPointsList] = useState<any[]>([]);
+  const [results, setResults] = useState<any | null>(null);
+  const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
+  const [mapFlyCenter, setMapFlyCenter] = useState<L.LatLng | null>(null);
 
   // Target Defense State (Mục 2)
   const [targetDefenseData, setTargetDefenseData] = useState({
@@ -203,7 +207,6 @@ export default function SimulationPage() {
       setScale({ x: 1, y: 1 });
     }
     setClickedRaw(null);
-    setTargetRaw(null);
   }, [currentMap?.id]);
 
   useEffect(() => {
@@ -349,7 +352,8 @@ export default function SimulationPage() {
           );
         }
 
-        setTargetRaw(rawTarget);
+        setClickedRaw(rawTarget);
+        setMapFlyCenter(rawTarget);
       }
     }
   };
@@ -357,6 +361,206 @@ export default function SimulationPage() {
   const currentRealCoords = clickedRaw
     ? rawToReal(clickedRaw.lng, clickedRaw.lat)
     : null;
+
+  const performCalculation = (inputs: {
+    targetDefenseData: any;
+    smokeMethodData: any;
+    selectedVehicles: string[];
+    battlefieldData: any;
+    weatherData: any;
+    smokeTime: any;
+  }) => {
+    const area = parseFloat(inputs.targetDefenseData.area) || 1000;
+    const coverage = parseFloat(inputs.targetDefenseData.coverageMultiplier) || 1.2;
+    const targetArea = area * coverage;
+    
+    const windSpeed = parseFloat(inputs.weatherData.speed) || 5;
+    const routesCount = parseInt(inputs.battlefieldData.routes) || 1;
+    const lineType = inputs.smokeMethodData.lineType; // "Thẳng" | "Vòng"
+    const areaEnabled = inputs.smokeMethodData.areaEnabled;
+    const vehicle = inputs.selectedVehicles[0] || "HPK-2.5";
+
+    let straightLine_vehicles = 0;
+    let straightLine_routes = 0;
+    let circularLine_vehicles = 0;
+    let circularLine_routes = 0;
+    let pointDefense_vehicles = 0;
+
+    let baseVehicles = Math.ceil(targetArea / 2000) * (windSpeed > 5 ? 2 : 1);
+    if (baseVehicles < 1) baseVehicles = 1;
+
+    if (lineType === "Thẳng") {
+      straightLine_vehicles = baseVehicles;
+      straightLine_routes = routesCount;
+    } else {
+      circularLine_vehicles = baseVehicles;
+      circularLine_routes = routesCount;
+    }
+
+    if (areaEnabled) {
+      pointDefense_vehicles = Math.ceil(targetArea / 1000);
+    }
+
+    const totalPoints = (straightLine_vehicles * straightLine_routes) + 
+                         (circularLine_vehicles * circularLine_routes) + 
+                         pointDefense_vehicles;
+
+    let kh1_fuel_lit = 0;
+    let hpk_boxes = 0;
+    let tpk_cans = 0;
+
+    if (vehicle === "KH-1" || vehicle === "TDA-M") {
+      kh1_fuel_lit = totalPoints * 120; // 120 liters
+    } else if (vehicle === "HPK-2.5" || vehicle === "KHOI_UNG_DUNG") {
+      hpk_boxes = totalPoints * 5; // 5 boxes
+    } else if (vehicle === "TPK") {
+      tpk_cans = totalPoints * 2; // 2 cans
+    }
+
+    const coverTime_min = Math.max(1, Math.round(15 - windSpeed + (areaEnabled ? 5 : 0)));
+
+    return {
+      straightLine_vehicles,
+      straightLine_routes,
+      circularLine_vehicles,
+      circularLine_routes,
+      pointDefense_vehicles,
+      kh1_fuel_lit,
+      hpk_boxes,
+      tpk_cans,
+      coverTime_min,
+    };
+  };
+
+  const onAddPoint = () => {
+    if (!isCalibrated) return alert("Bạn cần hiệu chuẩn bản đồ trước!");
+    if (!clickedRaw) return alert("Vui lòng chọn một vị trí trên bản đồ!");
+
+    const currentResults = performCalculation({
+      targetDefenseData,
+      smokeMethodData,
+      selectedVehicles,
+      battlefieldData,
+      weatherData,
+      smokeTime,
+    });
+
+    const newPoint = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: `Điểm ${pointsList.length + 1}`,
+      coords: clickedRaw,
+      realCoords: rawToReal(clickedRaw.lng, clickedRaw.lat),
+      targetDefenseData: { ...targetDefenseData },
+      smokeMethodData: { ...smokeMethodData },
+      selectedVehicles: [...selectedVehicles],
+      battlefieldData: { ...battlefieldData },
+      weatherData: { ...weatherData },
+      smokeTime: { ...smokeTime },
+      results: currentResults,
+    };
+
+    setPointsList([...pointsList, newPoint]);
+    setResults(currentResults);
+    setSelectedPointId(newPoint.id);
+    setClickedRaw(null);
+  };
+
+  const onDeletePoint = (id: string) => {
+    const updated = pointsList.filter((p) => p.id !== id);
+    setPointsList(updated);
+
+    if (updated.length === 0) {
+      setResults(null);
+      setSelectedPointId(null);
+    } else {
+      const lastPoint = updated[updated.length - 1];
+      setResults(lastPoint.results);
+      setSelectedPointId(lastPoint.id);
+    }
+  };
+
+  const onRenamePoint = (id: string, name: string) => {
+    setPointsList(pointsList.map((p) => (p.id === id ? { ...p, name } : p)));
+  };
+
+  const onSelectPoint = (id: string) => {
+    setSelectedPointId(id);
+    const point = pointsList.find((p) => p.id === id);
+    if (point) {
+      setResults(point.results);
+      setMapFlyCenter(point.coords);
+      
+      setTargetDefenseData(point.targetDefenseData);
+      setSmokeMethodData(point.smokeMethodData);
+      setSelectedVehicles(point.selectedVehicles);
+      setBattlefieldData(point.battlefieldData);
+      setWeatherData(point.weatherData);
+      setSmokeTime(point.smokeTime);
+    }
+  };
+
+  const onCalculate = () => {
+    let listToCalculate = [...pointsList];
+
+    if (clickedRaw) {
+      const activePointResults = performCalculation({
+        targetDefenseData,
+        smokeMethodData,
+        selectedVehicles,
+        battlefieldData,
+        weatherData,
+        smokeTime,
+      });
+
+      const tempActivePoint = {
+        id: "active",
+        coords: clickedRaw,
+        targetDefenseData,
+        smokeMethodData,
+        selectedVehicles,
+        battlefieldData,
+        weatherData,
+        smokeTime,
+        results: activePointResults,
+      };
+      listToCalculate.push(tempActivePoint);
+    }
+
+    if (listToCalculate.length === 0) {
+      return alert("Vui lòng chọn vị trí trên bản đồ và cấu hình rồi bấm Điểm kế tiếp hoặc Tính toán!");
+    }
+
+    const aggregatedResults = listToCalculate.reduce(
+      (acc, p) => {
+        const r = p.results;
+        return {
+          straightLine_vehicles: (acc.straightLine_vehicles || 0) + (r.straightLine_vehicles || 0),
+          straightLine_routes: (acc.straightLine_routes || 0) + (r.straightLine_routes || 0),
+          circularLine_vehicles: (acc.circularLine_vehicles || 0) + (r.circularLine_vehicles || 0),
+          circularLine_routes: (acc.circularLine_routes || 0) + (r.circularLine_routes || 0),
+          pointDefense_vehicles: (acc.pointDefense_vehicles || 0) + (r.pointDefense_vehicles || 0),
+          kh1_fuel_lit: (acc.kh1_fuel_lit || 0) + (r.kh1_fuel_lit || 0),
+          hpk_boxes: (acc.hpk_boxes || 0) + (r.hpk_boxes || 0),
+          tpk_cans: (acc.tpk_cans || 0) + (r.tpk_cans || 0),
+          coverTime_min: Math.max(acc.coverTime_min || 0, r.coverTime_min || 0),
+        };
+      },
+      {
+        straightLine_vehicles: 0,
+        straightLine_routes: 0,
+        circularLine_vehicles: 0,
+        circularLine_routes: 0,
+        pointDefense_vehicles: 0,
+        kh1_fuel_lit: 0,
+        hpk_boxes: 0,
+        tpk_cans: 0,
+        coverTime_min: 0,
+      }
+    );
+
+    setResults(aggregatedResults);
+  };
+
 
   // Calculate Map Bounds dynamically
   const mapWidth = currentMap?.width || 0;
@@ -408,10 +612,13 @@ export default function SimulationPage() {
         setSelectedVehicles={setSelectedVehicles}
         battlefieldData={battlefieldData}
         setBattlefieldData={setBattlefieldData}
-        onCalculate={() => {
-          // TODO: Implement calculation logic
-          alert("Chức năng TÍNH TOÁN đang được phát triển!");
-        }}
+        onCalculate={onCalculate}
+        pointsList={pointsList}
+        onDeletePoint={onDeletePoint}
+        onAddPoint={onAddPoint}
+        onRenamePoint={onRenamePoint}
+        selectedPointId={selectedPointId}
+        onSelectPoint={onSelectPoint}
         currentRealCoords={currentRealCoords}
         searchX={searchX}
         setSearchX={setSearchX}
@@ -451,7 +658,7 @@ export default function SimulationPage() {
             />
             <ClickHandler onMapClick={handleMapClick} />
             <MapController
-              center={targetRaw}
+              center={mapFlyCenter}
               isSidebarOpen={isSidebarOpen}
               isRightSidebarOpen={isRightSidebarOpen}
             />
@@ -480,17 +687,27 @@ export default function SimulationPage() {
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
               ))}
-            {/* Target Marker */}
-            {targetRaw &&
-              (weatherActive ? (
+
+            {/* Saved Points Markers */}
+            {pointsList.map((p, idx) => {
+              const baseDirAngle = p.weatherData.windAngle ?? (DIRECTION_ANGLES[p.weatherData.windDirection] ?? 0);
+              const compAngle = baseDirAngle - 180 + p.weatherData.alpha;
+
+              return weatherActive ? (
                 <GasMarker
-                  center={targetRaw}
-                  angle={computedAngle}
+                  key={p.id}
+                  center={p.coords}
+                  angle={compAngle}
                   scaleX={scale.x}
                 />
               ) : (
-                <Marker position={targetRaw} />
-              ))}
+                <Marker key={p.id} position={p.coords}>
+                  <Tooltip>{p.name || `Điểm ${idx + 1}`}</Tooltip>
+                </Marker>
+              );
+            })}
+
+
           </MapContainer>
         ) : currentMap?.status === "processing" ? (
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-500">
@@ -523,6 +740,7 @@ export default function SimulationPage() {
       <RightSidebar
         isOpen={isRightSidebarOpen}
         setIsOpen={setIsRightSidebarOpen}
+        results={results || undefined}
       />
     </div>
   );

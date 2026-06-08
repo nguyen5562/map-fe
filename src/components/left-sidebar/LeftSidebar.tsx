@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calculator,
+  Plus,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import type { SmokeTimeRange } from "./SmokeTimePanel";
@@ -18,6 +19,8 @@ import { SmokeVehiclePanel } from "./SmokeVehiclePanel";
 import { BattlefieldPanel } from "./BattlefieldPanel";
 import { TargetPanel } from "./TargetPanel";
 import { UploadProgressDialog } from "./UploadProgressDialog";
+import { PointsListPanel } from "./PointsListPanel";
+
 
 type LeftSidebarProps = {
   // Sidebar toggle
@@ -74,6 +77,12 @@ type LeftSidebarProps = {
   battlefieldData: any;
   setBattlefieldData: (v: any) => void;
   onCalculate: () => void;
+  pointsList: any[];
+  onDeletePoint: (id: string) => void;
+  onAddPoint: () => void;
+  onRenamePoint: (id: string, name: string) => void;
+  selectedPointId: string | null;
+  onSelectPoint: (id: string) => void;
 
   // Target / Search (Mục 8)
   currentRealCoords: { x: number; y: number } | null;
@@ -121,6 +130,12 @@ export const LeftSidebar = ({
   battlefieldData,
   setBattlefieldData,
   onCalculate,
+  pointsList,
+  onDeletePoint,
+  onAddPoint,
+  onRenamePoint,
+  selectedPointId,
+  onSelectPoint,
   currentRealCoords,
   searchX,
   setSearchX,
@@ -262,6 +277,15 @@ export const LeftSidebar = ({
         <div
           className={`p-4 flex-1 overflow-y-auto space-y-6 ${!currentMap || currentMap.status !== "ready" ? "opacity-50 pointer-events-none" : ""}`}
         >
+          {/* LIST OF SAVED POINTS */}
+          <PointsListPanel
+            pointsList={pointsList}
+            onDeletePoint={onDeletePoint}
+            onRenamePoint={onRenamePoint}
+            selectedPointId={selectedPointId}
+            onSelectPoint={onSelectPoint}
+          />
+
           {/* STEP 1: CALIBRATION */}
           <CalibrationPanel
             isCalibrated={isCalibrated}
@@ -335,20 +359,30 @@ export const LeftSidebar = ({
             setBattlefieldData={setBattlefieldData}
           />
 
-          {/* TÍNH TOÁN — standalone, ngoài panel */}
-          <button
-            onClick={onCalculate}
-            disabled={!isCalibrated}
-            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              background: "linear-gradient(135deg, #dc2626, #ef4444)",
-              color: "#ffffff",
-              boxShadow: "0 4px 14px rgba(220,38,38,0.4)",
-            }}
-          >
-            <Calculator size={18} />
-            TÍNH TOÁN
-          </button>
+          {/* ACTION BUTTONS */}
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <button
+              onClick={onAddPoint}
+              disabled={!isCalibrated || !currentRealCoords}
+              className="flex items-center justify-center gap-1.5 h-11 rounded-xl text-xs font-bold tracking-wide transition-all border border-slate-300 hover:bg-slate-50 text-slate-700 bg-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            >
+              <Plus size={16} />
+              ĐIỂM KẾ TIẾP
+            </button>
+            <button
+              onClick={onCalculate}
+              disabled={!isCalibrated || (pointsList.length === 0 && !currentRealCoords)}
+              className="flex items-center justify-center gap-1.5 h-11 rounded-xl text-xs font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: "linear-gradient(135deg, #dc2626, #ef4444)",
+                color: "#ffffff",
+                boxShadow: "0 4px 14px rgba(220,38,38,0.4)",
+              }}
+            >
+              <Calculator size={16} />
+              TÍNH TOÁN
+            </button>
+          </div>
         </div>
       </div>
 
