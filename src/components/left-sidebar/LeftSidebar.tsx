@@ -5,6 +5,7 @@ import {
   MapPinned,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Calculator,
   Plus,
 } from "lucide-react";
@@ -146,6 +147,7 @@ export const LeftSidebar = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProgress, setShowProgress] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [isMapDropdownOpen, setIsMapDropdownOpen] = useState(false);
 
   const handleFileChosen = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -195,30 +197,52 @@ export const LeftSidebar = ({
             <MapPinned size={14} /> Thư viện Bản đồ
           </h2>
 
-          {/* Dropdown chọn bản đồ */}
-          <select
-            className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-            value={currentMap?.id || ""}
-            onChange={(e) => {
-              const smap = maps.find((m) => m.id === e.target.value);
-              if (smap) setCurrentMap(smap);
-            }}
-          >
-            <option value="" disabled>
-              Chọn một bản đồ để thao tác...
-            </option>
-            {maps.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} {m.status !== "ready" ? "(Đang xử lý...)" : ""}
-              </option>
-            ))}
-          </select>
+          {/* Dropdown chọn bản đồ custom */}
+          <div className="relative mb-2">
+            <button
+              onClick={() => setIsMapDropdownOpen(!isMapDropdownOpen)}
+              className="flex h-9 w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-left transition-all"
+            >
+              <span className="truncate">
+                {currentMap?.name ? `${currentMap.name} ${currentMap.status !== "ready" ? "(Đang xử lý...)" : ""}` : "Chọn một bản đồ..."}
+              </span>
+              <ChevronDown size={14} className="text-slate-400 shrink-0 ml-1" />
+            </button>
+            
+            {isMapDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-30" 
+                  onClick={() => setIsMapDropdownOpen(false)} 
+                />
+                <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-auto rounded-lg border border-slate-250 bg-white py-1 shadow-lg z-40">
+                  {maps.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        setCurrentMap(m);
+                        setIsMapDropdownOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${
+                        currentMap?.id === m.id ? "bg-slate-50/70 font-semibold text-blue-600" : "text-slate-700"
+                      }`}
+                    >
+                      <span className="truncate">{m.name}</span>
+                      {m.status !== "ready" && (
+                        <span className="text-[10px] text-amber-500 font-medium shrink-0 ml-1">(Đang xử lý...)</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Nút Tải lên — click thẳng vào file picker */}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="w-full flex items-center justify-center gap-2 h-9 rounded-md text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
             style={{
               background: isUploading
                 ? "#e2e8f0"
@@ -227,7 +251,7 @@ export const LeftSidebar = ({
               border: "none",
               boxShadow: isUploading
                 ? "none"
-                : "0 2px 8px rgba(59,130,246,0.35)",
+                : "0 2px 8px rgba(59,130,246,0.25)",
               letterSpacing: "0.01em",
             }}
           >
@@ -359,30 +383,31 @@ export const LeftSidebar = ({
             setBattlefieldData={setBattlefieldData}
           />
 
-          {/* ACTION BUTTONS */}
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <button
-              onClick={onAddPoint}
-              disabled={!isCalibrated || !currentRealCoords}
-              className="flex items-center justify-center gap-1.5 h-11 rounded-xl text-xs font-bold tracking-wide transition-all border border-slate-300 hover:bg-slate-50 text-slate-700 bg-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-            >
-              <Plus size={16} />
-              ĐIỂM KẾ TIẾP
-            </button>
-            <button
-              onClick={onCalculate}
-              disabled={!isCalibrated || (pointsList.length === 0 && !currentRealCoords)}
-              className="flex items-center justify-center gap-1.5 h-11 rounded-xl text-xs font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                background: "linear-gradient(135deg, #dc2626, #ef4444)",
-                color: "#ffffff",
-                boxShadow: "0 4px 14px rgba(220,38,38,0.4)",
-              }}
-            >
-              <Calculator size={16} />
-              TÍNH TOÁN
-            </button>
-          </div>
+        </div>
+
+        {/* ── Sticky Action Footer ── */}
+        <div className="p-4 border-t border-slate-200 bg-slate-50/80 backdrop-blur-sm grid grid-cols-2 gap-2 shrink-0">
+          <button
+            onClick={onAddPoint}
+            disabled={!isCalibrated || !currentRealCoords}
+            className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all border border-slate-300 hover:bg-slate-105 text-slate-700 bg-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
+          >
+            <Plus size={14} />
+            ĐIỂM KẾ TIẾP
+          </button>
+          <button
+            onClick={onCalculate}
+            disabled={!isCalibrated || (pointsList.length === 0 && !currentRealCoords)}
+            className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(135deg, #dc2626, #ef4444)",
+              color: "#ffffff",
+              boxShadow: "0 3px 10px rgba(220,38,38,0.25)",
+            }}
+          >
+            <Calculator size={14} />
+            TÍNH TOÁN
+          </button>
         </div>
       </div>
 

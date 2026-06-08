@@ -57,9 +57,9 @@ export const SmokeVehiclePanel = ({
                   key={v.id}
                   onClick={() => toggleVehicle(v.id)}
                   title={v.desc}
-                  className={`px-3 h-9 rounded-lg text-sm font-bold border-2 transition-all duration-200 ${
+                  className={`px-3 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
                     isSelected
-                      ? "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-200"
+                      ? "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-200/50"
                       : "bg-white text-slate-600 border-slate-300 hover:border-orange-400 hover:text-orange-600"
                   }`}
                 >

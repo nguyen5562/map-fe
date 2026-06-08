@@ -172,7 +172,7 @@ export function UploadMapDialog({
                   marginTop: "1px",
                 }}
               >
-                Hỗ trợ PNG, JPEG — độ phân giải cao
+                Hỗ trợ PNG, JPEG, độ phân giải cao
               </p>
             </div>
           </div>

@@ -53,7 +53,7 @@ export const DatePickerInput = ({ value, onChange, placeholder = 'DD.MM.YY' }: D
         onChange={handleTextChange}
         placeholder={placeholder}
         maxLength={8}
-        className="flex h-9 w-full rounded-md border border-slate-300 bg-white pl-3 pr-10 py-1 text-sm font-semibold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+        className="flex h-9 w-full rounded-lg border border-slate-300 bg-white pl-3 pr-10 py-1 text-sm font-semibold text-slate-750 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
       />
 
       {/* Icon lịch */}

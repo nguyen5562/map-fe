@@ -91,7 +91,7 @@ export const TargetDefensePanel = ({
             <label className="text-xs font-semibold text-slate-500">
               Mục tiêu bảo vệ
             </label>
-            <div className="relative mt-1">
+            <div className="relative mt-1.5">
               <input
                 type="text"
                 value={comboInput}
@@ -102,24 +102,24 @@ export const TargetDefensePanel = ({
                 }}
                 onFocus={() => setComboOpen(true)}
                 placeholder="Chọn hoặc nhập tên mục tiêu..."
-                className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex h-9 w-full rounded-lg border border-slate-350 bg-white px-3 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all placeholder:text-slate-400"
               />
               <button
                 type="button"
                 onClick={() => setComboOpen((o) => !o)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition"
               >
-                <ChevronDown size={15} className={`transition-transform ${comboOpen ? "rotate-180" : ""}`} />
+                <ChevronDown size={14} className={`transition-transform duration-200 ${comboOpen ? "rotate-180" : ""}`} />
               </button>
 
               {comboOpen && filteredOptions.length > 0 && (
-                <ul className="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white shadow-lg max-h-52 overflow-auto text-sm">
+                <ul className="absolute z-50 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg max-h-52 overflow-auto text-sm py-1">
                   {filteredOptions.map((opt) => (
                     <li
                       key={opt}
                       onMouseDown={() => handleSelect(opt)}
-                      className={`px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-blue-700 ${
-                        comboInput === opt ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-700"
+                      className={`px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors ${
+                        comboInput === opt ? "bg-slate-50 font-semibold text-emerald-600" : "text-slate-700"
                       }`}
                     >
                       {opt}
@@ -179,11 +179,10 @@ export const TargetDefensePanel = ({
               }
               placeholder="Diện tích mục tiêu"
             />
-
           </div>
 
           {/* Yêu cầu diện tích màn khói cần bao phủ */}
-          <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-3">
+          <div className="bg-amber-50/65 border border-amber-200/80 rounded-lg p-3">
             <label className="text-xs font-semibold text-slate-600">
               Yêu cầu diện tích màn khói cần bao phủ
             </label>
@@ -203,7 +202,7 @@ export const TargetDefensePanel = ({
               </span>
             </div>
             {targetDefenseData.area && targetDefenseData.coverageMultiplier && (
-              <p className="text-xs text-amber-700 font-semibold mt-2">
+              <p className="text-xs text-amber-800 font-semibold mt-2 tabular-nums">
                 ={" "}
                 {(
                   parseFloat(targetDefenseData.area) *

@@ -57,13 +57,13 @@ const ResultRow = ({
     {icon && <span className="text-slate-400 flex-shrink-0">{icon}</span>}
     <span className="text-xs text-slate-600 leading-tight flex-1">{label}</span>
     <span
-      className={`min-w-[56px] text-right text-sm font-bold border rounded px-1.5 py-0.5 flex-shrink-0 ${
+      className={`min-w-[56px] text-right text-sm font-bold border rounded px-1.5 py-0.5 flex-shrink-0 tabular-nums ${
         highlight
           ? "border-emerald-300 bg-emerald-100 text-emerald-800"
           : "border-slate-200 bg-slate-50 text-slate-800"
       }`}
     >
-      {value ?? "—"}
+      {value ?? "-"}
     </span>
     {unit && (
       <span className="text-[10px] text-slate-400 w-16 flex-shrink-0">
@@ -222,7 +222,7 @@ export const RightSidebar = ({
         <div className="p-3 border-t border-slate-200 bg-slate-50/80 space-y-2 flex-shrink-0">
           <div className="grid grid-cols-2 gap-2">
             <button
-              className="flex items-center justify-center gap-1.5 h-9 rounded-md bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-1.5 h-9 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
               disabled={!hasResults}
               title="Xuất báo cáo Word"
             >
@@ -230,7 +230,7 @@ export const RightSidebar = ({
               XUẤT THUYẾT MINH
             </button>
             <button
-              className="flex items-center justify-center gap-1.5 h-9 rounded-md bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-1.5 h-9 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
               disabled={!hasResults}
               title="Xuất bản đồ"
             >

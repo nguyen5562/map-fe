@@ -62,11 +62,11 @@ type Section = {
 };
 
 const FILE_BADGE: Record<string, { label: string; color: string }> = {
-  pdf: { label: "PDF", color: "bg-red-100 text-red-600" },
-  video: { label: "VIDEO", color: "bg-purple-100 text-purple-600" },
-  drawing: { label: "BẢN VẼ", color: "bg-sky-100 text-sky-600" },
-  doc: { label: "DOC", color: "bg-blue-100 text-blue-600" },
-  word: { label: "DOCX", color: "bg-indigo-100 text-indigo-600" },
+  pdf: { label: "PDF", color: "bg-rose-50 text-rose-600 border border-rose-100/70" },
+  video: { label: "VIDEO", color: "bg-indigo-50 text-indigo-600 border border-indigo-100/70" },
+  drawing: { label: "BẢN VẼ", color: "bg-sky-50 text-sky-600 border border-sky-100/70" },
+  doc: { label: "DOC", color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70" },
+  word: { label: "DOCX", color: "bg-blue-50 text-blue-600 border border-blue-100/70" },
 };
 
 const SECTIONS: Section[] = [
@@ -75,7 +75,7 @@ const SECTIONS: Section[] = [
     roman: "I",
     title: "Tài liệu mật",
     subtitle:
-      "Các tài liệu nghiệp vụ kỹ thuật — Nhà xuất bản Quân đội Nhân dân Việt Nam",
+      "Các tài liệu nghiệp vụ kỹ thuật - Nhà xuất bản Quân đội Nhân dân Việt Nam",
     icon: <Shield size={20} className="text-red-500" />,
     accent: "red",
     items: [
@@ -121,7 +121,7 @@ const SECTIONS: Section[] = [
     id: "lectures",
     roman: "II",
     title: "Bài giảng & Tài liệu huấn luyện",
-    subtitle: "Trường Sĩ quan Phòng hóa — Khoa Chiến thuật",
+    subtitle: "Trường Sĩ quan Phòng hóa - Khoa Chiến thuật",
     icon: <GraduationCap size={20} className="text-violet-500" />,
     accent: "violet",
     items: [
@@ -166,13 +166,13 @@ const SECTIONS: Section[] = [
     id: "template",
     roman: "III",
     title: "Thuyết minh kế hoạch thả khói mẫu",
-    subtitle: "Tài liệu tham khảo — Mẫu xuất file Word từ hệ thống tính toán",
+    subtitle: "Tài liệu tham khảo - Mẫu xuất file Word từ hệ thống tính toán",
     icon: <ClipboardList size={20} className="text-amber-500" />,
     accent: "amber",
     items: [
       {
         title: "Thuyết minh kế hoạch thả khói bảo vệ mục tiêu (mẫu)",
-        desc: "Tài liệu đang được cập nhật — sẽ bổ sung sau.",
+        desc: "Tài liệu đang được cập nhật - sẽ bổ sung sau.",
         type: "word",
       },
     ],
@@ -187,7 +187,7 @@ const SECTIONS: Section[] = [
     items: [
       {
         title: "Hướng dẫn sử dụng phần mềm mô phỏng khí tài phát khói",
-        desc: "Tài liệu đang được cập nhật — sẽ bổ sung sau.",
+        desc: "Tài liệu đang được cập nhật - sẽ bổ sung sau.",
         type: "doc",
       },
     ],
@@ -199,32 +199,32 @@ const ACCENT_STYLES: Record<
   { header: string; hover: string; chevron: string; ext: string; badge: string }
 > = {
   red: {
-    header: "border-red-100",
-    hover: "hover:bg-red-50/40",
-    chevron: "group-hover:text-red-500",
-    ext: "group-hover:text-red-400",
-    badge: "bg-red-50 border-red-100",
+    header: "border-slate-100",
+    hover: "hover:bg-slate-50/50",
+    chevron: "group-hover:text-emerald-600",
+    ext: "group-hover:text-emerald-500",
+    badge: "bg-slate-50 border-slate-100",
   },
   violet: {
-    header: "border-violet-100",
-    hover: "hover:bg-violet-50/40",
-    chevron: "group-hover:text-violet-500",
-    ext: "group-hover:text-violet-400",
-    badge: "bg-violet-50 border-violet-100",
+    header: "border-slate-100",
+    hover: "hover:bg-slate-50/50",
+    chevron: "group-hover:text-emerald-600",
+    ext: "group-hover:text-emerald-500",
+    badge: "bg-slate-50 border-slate-100",
   },
   amber: {
-    header: "border-amber-100",
-    hover: "hover:bg-amber-50/40",
-    chevron: "group-hover:text-amber-500",
-    ext: "group-hover:text-amber-400",
-    badge: "bg-amber-50 border-amber-100",
+    header: "border-slate-100",
+    hover: "hover:bg-slate-50/50",
+    chevron: "group-hover:text-emerald-600",
+    ext: "group-hover:text-emerald-500",
+    badge: "bg-slate-50 border-slate-100",
   },
   emerald: {
-    header: "border-emerald-100",
-    hover: "hover:bg-emerald-50/40",
-    chevron: "group-hover:text-emerald-500",
-    ext: "group-hover:text-emerald-400",
-    badge: "bg-emerald-50 border-emerald-100",
+    header: "border-slate-100",
+    hover: "hover:bg-slate-50/50",
+    chevron: "group-hover:text-emerald-600",
+    ext: "group-hover:text-emerald-500",
+    badge: "bg-slate-50 border-slate-100",
   },
 };
 
@@ -258,7 +258,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
               <h2 className="text-white font-bold text-base">
                 Mô phỏng Khí tài phát khói
               </h2>
-              <p className="text-slate-400 text-xs">Phiên bản 1.0.0 — 2026</p>
+              <p className="text-slate-400 text-xs">Phiên bản 1.0.0 - 2026</p>
             </div>
           </div>
           <button
@@ -313,7 +313,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <p className="text-center text-slate-400 text-xs pt-2 border-t border-slate-100">
-            © 2026 Binh chủng Hóa học — Quân đội Nhân dân Việt Nam
+            © 2026 Binh chủng Hóa học - Quân đội Nhân dân Việt Nam
           </p>
         </div>
       </div>
@@ -397,7 +397,13 @@ export default function DocsPage() {
                 </button>
 
                 {/* Doc list for all sections */}
-                {activeSection !== section.id && (
+                <div
+                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                    activeSection !== section.id
+                      ? "max-h-[1000px] opacity-100"
+                      : "max-h-0 opacity-0 pointer-events-none"
+                  }`}
+                >
                   <div className="divide-y divide-slate-100">
                     {section.items.map((item, i) => {
                       const badge = FILE_BADGE[item.type];
@@ -419,7 +425,7 @@ export default function DocsPage() {
                                   {item.title}
                                 </p>
                                 {item.classified && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-200 uppercase">
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100 uppercase">
                                     <Lock size={9} /> MẬT
                                   </span>
                                 )}
@@ -434,17 +440,7 @@ export default function DocsPage() {
                       );
                     })}
                   </div>
-                )}
-
-                {/* Part III: extra note about Word export */}
-                {/* {activeSection !== section.id && section.id === 'template' && (
-                  <div className="px-5 py-3 bg-amber-50/60 border-t border-amber-100 flex items-center gap-2">
-                    <Play size={13} className="text-amber-500 shrink-0" />
-                    <p className="text-xs text-amber-700">
-                      Các mẫu thuyết minh trên được tự động tạo ra khi nhấn <strong>Xuất File Word</strong> trong trang Mô phỏng sau khi tính toán xong.
-                    </p>
-                  </div>
-                )} */}
+                </div>
               </div>
             );
           })}
@@ -461,7 +457,7 @@ export default function DocsPage() {
                 Thông tin phần mềm & Tác giả
               </h2>
               <p className="text-slate-500 text-xs mt-0.5">
-                Hệ thống mô phỏng tính toán khí tài phát khói — Phiên bản 1.0.0
+                Hệ thống mô phỏng tính toán khí tài phát khói - Phiên bản 1.0.0
               </p>
             </div>
           </div>
@@ -493,7 +489,7 @@ export default function DocsPage() {
               ))}
             </div>
             <p className="text-center text-slate-400 text-xs mt-5 pt-4 border-t border-slate-100">
-              © 2026 Binh chủng Hóa học — Quân đội Nhân dân Việt Nam
+              © 2026 Binh chủng Hóa học - Quân đội Nhân dân Việt Nam
             </p>
           </div>
         </div>

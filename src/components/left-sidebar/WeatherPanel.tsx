@@ -66,9 +66,9 @@ export const WeatherPanel = ({
               <button
                 type="button"
                 onClick={() => setActiveWindTab("primary")}
-                className={`flex-1 py-1 px-2 rounded-md text-xs font-bold transition-all duration-200 ${
+                className={`flex-1 py-1 px-2 rounded-md text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   activeWindTab === "primary"
-                    ? "bg-white text-blue-700 shadow-sm border border-slate-200"
+                    ? "bg-white text-emerald-700 shadow-sm border border-slate-200"
                     : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
                 }`}
               >
@@ -77,28 +77,13 @@ export const WeatherPanel = ({
               <button
                 type="button"
                 onClick={() => setActiveWindTab("secondary")}
-                className={`flex-1 py-1 px-2 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-1 px-2 rounded-md text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 ${
                   activeWindTab === "secondary"
                     ? "bg-white text-amber-700 shadow-sm border border-slate-200"
                     : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
                 }`}
               >
                 <span>Gió phụ ({secondaryDir ? secondaryDir.short : "T"})</span>
-                {weatherData.secondaryWindDirection && (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWeatherData({ ...weatherData, secondaryWindDirection: null, secondaryWindAngle: null });
-                      if (activeWindTab === "secondary") {
-                        setActiveWindTab("primary");
-                      }
-                    }}
-                    className="text-slate-400 hover:text-red-500 font-bold px-1 rounded hover:bg-slate-200/50"
-                    title="Hủy chọn gió phụ"
-                  >
-                    ×
-                  </span>
-                )}
               </button>
             </div>
 
@@ -106,7 +91,7 @@ export const WeatherPanel = ({
               {/* Compass Rose */}
               <div className="relative w-[140px] h-[140px] flex-shrink-0">
                 {/* Outer ring */}
-                <div className="absolute inset-0 rounded-full border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/30"></div>
+                <div className="absolute inset-0 rounded-full border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/50"></div>
                 {/* Inner circle */}
                 <div className="absolute inset-[30%] rounded-full border border-slate-200/60 bg-white/80"></div>
                 {/* Cross lines */}
@@ -117,7 +102,7 @@ export const WeatherPanel = ({
                   <line x1="115" y1="25" x2="25" y2="115" stroke="#e2e8f0" strokeWidth="0.8" strokeDasharray="3,3" />
                 </svg>
 
-                {/* Wind arrow indicator - Primary (solid blue) */}
+                {/* Wind arrow indicator - Primary (solid emerald) */}
                 <div
                   className="absolute inset-0 transition-transform duration-300 ease-out"
                   style={{ transform: `rotate(${selectedDir.angle}deg)` }}
@@ -125,17 +110,17 @@ export const WeatherPanel = ({
                   <svg className="absolute w-full h-full" viewBox="0 0 140 140">
                     <defs>
                       <linearGradient id="arrowGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2563eb" />
-                        <stop offset="100%" stopColor="#3b82f6" />
+                        <stop offset="0%" stopColor="#059669" />
+                        <stop offset="100%" stopColor="#10b981" />
                       </linearGradient>
                     </defs>
                     <polygon
                       points="70,12 63,38 70,32 77,38"
                       fill="url(#arrowGradient)"
-                      stroke="#1d4ed8"
+                      stroke="#047857"
                       strokeWidth="0.5"
                     />
-                    <line x1="70" y1="38" x2="70" y2="85" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+                    <line x1="70" y1="38" x2="70" y2="85" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
                   </svg>
                 </div>
 
@@ -165,12 +150,12 @@ export const WeatherPanel = ({
                   const radius = 62;
                   const cx = 70 + radius * Math.cos(rad);
                   const cy = 70 + radius * Math.sin(rad);
-
-                  let btnClassName = 'bg-white text-slate-500 border border-slate-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 hover:scale-105';
+ 
+                  let btnClassName = 'bg-white text-slate-500 border border-slate-300 hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-300 hover:scale-105';
                   if (isPrimary) {
-                    btnClassName = 'bg-blue-600 text-white shadow-lg shadow-blue-300/50 scale-110 ring-2 ring-blue-300';
+                    btnClassName = 'bg-emerald-600 text-white shadow-lg shadow-emerald-300/40 scale-110 ring-2 ring-emerald-300';
                   } else if (isSecondary) {
-                    btnClassName = 'bg-amber-500 text-white shadow-md shadow-amber-300/50 scale-110 border-2 border-dashed border-amber-300 ring-2 ring-amber-200';
+                    btnClassName = 'bg-amber-500 text-white shadow-md shadow-amber-300/40 scale-110 border-2 border-dashed border-amber-300 ring-2 ring-amber-300';
                   }
 
                   return (

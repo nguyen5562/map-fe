@@ -78,7 +78,7 @@ export const PointsListPanel = ({
                             if (e.key === "Enter") saveEdit(p.id);
                             if (e.key === "Escape") setEditingId(null);
                           }}
-                          className="h-6 w-full text-xs border border-slate-300 rounded px-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-bold"
+                          className="h-6 w-full text-xs border border-slate-300 rounded-lg px-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-bold"
                           autoFocus
                           onBlur={() => saveEdit(p.id)}
                         />
@@ -104,7 +104,7 @@ export const PointsListPanel = ({
                       </p>
                     )}
                     {p.realCoords && (
-                      <p className="text-[10px] text-slate-500 font-mono truncate mt-0.5">
+                      <p className="text-[10px] text-slate-500 font-mono tabular-nums truncate mt-0.5">
                         X: {p.realCoords.x.toFixed(2)}, Y: {p.realCoords.y.toFixed(2)}
                       </p>
                     )}

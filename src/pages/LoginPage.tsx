@@ -156,12 +156,12 @@ export default function LoginPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Nhập tên đăng nhập..."
                   autoComplete="username"
-                  className="w-full h-11 bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 text-white placeholder-white/20 text-sm focus:outline-none focus:border-emerald-500/60 focus:bg-white/8 transition-all"
+                  className="w-full h-11 bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 text-white placeholder-white/45 text-sm transition-all focus:outline-none focus:border-emerald-400 focus:bg-white/10 focus:ring-2 focus:ring-emerald-500/25"
                 />
               </div>
             </div>
 
-            {/* Password */}
+            {/* Mật khẩu */}
             <div>
               <label className="text-white/50 text-[11px] font-semibold uppercase tracking-widest mb-1.5 block">
                 Mật khẩu
@@ -177,7 +177,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nhập mật khẩu..."
                   autoComplete="current-password"
-                  className="w-full h-11 bg-white/5 border border-white/10 rounded-lg pl-9 pr-10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-emerald-500/60 focus:bg-white/8 transition-all"
+                  className="w-full h-11 bg-white/5 border border-white/10 rounded-lg pl-9 pr-10 text-white placeholder-white/45 text-sm transition-all focus:outline-none focus:border-emerald-400 focus:bg-white/10 focus:ring-2 focus:ring-emerald-500/25"
                 />
                 <button
                   type="button"
@@ -201,14 +201,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-lg font-bold text-sm tracking-widest text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              className="w-full h-11 rounded-lg font-bold text-sm tracking-widest text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 active:scale-[0.98] duration-150"
               style={{
                 background: loading
                   ? "#064e3b"
                   : "linear-gradient(135deg, #059669, #10b981)",
                 boxShadow: loading
                   ? "none"
-                  : "0 4px 20px rgba(16,185,129,0.35)",
+                  : "0 4px 20px rgba(16,185,129,0.25)",
               }}
             >
               {loading ? (
@@ -228,7 +228,7 @@ export default function LoginPage() {
           {/* Divider + security note */}
           {/* <div className="mt-8 pt-6 border-t border-white/5">
             <p className="text-white/20 text-[10px] text-center leading-relaxed uppercase tracking-wider">
-              Hệ thống bảo mật — Mọi hoạt động đều được ghi lại nhật ký
+              Hệ thống bảo mật - Mọi hoạt động đều được ghi lại nhật ký
             </p>
           </div> */}
         </div>
@@ -236,10 +236,11 @@ export default function LoginPage() {
         {/* Bottom bar */}
         <div className="relative z-10 px-8 py-4 border-t border-white/5">
           <p className="text-white/20 text-[10px] text-center">
-            © 2026 Binh chủng Hóa học — Quân đội Nhân dân Việt Nam
+            © 2026 Binh chủng Hóa học : Quân đội Nhân dân Việt Nam
           </p>
         </div>
       </div>
     </div>
   );
 }
+

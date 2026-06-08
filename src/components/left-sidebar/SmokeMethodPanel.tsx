@@ -50,9 +50,9 @@ export const SmokeMethodPanel = ({
                 onClick={() =>
                   setSmokeMethodData({ ...smokeMethodData, lineType: "Thẳng" })
                 }
-                className={`flex-1 h-9 rounded-lg text-sm font-bold border-2 transition-all duration-200 ${
+                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
                   smokeMethodData.lineType === "Thẳng"
-                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
                     : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
                 }`}
               >
@@ -62,9 +62,9 @@ export const SmokeMethodPanel = ({
                 onClick={() =>
                   setSmokeMethodData({ ...smokeMethodData, lineType: "Vòng" })
                 }
-                className={`flex-1 h-9 rounded-lg text-sm font-bold border-2 transition-all duration-200 ${
+                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
                   smokeMethodData.lineType === "Vòng"
-                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
                     : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
                 }`}
               >
@@ -86,12 +86,12 @@ export const SmokeMethodPanel = ({
                     areaEnabled: !smokeMethodData.areaEnabled,
                   })
                 }
-                className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
+                className={`relative w-9 h-5 rounded-full transition-colors duration-205 active:scale-95 ${
                   smokeMethodData.areaEnabled ? "bg-teal-600" : "bg-slate-300"
                 }`}
               >
                 <div
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-205 ${
                     smokeMethodData.areaEnabled
                       ? "translate-x-4"
                       : "translate-x-0.5"
@@ -106,7 +106,7 @@ export const SmokeMethodPanel = ({
               return (
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-slate-500 whitespace-nowrap">Diện tích</span>
-                  <div className="flex-1 h-9 flex items-center px-3 rounded-md border border-slate-200 bg-slate-50 text-sm font-bold text-teal-700">
+                  <div className="flex-1 h-9 flex items-center px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-bold text-teal-700 tabular-nums">
                     {computed !== null ? computed.toLocaleString('vi-VN') : <span className="text-slate-400 font-normal">Chưa có dữ liệu mục 2</span>}
                   </div>
                   <span className="text-sm text-slate-500 font-medium whitespace-nowrap">m²</span>

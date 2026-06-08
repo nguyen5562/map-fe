@@ -63,9 +63,8 @@
 .space-y-4 > div > label,
 .space-y-3 > div > label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
-
 
 /* ===== UTM HELVETINS FONT ===== */
 @font-face {
@@ -93,3 +92,32 @@
 .weather-overlay-box {
   border-radius: 0 !important;
 }
+
+/* ===== CUSTOM SCROLLBARS ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* ===== TABULAR FIGURES FOR MONOSPACE DATA ===== */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+

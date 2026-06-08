@@ -29,7 +29,7 @@ const TimeInput = ({
       if (v === "" || (Number(v) >= 0 && Number(v) <= max)) onChange(v);
     }}
     placeholder={placeholder}
-    className="w-12 h-9 text-center rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+    className="w-12 h-9 text-center rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
   />
 );
 
@@ -111,7 +111,7 @@ export const SmokeTimePanel = ({
               return (
                 <p className="text-[10px] text-slate-400 mt-1">
                   Tổng:{" "}
-                  <span className="font-semibold text-violet-600">
+                  <span className="font-semibold text-violet-650 tabular-nums">
                     {Math.floor(diff / 60) > 0 ? `${Math.floor(diff / 60)} giờ ` : ""}
                     {diff % 60} phút
                   </span>

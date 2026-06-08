@@ -34,7 +34,7 @@ const PositionInput = ({
           value={value.distance}
           onChange={(e) => onChange({ ...value, distance: e.target.value })}
           placeholder="0"
-          className="w-full h-9 text-center rounded-md border border-slate-300 bg-white text-sm px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-full h-9 text-center rounded-lg border border-slate-300 bg-white text-sm px-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <span className="text-xs text-slate-400 shrink-0">m,</span>
       </div>
@@ -43,7 +43,7 @@ const PositionInput = ({
         <select
           value={value.direction}
           onChange={(e) => onChange({ ...value, direction: e.target.value })}
-          className="w-full h-9 rounded-md border border-slate-300 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all"
         >
           {DIRECTIONS.map((d) => (
             <option key={d} value={d}>{d}</option>
