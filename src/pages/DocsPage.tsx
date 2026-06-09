@@ -46,7 +46,6 @@ const AUTHORS = [
 // ── SECTION TYPES ─────────────────────────────────────────
 type DocItem = {
   title: string;
-  desc: string;
   type: "pdf" | "video" | "drawing" | "doc" | "word";
   classified?: boolean;
 };
@@ -80,38 +79,17 @@ const SECTIONS: Section[] = [
     accent: "red",
     items: [
       {
-        title: "Điều lệnh tiểu đội thả khói",
-        desc: "Quy trình, đội hình và nhiệm vụ tiểu đội thả khói ngụy trang bảo vệ mục tiêu.",
+        title: "Tiểu đội thả khói",
         type: "pdf",
         classified: true,
       },
       {
-        title: "Điều lệnh trung đội thả khói",
-        desc: "Tổ chức chỉ huy, phối hợp và thực hành trung đội thả khói trong tác chiến.",
+        title: "Trung đội thả khói",
         type: "pdf",
         classified: true,
       },
       {
-        title: "Hướng dẫn sử dụng khí tài TDA-2",
-        desc: "Tài liệu kỹ thuật vận hành, bảo dưỡng và xử lý sự cố khí tài TDA-2.",
-        type: "pdf",
-        classified: true,
-      },
-      {
-        title: "Hướng dẫn sử dụng khí tài ДА-1",
-        desc: "Tài liệu kỹ thuật vận hành khí tài ДА-1 (nguồn gốc Liên Xô).",
-        type: "pdf",
-        classified: true,
-      },
-      {
-        title: "Tiêu chuẩn kỹ thuật màn khói che khuất mục tiêu",
-        desc: "Quy định về chiều dài, độ dày, thời gian duy trì màn khói trong các điều kiện chiến đấu.",
-        type: "pdf",
-        classified: true,
-      },
-      {
-        title: "Phương án thả khói bảo vệ các loại mục tiêu",
-        desc: "Hướng dẫn lập phương án theo từng loại mục tiêu: điểm, tuyến, diện.",
+        title: "Đại đội thả khói",
         type: "pdf",
         classified: true,
       },
@@ -127,37 +105,26 @@ const SECTIONS: Section[] = [
     items: [
       {
         title: "Bài giảng: Lý thuyết khói che khuất",
-        desc: "Cơ sở lý thuyết về thành phần, tính chất vật lý và hóa học của màn khói quân sự.",
         type: "pdf",
       },
       {
         title: "Bài giảng: Phương pháp tính toán thả khói",
-        desc: "Công thức, bảng tra và ví dụ tính toán thực hành cho từng loại tình huống.",
         type: "pdf",
       },
       {
         title: "Phim mô phỏng: Tiểu đội thả khói thực binh",
-        desc: "Video thực hành triển khai tiểu đội trên thực địa trong điều kiện diễn tập.",
         type: "video",
       },
       {
         title: "Phim mô phỏng: Trung đội thả khói bảo vệ sân bay",
-        desc: "Video mô phỏng phương án thả khói bảo vệ mục tiêu là sân bay.",
         type: "video",
       },
       {
         title: "Bản vẽ kỹ thuật: Khí tài TDA-2",
-        desc: "Bản vẽ kết cấu, sơ đồ nguyên lý và hệ thống điều khiển khí tài TDA-2.",
-        type: "drawing",
-      },
-      {
-        title: "Bản vẽ kỹ thuật: Xe chở khí tài chuyên dụng",
-        desc: "Bản vẽ lắp đặt khí tài phát khói trên xe vận tải quân sự.",
         type: "drawing",
       },
       {
         title: "Bài tập tình huống thực hành",
-        desc: "Tập hợp 12 tình huống bài tập tính toán và lập phương án thả khói.",
         type: "doc",
       },
     ],
@@ -172,7 +139,6 @@ const SECTIONS: Section[] = [
     items: [
       {
         title: "Thuyết minh kế hoạch thả khói bảo vệ mục tiêu (mẫu)",
-        desc: "Tài liệu đang được cập nhật - sẽ bổ sung sau.",
         type: "word",
       },
     ],
@@ -187,7 +153,6 @@ const SECTIONS: Section[] = [
     items: [
       {
         title: "Hướng dẫn sử dụng phần mềm mô phỏng khí tài phát khói",
-        desc: "Tài liệu đang được cập nhật - sẽ bổ sung sau.",
         type: "doc",
       },
     ],
