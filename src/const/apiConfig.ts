@@ -10,4 +10,8 @@ export const API_URL = BASE_URL + "/api";
 
 export const API_ROUTES = {
   MAP: "/map",
+  AUTH: "/auth",
+  USERS: "/users",
+  DOCUMENTS: "/documents",
+  VEHICLES: "/vehicles",
 };

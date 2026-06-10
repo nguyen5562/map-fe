@@ -80,12 +80,14 @@ export const CalibrationPanel = ({
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
               <Input
+                type="number"
                 value={p1.realX}
                 onChange={(e: any) => setP1({ ...p1, realX: e.target.value })}
                 placeholder="X thật"
                 disabled={isCalibrated}
               />
               <Input
+                type="number"
                 value={p1.realY}
                 onChange={(e: any) => setP1({ ...p1, realY: e.target.value })}
                 placeholder="Y thật"
@@ -114,12 +116,14 @@ export const CalibrationPanel = ({
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
               <Input
+                type="number"
                 value={p2.realX}
                 onChange={(e: any) => setP2({ ...p2, realX: e.target.value })}
                 placeholder="X thật"
                 disabled={isCalibrated}
               />
               <Input
+                type="number"
                 value={p2.realY}
                 onChange={(e: any) => setP2({ ...p2, realY: e.target.value })}
                 placeholder="Y thật"

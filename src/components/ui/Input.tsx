@@ -4,7 +4,7 @@ export const Input = ({
   placeholder,
   className = "",
   disabled = false,
-  type = "number",
+  type = "text",
   ...props
 }: any) => (
   <input

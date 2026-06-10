@@ -64,13 +64,27 @@ export const TargetPanel = ({
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <Input
+              type="number"
               value={searchX}
-              onChange={(e: any) => setSearchX(e.target.value)}
+              min={0}
+              onChange={(e: any) => {
+                const val = e.target.value;
+                if (val === "" || parseFloat(val) >= 0) {
+                  setSearchX(val);
+                }
+              }}
               placeholder="Nhập X..."
             />
             <Input
+              type="number"
               value={searchY}
-              onChange={(e: any) => setSearchY(e.target.value)}
+              min={0}
+              onChange={(e: any) => {
+                const val = e.target.value;
+                if (val === "" || parseFloat(val) >= 0) {
+                  setSearchY(val);
+                }
+              }}
               placeholder="Nhập Y..."
             />
           </div>

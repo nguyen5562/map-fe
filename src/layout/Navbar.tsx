@@ -1,17 +1,26 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Map, BookOpen, LogOut, User } from "lucide-react";
-
-const NAV_ITEMS = [
-  { path: "/simulation", label: "Mô phỏng", icon: Map },
-  { path: "/docs", label: "Tài liệu", icon: BookOpen },
-];
+import { Map, BookOpen, LogOut, User, Shield } from "lucide-react";
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const userRole = sessionStorage.getItem("userRole");
+  const userName = sessionStorage.getItem("userName") || "Admin";
+
+  const navItems = [
+    { path: "/simulation", label: "Mô phỏng", icon: Map },
+    { path: "/docs", label: "Tài liệu", icon: BookOpen },
+  ];
+
+  if (userRole === "admin") {
+    navItems.push({ path: "/admin", label: "Quản trị", icon: Shield });
+  }
+
   const handleLogout = () => {
     sessionStorage.removeItem("auth");
+    sessionStorage.removeItem("userRole");
+    sessionStorage.removeItem("userName");
     navigate("/login");
   };
 
@@ -27,7 +36,7 @@ export default function Navbar() {
 
       {/* Nav links */}
       <div className="flex items-center gap-1">
-        {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
+        {navItems.map(({ path, label, icon: Icon }) => {
           const active =
             location.pathname === path || location.pathname.startsWith(path);
           return (
@@ -54,7 +63,7 @@ export default function Navbar() {
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 text-slate-400 text-xs border border-white/5 bg-white/5 px-2.5 py-1 rounded-lg">
           <User size={12} className="text-emerald-500" />
-          <span className="hidden sm:block font-medium">Admin</span>
+          <span className="hidden sm:block font-medium">{userName}</span>
         </div>
         <button
           onClick={handleLogout}

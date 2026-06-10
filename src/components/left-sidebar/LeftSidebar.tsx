@@ -16,7 +16,7 @@ import { TargetDefensePanel } from "./TargetDefensePanel";
 import { WeatherPanel } from "./WeatherPanel";
 import { SmokeTimePanel } from "./SmokeTimePanel";
 import { SmokeMethodPanel } from "./SmokeMethodPanel";
-import { SmokeVehiclePanel } from "./SmokeVehiclePanel";
+import { SmokeVehiclePanel, type VehicleConfig } from "./SmokeVehiclePanel";
 import { BattlefieldPanel } from "./BattlefieldPanel";
 import { TargetPanel } from "./TargetPanel";
 import { UploadProgressDialog } from "./UploadProgressDialog";
@@ -73,6 +73,8 @@ type LeftSidebarProps = {
   // Smoke Vehicle (Mục 6)
   selectedVehicles: string[];
   setSelectedVehicles: (v: string[]) => void;
+  vehicleConfigs: Record<string, VehicleConfig>;
+  setVehicleConfigs: React.Dispatch<React.SetStateAction<Record<string, VehicleConfig>>>;
 
   // Battlefield (Mục 7)
   battlefieldData: any;
@@ -128,6 +130,8 @@ export const LeftSidebar = ({
   setSmokeMethodData,
   selectedVehicles,
   setSelectedVehicles,
+  vehicleConfigs,
+  setVehicleConfigs,
   battlefieldData,
   setBattlefieldData,
   onCalculate,
@@ -374,6 +378,8 @@ export const LeftSidebar = ({
             isCalibrated={isCalibrated}
             selectedVehicles={selectedVehicles}
             setSelectedVehicles={setSelectedVehicles}
+            vehicleConfigs={vehicleConfigs}
+            setVehicleConfigs={setVehicleConfigs}
           />
 
           {/* STEP 8: BATTLEFIELD STRUCTURE */}

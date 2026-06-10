@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
+import { authService } from "../services/auth.service";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -18,15 +19,24 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    // TODO: replace with real API call
-    await new Promise((r) => setTimeout(r, 700));
-    if (username === "admin" && password === "admin") {
-      sessionStorage.setItem("auth", "true");
-      navigate("/simulation");
-    } else {
-      setError("Tên đăng nhập hoặc mật khẩu không đúng.");
+    try {
+      const response = await authService.login({ username, password });
+      if (response && response.success) {
+        sessionStorage.setItem("auth", "true");
+        sessionStorage.setItem("userRole", response.user.role);
+        sessionStorage.setItem("userName", response.user.name || response.user.username);
+        navigate("/simulation");
+      } else {
+        setError("Đăng nhập thất bại.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(
+        err.response?.data?.message || "Tên đăng nhập hoặc mật khẩu không đúng."
+      );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

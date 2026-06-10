@@ -29,11 +29,14 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 import { mapService } from "../services/map.service";
 import { BASE_URL } from "../const/apiConfig";
+import { vehicleService } from "../services/vehicle.service";
 import { WeatherOverlay, GasMarker } from "../components/map";
 import { LeftSidebar } from "../components/left-sidebar";
 import { RightSidebar } from "../components/right-sidebar";
 import type { SmokeTimeRange } from "../components/left-sidebar/SmokeTimePanel";
 import type { BattlefieldData } from "../components/left-sidebar/BattlefieldPanel";
+import { DEFAULT_VEHICLE_CONFIGS } from "../components/left-sidebar/SmokeVehiclePanel";
+import type { VehicleConfig } from "../components/left-sidebar/SmokeVehiclePanel";
 
 function ClickHandler({
   onMapClick,
@@ -130,9 +133,34 @@ export default function SimulationPage() {
   });
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
 
+  // Vehicle configs state (Mục 6 - Tinh chỉnh)
+  const [vehicleConfigs, setVehicleConfigs] = useState<Record<string, VehicleConfig>>(DEFAULT_VEHICLE_CONFIGS);
+
+  // Load default vehicle configs from backend DB
+  useEffect(() => {
+    vehicleService.getVehicles()
+      .then((data: any[]) => {
+        if (data && data.length > 0) {
+          const configMap: Record<string, VehicleConfig> = {};
+          data.forEach((v) => {
+            configMap[v.id] = {
+              id: v.id,
+              name: v.name,
+              desc: v.desc || "",
+              l: Number(v.l),
+              r: Number(v.r),
+              t: Number(v.t),
+              materials: v.materials || "",
+            };
+          });
+          setVehicleConfigs(configMap);
+        }
+      })
+      .catch((err) => console.error("Lỗi lấy cấu hình khí tài:", err));
+  }, []);
+
   // Battlefield Structure State (Mục 7)
   const [battlefieldData, setBattlefieldData] = useState<BattlefieldData>({
-    routes: "",
     firePoints: { distance: "", direction: "Bắc" },
     commandPost: { distance: "", direction: "Bắc" },
     reserveUnit: { distance: "", direction: "Bắc" },
@@ -369,6 +397,7 @@ export default function SimulationPage() {
     battlefieldData: any;
     weatherData: any;
     smokeTime: any;
+    vehicleConfigs: Record<string, VehicleConfig>;
   }) => {
     const area = parseFloat(inputs.targetDefenseData.area) || 1000;
     const coverage = parseFloat(inputs.targetDefenseData.coverageMultiplier) || 1.2;
@@ -380,13 +409,18 @@ export default function SimulationPage() {
     const areaEnabled = inputs.smokeMethodData.areaEnabled;
     const vehicle = inputs.selectedVehicles[0] || "HPK-2.5";
 
+    const configs = inputs.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS;
+    const config = configs[vehicle] || DEFAULT_VEHICLE_CONFIGS["HPK-2.5"];
+
     let straightLine_vehicles = 0;
     let straightLine_routes = 0;
     let circularLine_vehicles = 0;
     let circularLine_routes = 0;
     let pointDefense_vehicles = 0;
 
-    let baseVehicles = Math.ceil(targetArea / 2000) * (windSpeed > 5 ? 2 : 1);
+    // Use vehicle-specific l * r cover area instead of hardcoded 2000
+    const vehicleCoverArea = config.l * config.r || 1200;
+    let baseVehicles = Math.ceil(targetArea / vehicleCoverArea) * (windSpeed > 5 ? 2 : 1);
     if (baseVehicles < 1) baseVehicles = 1;
 
     if (lineType === "Thẳng") {
@@ -398,7 +432,7 @@ export default function SimulationPage() {
     }
 
     if (areaEnabled) {
-      pointDefense_vehicles = Math.ceil(targetArea / 1000);
+      pointDefense_vehicles = Math.ceil(targetArea / vehicleCoverArea);
     }
 
     const totalPoints = (straightLine_vehicles * straightLine_routes) + 
@@ -417,7 +451,9 @@ export default function SimulationPage() {
       tpk_cans = totalPoints * 2; // 2 cans
     }
 
-    const coverTime_min = Math.max(1, Math.round(15 - windSpeed + (areaEnabled ? 5 : 0)));
+    const coverTime_min = windSpeed > 0 
+      ? Math.max(1, Math.round(config.l / (60 * windSpeed))) 
+      : 1;
 
     return {
       straightLine_vehicles,
@@ -443,6 +479,7 @@ export default function SimulationPage() {
       battlefieldData,
       weatherData,
       smokeTime,
+      vehicleConfigs,
     });
 
     const newPoint = {
@@ -456,6 +493,7 @@ export default function SimulationPage() {
       battlefieldData: { ...battlefieldData },
       weatherData: { ...weatherData },
       smokeTime: { ...smokeTime },
+      vehicleConfigs: { ...vehicleConfigs },
       results: currentResults,
     };
 
@@ -496,6 +534,11 @@ export default function SimulationPage() {
       setBattlefieldData(point.battlefieldData);
       setWeatherData(point.weatherData);
       setSmokeTime(point.smokeTime);
+      if (point.vehicleConfigs) {
+        setVehicleConfigs(point.vehicleConfigs);
+      } else {
+        setVehicleConfigs(DEFAULT_VEHICLE_CONFIGS);
+      }
     }
   };
 
@@ -510,6 +553,7 @@ export default function SimulationPage() {
         battlefieldData,
         weatherData,
         smokeTime,
+        vehicleConfigs,
       });
 
       const tempActivePoint = {
@@ -521,6 +565,7 @@ export default function SimulationPage() {
         battlefieldData,
         weatherData,
         smokeTime,
+        vehicleConfigs,
         results: activePointResults,
       };
       listToCalculate.push(tempActivePoint);
@@ -610,6 +655,8 @@ export default function SimulationPage() {
         setSmokeMethodData={setSmokeMethodData}
         selectedVehicles={selectedVehicles}
         setSelectedVehicles={setSelectedVehicles}
+        vehicleConfigs={vehicleConfigs}
+        setVehicleConfigs={setVehicleConfigs}
         battlefieldData={battlefieldData}
         setBattlefieldData={setBattlefieldData}
         onCalculate={onCalculate}

@@ -102,7 +102,7 @@ export const TargetDefensePanel = ({
                 }}
                 onFocus={() => setComboOpen(true)}
                 placeholder="Chọn hoặc nhập tên mục tiêu..."
-                className="flex h-9 w-full rounded-lg border border-slate-350 bg-white px-3 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+                className="font-semibold flex h-9 w-full rounded-lg border border-slate-350 bg-white px-3 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all placeholder:text-slate-400"
               />
               <button
                 type="button"
@@ -137,13 +137,18 @@ export const TargetDefensePanel = ({
                 Chiều dài (m)
               </label>
               <Input
+                type="number"
+                min={0}
                 value={targetDefenseData.length}
-                onChange={(e: any) =>
-                  setTargetDefenseData({
-                    ...targetDefenseData,
-                    length: e.target.value,
-                  })
-                }
+                onChange={(e: any) => {
+                  const val = e.target.value;
+                  if (val === "" || parseFloat(val) >= 0) {
+                    setTargetDefenseData({
+                      ...targetDefenseData,
+                      length: val,
+                    });
+                  }
+                }}
                 placeholder="Chiều dài"
               />
             </div>
@@ -152,13 +157,18 @@ export const TargetDefensePanel = ({
                 Chiều rộng (m)
               </label>
               <Input
+                type="number"
+                min={0}
                 value={targetDefenseData.width}
-                onChange={(e: any) =>
-                  setTargetDefenseData({
-                    ...targetDefenseData,
-                    width: e.target.value,
-                  })
-                }
+                onChange={(e: any) => {
+                  const val = e.target.value;
+                  if (val === "" || parseFloat(val) >= 0) {
+                    setTargetDefenseData({
+                      ...targetDefenseData,
+                      width: val,
+                    });
+                  }
+                }}
                 placeholder="Chiều rộng"
               />
             </div>
@@ -170,13 +180,18 @@ export const TargetDefensePanel = ({
               Diện tích mục tiêu (m²)
             </label>
             <Input
+              type="number"
+              min={0}
               value={targetDefenseData.area}
-              onChange={(e: any) =>
-                setTargetDefenseData({
-                  ...targetDefenseData,
-                  area: e.target.value,
-                })
-              }
+              onChange={(e: any) => {
+                const val = e.target.value;
+                if (val === "" || parseFloat(val) >= 0) {
+                  setTargetDefenseData({
+                    ...targetDefenseData,
+                    area: val,
+                  });
+                }
+              }}
               placeholder="Diện tích mục tiêu"
             />
           </div>
@@ -188,13 +203,18 @@ export const TargetDefensePanel = ({
             </label>
             <div className="flex items-center gap-2 mt-1.5">
               <Input
+                type="number"
+                min={0}
                 value={targetDefenseData.coverageMultiplier}
-                onChange={(e: any) =>
-                  setTargetDefenseData({
-                    ...targetDefenseData,
-                    coverageMultiplier: e.target.value,
-                  })
-                }
+                onChange={(e: any) => {
+                  const val = e.target.value;
+                  if (val === "" || parseFloat(val) >= 0) {
+                    setTargetDefenseData({
+                      ...targetDefenseData,
+                      coverageMultiplier: val,
+                    });
+                  }
+                }}
                 placeholder="Số lần"
               />
               <span className="text-xs text-slate-500 whitespace-nowrap font-medium">

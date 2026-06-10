@@ -55,10 +55,12 @@ type Section = {
   roman: string;
   title: string;
   subtitle: string;
-  icon: React.ReactNode;
   accent: string;
   items: DocItem[];
 };
+
+import { documentService } from "../services/document.service";
+import { useEffect } from "react";
 
 const FILE_BADGE: Record<string, { label: string; color: string }> = {
   pdf: { label: "PDF", color: "bg-rose-50 text-rose-600 border border-rose-100/70" },
@@ -68,129 +70,51 @@ const FILE_BADGE: Record<string, { label: string; color: string }> = {
   word: { label: "DOCX", color: "bg-blue-50 text-blue-600 border border-blue-100/70" },
 };
 
-const SECTIONS: Section[] = [
-  {
-    id: "classified",
-    roman: "I",
-    title: "Tài liệu mật",
-    subtitle:
-      "Các tài liệu nghiệp vụ kỹ thuật - Nhà xuất bản Quân đội Nhân dân Việt Nam",
-    icon: <Shield size={20} className="text-red-500" />,
-    accent: "red",
-    items: [
-      {
-        title: "Tiểu đội thả khói",
-        type: "pdf",
-        classified: true,
-      },
-      {
-        title: "Trung đội thả khói",
-        type: "pdf",
-        classified: true,
-      },
-      {
-        title: "Đại đội thả khói",
-        type: "pdf",
-        classified: true,
-      },
-    ],
-  },
-  {
-    id: "lectures",
-    roman: "II",
-    title: "Bài giảng & Tài liệu huấn luyện",
-    subtitle: "Trường Sĩ quan Phòng hóa - Khoa Chiến thuật",
-    icon: <GraduationCap size={20} className="text-violet-500" />,
-    accent: "violet",
-    items: [
-      {
-        title: "Bài giảng: Lý thuyết khói che khuất",
-        type: "pdf",
-      },
-      {
-        title: "Bài giảng: Phương pháp tính toán thả khói",
-        type: "pdf",
-      },
-      {
-        title: "Phim mô phỏng: Tiểu đội thả khói thực binh",
-        type: "video",
-      },
-      {
-        title: "Phim mô phỏng: Trung đội thả khói bảo vệ sân bay",
-        type: "video",
-      },
-      {
-        title: "Bản vẽ kỹ thuật: Khí tài TDA-2",
-        type: "drawing",
-      },
-      {
-        title: "Bài tập tình huống thực hành",
-        type: "doc",
-      },
-    ],
-  },
-  {
-    id: "template",
-    roman: "III",
-    title: "Thuyết minh kế hoạch thả khói mẫu",
-    subtitle: "Tài liệu tham khảo - Mẫu xuất file Word từ hệ thống tính toán",
-    icon: <ClipboardList size={20} className="text-amber-500" />,
-    accent: "amber",
-    items: [
-      {
-        title: "Thuyết minh kế hoạch thả khói bảo vệ mục tiêu (mẫu)",
-        type: "word",
-      },
-    ],
-  },
-  {
-    id: "manual",
-    roman: "IV",
-    title: "Hướng dẫn sử dụng phần mềm",
-    subtitle: "Hướng dẫn từng bước sử dụng hệ thống tính toán và mô phỏng",
-    icon: <HelpCircle size={20} className="text-emerald-500" />,
-    accent: "emerald",
-    items: [
-      {
-        title: "Hướng dẫn sử dụng phần mềm mô phỏng khí tài phát khói",
-        type: "doc",
-      },
-    ],
-  },
-];
-
 const ACCENT_STYLES: Record<
   string,
-  { header: string; hover: string; chevron: string; ext: string; badge: string }
+  { borderBar: string; iconBg: string; iconBorder: string; hover: string; ext: string }
 > = {
   red: {
-    header: "border-slate-100",
-    hover: "hover:bg-slate-50/50",
-    chevron: "group-hover:text-emerald-600",
-    ext: "group-hover:text-emerald-500",
-    badge: "bg-slate-50 border-slate-100",
+    borderBar: "border-l-rose-500",
+    iconBg: "bg-rose-50",
+    iconBorder: "border-rose-200",
+    hover: "hover:bg-rose-50/40",
+    ext: "group-hover:text-rose-500",
   },
   violet: {
-    header: "border-slate-100",
-    hover: "hover:bg-slate-50/50",
-    chevron: "group-hover:text-emerald-600",
-    ext: "group-hover:text-emerald-500",
-    badge: "bg-slate-50 border-slate-100",
+    borderBar: "border-l-violet-500",
+    iconBg: "bg-violet-50",
+    iconBorder: "border-violet-200",
+    hover: "hover:bg-violet-50/40",
+    ext: "group-hover:text-violet-500",
   },
   amber: {
-    header: "border-slate-100",
-    hover: "hover:bg-slate-50/50",
-    chevron: "group-hover:text-emerald-600",
-    ext: "group-hover:text-emerald-500",
-    badge: "bg-slate-50 border-slate-100",
+    borderBar: "border-l-amber-500",
+    iconBg: "bg-amber-50",
+    iconBorder: "border-amber-200",
+    hover: "hover:bg-amber-50/40",
+    ext: "group-hover:text-amber-500",
   },
   emerald: {
-    header: "border-slate-100",
-    hover: "hover:bg-slate-50/50",
-    chevron: "group-hover:text-emerald-600",
+    borderBar: "border-l-emerald-500",
+    iconBg: "bg-emerald-50",
+    iconBorder: "border-emerald-200",
+    hover: "hover:bg-emerald-50/40",
     ext: "group-hover:text-emerald-500",
-    badge: "bg-slate-50 border-slate-100",
   },
+};
+
+const getSectionIcon = (accent: string) => {
+  switch (accent) {
+    case "red":
+      return <Shield size={18} className="text-rose-500" />;
+    case "violet":
+      return <GraduationCap size={18} className="text-violet-500" />;
+    case "amber":
+      return <ClipboardList size={18} className="text-amber-500" />;
+    default:
+      return <HelpCircle size={18} className="text-emerald-500" />;
+  }
 };
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
@@ -290,175 +214,175 @@ function AboutModal({ onClose }: { onClose: () => void }) {
 export default function DocsPage() {
   const [showAbout, setShowAbout] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    documentService.getDocumentSections()
+      .then((data: any[]) => {
+        setSections(data || []);
+        if (data && data.length > 0) setActiveSection(data[0].id);
+      })
+      .catch((err) => console.error("Lỗi tải tài liệu từ BE:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
-    <div className="min-h-[calc(100vh-48px)] bg-slate-50 p-6">
+    <div className="min-h-[calc(100vh-48px)] bg-slate-50/70">
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
 
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-              <BookOpen size={28} className="text-emerald-600" />
-              Tài liệu
-            </h1>
-            <p className="text-slate-500 mt-1 text-sm">
-              Tài liệu kỹ thuật, bài giảng, mẫu thuyết minh và hướng dẫn sử dụng
-              phần mềm.
-            </p>
+      {/* Page Header */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-200">
+              <BookOpen size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">Thư viện tài liệu</h1>
+              <p className="text-slate-500 text-xs mt-0.5">Tài liệu kỹ thuật, bài giảng và hướng dẫn sử dụng phần mềm</p>
+            </div>
           </div>
           <button
             onClick={() => setShowAbout(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 transition-all text-xs font-semibold shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-xs font-semibold shadow-sm"
           >
             <Info size={14} />
             Về phần mềm
           </button>
         </div>
+      </div>
 
-        {/* Sections */}
-        <div className="space-y-6">
-          {SECTIONS.map((section) => {
-            const acc = ACCENT_STYLES[section.accent];
-
-            return (
-              <div
-                key={section.id}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-              >
-                {/* Section header */}
-                <button
-                  onClick={() =>
-                    setActiveSection(
-                      activeSection === section.id ? null : section.id,
-                    )
-                  }
-                  className={`w-full flex items-center justify-between gap-4 p-5 border-b ${acc.header} bg-slate-50/50 text-left hover:bg-slate-100/50 transition-colors`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-slate-400 font-black text-base whitespace-nowrap">
-                        Phần {section.roman}
-                      </span>
-                      <div className="w-px h-8 bg-slate-200" />
-                      <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        {section.icon}
-                      </div>
-                    </div>
-                    <div className="text-left">
-                      <h2 className="font-bold text-slate-800 text-base">
-                        {section.title}
-                      </h2>
-                      <p className="text-slate-500 text-xs mt-0.5">
-                        {section.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={16}
-                    className={`text-slate-400 shrink-0 transition-transform ${activeSection === section.id ? "" : "rotate-90"}`}
-                  />
-                </button>
-
-                {/* Doc list for all sections */}
-                <div
-                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    activeSection !== section.id
-                      ? "max-h-[1000px] opacity-100"
-                      : "max-h-0 opacity-0 pointer-events-none"
-                  }`}
-                >
-                  <div className="divide-y divide-slate-100">
-                    {section.items.map((item, i) => {
-                      const badge = FILE_BADGE[item.type];
-                      return (
-                        <div
-                          key={i}
-                          className={`flex items-center justify-between px-5 py-4 ${acc.hover} transition-colors cursor-pointer group`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span
-                              className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${badge.color} shrink-0 mt-0.5`}
-                            >
-                              {TYPE_ICON[item.type]}
-                              {badge.label}
-                            </span>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium text-slate-700">
-                                  {item.title}
-                                </p>
-                                {item.classified && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100 uppercase">
-                                    <Lock size={9} /> MẬT
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <ExternalLink
-                            size={14}
-                            className={`text-slate-300 ${acc.ext} shrink-0 ml-4 transition-colors`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+      <div className="max-w-5xl mx-auto px-6 py-6">
+        {/* Loading State */}
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse">
+                <div className="h-16 bg-slate-100" />
+                <div className="p-4 space-y-2">
+                  <div className="h-3 bg-slate-100 rounded w-3/4" />
+                  <div className="h-3 bg-slate-100 rounded w-1/2" />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ) : sections.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <BookOpen size={24} className="text-slate-400" />
+            </div>
+            <p className="text-slate-700 font-semibold text-sm">Chưa có tài liệu nào</p>
+            <p className="text-slate-400 text-xs mt-1">Liên hệ quản trị viên để thêm tài liệu.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sections.map((section) => {
+              const acc = ACCENT_STYLES[section.accent] || ACCENT_STYLES.emerald;
+              const sectionIcon = getSectionIcon(section.accent);
+              const isOpen = activeSection === section.id;
 
-        {/* Authors section */}
-        <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-start gap-4 p-5 border-b border-slate-100 bg-slate-50/50">
-            <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <Users size={20} className="text-emerald-600" />
-            </div>
-            <div>
-              <h2 className="font-bold text-slate-800 text-base">
-                Thông tin phần mềm & Tác giả
-              </h2>
-              <p className="text-slate-500 text-xs mt-0.5">
-                Hệ thống mô phỏng tính toán khí tài phát khói - Phiên bản 1.0.0
-              </p>
-            </div>
-          </div>
-          <div className="p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {AUTHORS.map((a, i) => (
+              return (
                 <div
-                  key={i}
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-100"
+                  key={section.id}
+                  className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shrink-0">
-                      {i + 1}
+                  {/* Section header */}
+                  <button
+                    onClick={() => setActiveSection(isOpen ? null : section.id)}
+                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Accent color bar + icon */}
+                      <div className={`w-9 h-9 rounded-lg ${acc.iconBg} border ${acc.iconBorder} flex items-center justify-center shrink-0`}>
+                        {sectionIcon}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phần {section.roman}</span>
+                        </div>
+                        <h2 className="font-bold text-slate-800 text-sm leading-tight">{section.title}</h2>
+                        {section.subtitle && (
+                          <p className="text-slate-400 text-xs mt-0.5">{section.subtitle}</p>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                      Tác giả {i + 1}
-                    </span>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {section.items?.length > 0 && (
+                        <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                          {section.items.length} tài liệu
+                        </span>
+                      )}
+                      <ChevronRight
+                        size={15}
+                        className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Left accent bar */}
+                  <div
+                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                      isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                    }`}
+                  >
+                    <div className={`border-t border-slate-100 border-l-[3px] ${acc.borderBar}`}>
+                      {section.items && section.items.length > 0 ? (
+                        <div className="divide-y divide-slate-100">
+                          {section.items.map((item: any, i: number) => {
+                            const badge = FILE_BADGE[item.type] || FILE_BADGE.pdf;
+                            return (
+                              <div
+                                key={i}
+                                onClick={() => { if (item.url) window.open(item.url, "_blank"); }}
+                                className={`flex items-center justify-between px-5 py-3.5 ${
+                                  item.url ? `${acc.hover} cursor-pointer` : "cursor-default"
+                                } transition-colors group`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}>
+                                    {TYPE_ICON[item.type] || TYPE_ICON.pdf}
+                                    {badge.label}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-slate-700">{item.title}</p>
+                                    {item.classified && (
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
+                                        <Lock size={9} /> MẬT
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {item.url && (
+                                  <ExternalLink
+                                    size={13}
+                                    className={`text-slate-300 ${acc.ext} shrink-0 ml-4 transition-colors`}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 px-5 py-5 text-slate-400">
+                          <FileText size={16} className="text-slate-300" />
+                          <p className="text-xs">Chưa có tài liệu trong chuyên mục này</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm font-bold text-slate-800">
-                    {a.rank} {a.name}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {a.role} {a.unit}
-                  </p>
-                  <p className="text-xs text-emerald-600 font-medium">
-                    {a.school}
-                  </p>
                 </div>
-              ))}
-            </div>
-            <p className="text-center text-slate-400 text-xs mt-5 pt-4 border-t border-slate-100">
-              © 2026 Binh chủng Hóa học - Quân đội Nhân dân Việt Nam
-            </p>
+              );
+            })}
           </div>
-        </div>
+        )}
+
+        {/* Footer */}
+        <p className="text-center text-slate-400 text-xs mt-8 pt-5 border-t border-slate-200">
+          © 2026 Binh chủng Hóa học - Quân đội Nhân dân Việt Nam
+        </p>
       </div>
     </div>
   );
 }
+

@@ -10,7 +10,6 @@ type PositionEntry = {
 };
 
 type BattlefieldData = {
-  routes: string;
   firePoints: PositionEntry;
   commandPost: PositionEntry;
   reserveUnit: PositionEntry;
@@ -28,13 +27,18 @@ const PositionInput = ({
     <div className="grid gap-x-1" style={{ gridTemplateColumns: "4fr 5fr" }}>
       <div className="flex items-center gap-1">
         <span className="text-xs text-slate-400 shrink-0">cách</span>
-        <input
+        <Input
           type="number"
           min={0}
           value={value.distance}
-          onChange={(e) => onChange({ ...value, distance: e.target.value })}
+          onChange={(e: any) => {
+            const val = e.target.value;
+            if (val === "" || parseFloat(val) >= 0) {
+              onChange({ ...value, distance: val });
+            }
+          }}
           placeholder="0"
-          className="w-full h-9 text-center rounded-lg border border-slate-300 bg-white text-sm px-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="text-center"
         />
         <span className="text-xs text-slate-400 shrink-0">m,</span>
       </div>
@@ -89,20 +93,6 @@ export const BattlefieldPanel = ({
 
       {showPanel && (
         <div className="space-y-3 mt-2">
-          {/* Các tuyến — giữ nguyên nhập text */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <span>📍</span> Các tuyến (diện)
-            </label>
-            <Input
-              value={battlefieldData.routes}
-              onChange={(e: any) =>
-                setBattlefieldData({ ...battlefieldData, routes: e.target.value })
-              }
-              placeholder="Nhập số tuyến..."
-            />
-          </div>
-
           {/* Vị trí điểm hỏa */}
           <div>
             <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
