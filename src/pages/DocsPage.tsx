@@ -8,10 +8,6 @@ import {
   Info,
   X,
   Monitor,
-  Shield,
-  GraduationCap,
-  ClipboardList,
-  HelpCircle,
   Lock,
   Film,
   PenTool,
@@ -55,7 +51,6 @@ type Section = {
   roman: string;
   title: string;
   subtitle: string;
-  accent: string;
   items: DocItem[];
 };
 
@@ -68,53 +63,6 @@ const FILE_BADGE: Record<string, { label: string; color: string }> = {
   drawing: { label: "BẢN VẼ", color: "bg-sky-50 text-sky-600 border border-sky-100/70" },
   doc: { label: "DOC", color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70" },
   word: { label: "DOCX", color: "bg-blue-50 text-blue-600 border border-blue-100/70" },
-};
-
-const ACCENT_STYLES: Record<
-  string,
-  { borderBar: string; iconBg: string; iconBorder: string; hover: string; ext: string }
-> = {
-  red: {
-    borderBar: "border-l-rose-500",
-    iconBg: "bg-rose-50",
-    iconBorder: "border-rose-200",
-    hover: "hover:bg-rose-50/40",
-    ext: "group-hover:text-rose-500",
-  },
-  violet: {
-    borderBar: "border-l-violet-500",
-    iconBg: "bg-violet-50",
-    iconBorder: "border-violet-200",
-    hover: "hover:bg-violet-50/40",
-    ext: "group-hover:text-violet-500",
-  },
-  amber: {
-    borderBar: "border-l-amber-500",
-    iconBg: "bg-amber-50",
-    iconBorder: "border-amber-200",
-    hover: "hover:bg-amber-50/40",
-    ext: "group-hover:text-amber-500",
-  },
-  emerald: {
-    borderBar: "border-l-emerald-500",
-    iconBg: "bg-emerald-50",
-    iconBorder: "border-emerald-200",
-    hover: "hover:bg-emerald-50/40",
-    ext: "group-hover:text-emerald-500",
-  },
-};
-
-const getSectionIcon = (accent: string) => {
-  switch (accent) {
-    case "red":
-      return <Shield size={18} className="text-rose-500" />;
-    case "violet":
-      return <GraduationCap size={18} className="text-violet-500" />;
-    case "amber":
-      return <ClipboardList size={18} className="text-amber-500" />;
-    default:
-      return <HelpCircle size={18} className="text-emerald-500" />;
-  }
 };
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
@@ -278,8 +226,6 @@ export default function DocsPage() {
         ) : (
           <div className="space-y-3">
             {sections.map((section) => {
-              const acc = ACCENT_STYLES[section.accent] || ACCENT_STYLES.emerald;
-              const sectionIcon = getSectionIcon(section.accent);
               const isOpen = activeSection === section.id;
 
               return (
@@ -292,11 +238,7 @@ export default function DocsPage() {
                     onClick={() => setActiveSection(isOpen ? null : section.id)}
                     className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors group"
                   >
-                    <div className="flex items-center gap-4">
-                      {/* Accent color bar + icon */}
-                      <div className={`w-9 h-9 rounded-lg ${acc.iconBg} border ${acc.iconBorder} flex items-center justify-center shrink-0`}>
-                        {sectionIcon}
-                      </div>
+                    <div className="flex items-center gap-3">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phần {section.roman}</span>
@@ -320,13 +262,13 @@ export default function DocsPage() {
                     </div>
                   </button>
 
-                  {/* Left accent bar */}
+                  {/* Content */}
                   <div
                     className={`transition-all duration-300 ease-in-out overflow-hidden ${
                       isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
                     }`}
                   >
-                    <div className={`border-t border-slate-100 border-l-[3px] ${acc.borderBar}`}>
+                    <div className="border-t border-slate-100">
                       {section.items && section.items.length > 0 ? (
                         <div className="divide-y divide-slate-100">
                           {section.items.map((item: any, i: number) => {
@@ -336,7 +278,7 @@ export default function DocsPage() {
                                 key={i}
                                 onClick={() => { if (item.url) window.open(item.url, "_blank"); }}
                                 className={`flex items-center justify-between px-5 py-3.5 ${
-                                  item.url ? `${acc.hover} cursor-pointer` : "cursor-default"
+                                  item.url ? "hover:bg-emerald-50/40 cursor-pointer" : "cursor-default"
                                 } transition-colors group`}
                               >
                                 <div className="flex items-center gap-3">
@@ -356,7 +298,7 @@ export default function DocsPage() {
                                 {item.url && (
                                   <ExternalLink
                                     size={13}
-                                    className={`text-slate-300 ${acc.ext} shrink-0 ml-4 transition-colors`}
+                                    className="text-slate-300 group-hover:text-emerald-500 shrink-0 ml-4 transition-colors"
                                   />
                                 )}
                               </div>
@@ -385,4 +327,3 @@ export default function DocsPage() {
     </div>
   );
 }
-

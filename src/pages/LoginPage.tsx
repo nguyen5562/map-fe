@@ -25,6 +25,7 @@ export default function LoginPage() {
         sessionStorage.setItem("auth", "true");
         sessionStorage.setItem("userRole", response.user.role);
         sessionStorage.setItem("userName", response.user.name || response.user.username);
+        sessionStorage.setItem("userId", response.user.id);
         navigate("/simulation");
       } else {
         setError("Đăng nhập thất bại.");

@@ -3,6 +3,7 @@ import { Wind } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { DatePickerInput } from "../ui/DatePickerInput";
+import { useToast } from "../../context/ToastContext";
 
 const DIRECTIONS = [
   { name: "Bắc", short: "B", angle: 0 },
@@ -24,6 +25,7 @@ export const WeatherPanel = ({
   weatherData,
   setWeatherData,
 }: any) => {
+  const toast = useToast();
   const selectedDir =
     DIRECTIONS.find((d) => d.name === weatherData.windDirection) ||
     DIRECTIONS[0];
@@ -272,9 +274,7 @@ export const WeatherPanel = ({
                           });
                         } else {
                           if (dir.name === weatherData.windDirection) {
-                            alert(
-                              "Hướng gió phụ không được trùng hướng gió chính!",
-                            );
+                            toast.error("Hướng gió phụ không được trùng hướng gió chính!");
                             return;
                           }
                           setWeatherData({

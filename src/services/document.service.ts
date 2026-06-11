@@ -30,4 +30,11 @@ export const documentService = {
     const response = await api.delete(`${API_ROUTES.DOCUMENTS}/${id}`);
     return response.data;
   },
+  reorderDocuments: async (sectionId: string, orderedIds: string[]) => {
+    const response = await api.patch(
+      `${API_ROUTES.DOCUMENTS}/sections/${sectionId}/reorder`,
+      { orderedIds },
+    );
+    return response.data;
+  },
 };

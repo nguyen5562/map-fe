@@ -8,6 +8,8 @@ import {
   ChevronDown,
   Calculator,
   Plus,
+  Edit3,
+  X,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import type { SmokeTimeRange } from "./SmokeTimePanel";
@@ -36,6 +38,7 @@ type LeftSidebarProps = {
   uploadProgress: number;
   handleUpload: (e: any) => void;
   handleUploadFile: (file: File) => void;
+  onRenameMap: (mapId: string, name: string) => void;
 
   // Calibration
   isCalibrated: boolean;
@@ -105,6 +108,7 @@ export const LeftSidebar = ({
   isUploading,
   uploadProgress,
   handleUploadFile,
+  onRenameMap,
   isCalibrated,
   setIsCalibrated,
   showCalibration,
@@ -152,6 +156,18 @@ export const LeftSidebar = ({
   const [showProgress, setShowProgress] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [isMapDropdownOpen, setIsMapDropdownOpen] = useState(false);
+
+  // Rename modal state
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [newMapName, setNewMapName] = useState("");
+
+  const handleSaveRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMapName.trim() !== "") {
+      onRenameMap(currentMap.id, newMapName.trim());
+      setRenameModalOpen(false);
+    }
+  };
 
   const handleFileChosen = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -203,15 +219,31 @@ export const LeftSidebar = ({
 
           {/* Dropdown chọn bản đồ custom */}
           <div className="relative mb-2">
-            <button
-              onClick={() => setIsMapDropdownOpen(!isMapDropdownOpen)}
-              className="flex h-9 w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-left transition-all"
-            >
-              <span className="truncate">
-                {currentMap?.name ? `${currentMap.name} ${currentMap.status !== "ready" ? "(Đang xử lý...)" : ""}` : "Chọn một bản đồ..."}
-              </span>
-              <ChevronDown size={14} className="text-slate-400 shrink-0 ml-1" />
-            </button>
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={() => setIsMapDropdownOpen(!isMapDropdownOpen)}
+                className="flex h-9 flex-1 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-left transition-all"
+              >
+                <span className="truncate">
+                  {currentMap?.name ? `${currentMap.name} ${currentMap.status !== "ready" ? "(Đang xử lý...)" : ""}` : "Chọn một bản đồ..."}
+                </span>
+                <ChevronDown size={14} className="text-slate-400 shrink-0 ml-1" />
+              </button>
+
+              {currentMap && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewMapName(currentMap.name);
+                    setRenameModalOpen(true);
+                  }}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-350 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 transition-colors shadow-sm shrink-0"
+                  title="Đổi tên bản đồ"
+                >
+                  <Edit3 size={14} />
+                </button>
+              )}
+            </div>
             
             {isMapDropdownOpen && (
               <>
@@ -426,6 +458,56 @@ export const LeftSidebar = ({
       >
         {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
+
+      {/* RENAME MAP MODAL */}
+      {renameModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl animate-scaleUp">
+            <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
+              <h4 className="text-slate-800 font-bold text-sm">
+                ĐỔI TÊN BẢN ĐỒ
+              </h4>
+              <button
+                type="button"
+                onClick={() => setRenameModalOpen(false)}
+                className="text-slate-400 hover:text-slate-650 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveRename} className="p-5 space-y-4 text-xs">
+              <div>
+                <label className="text-slate-600 font-semibold mb-1 block">
+                  Tên bản đồ mới
+                </label>
+                <input
+                  type="text"
+                  value={newMapName}
+                  onChange={(e) => setNewMapName(e.target.value)}
+                  placeholder="Nhập tên bản đồ mới..."
+                  className="w-full h-9 bg-white border border-slate-300 rounded-lg px-3 text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRenameModalOpen(false)}
+                  className="h-8 px-4 rounded-lg text-xs border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="h-8 px-4 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                >
+                  Lưu lại
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

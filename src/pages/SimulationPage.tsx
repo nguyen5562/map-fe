@@ -31,6 +31,7 @@ import { mapService } from "../services/map.service";
 import { BASE_URL } from "../const/apiConfig";
 import { vehicleService } from "../services/vehicle.service";
 import { WeatherOverlay, GasMarker } from "../components/map";
+import { useToast } from "../context/ToastContext";
 import { LeftSidebar } from "../components/left-sidebar";
 import { RightSidebar } from "../components/right-sidebar";
 import type { SmokeTimeRange } from "../components/left-sidebar/SmokeTimePanel";
@@ -77,6 +78,7 @@ type CalibrationPoint = {
 };
 
 export default function SimulationPage() {
+  const toast = useToast();
   const [maps, setMaps] = useState<any[]>([]);
   const [currentMap, setCurrentMap] = useState<any | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -211,7 +213,8 @@ export default function SimulationPage() {
 
   const fetchMaps = async () => {
     try {
-      const data = await mapService.getAllMaps();
+      const userId = sessionStorage.getItem("userId") || undefined;
+      const data = await mapService.getAllMaps(userId);
       setMaps(data);
     } catch (e) {
       console.error("Cannot fetch maps", e);
@@ -248,7 +251,7 @@ export default function SimulationPage() {
             fetchMaps();
             clearInterval(interval);
           } else if (updated.status === "error") {
-            alert("Xử lý bản đồ thất bại!");
+            toast.error("Xử lý bản đồ thất bại!");
             clearInterval(interval);
           }
         } catch (e) {}
@@ -263,13 +266,14 @@ export default function SimulationPage() {
     setIsUploading(true);
     setUploadProgress(0);
     try {
-      const newMap = await mapService.uploadMap(file, (percent) => {
+      const userId = sessionStorage.getItem("userId") || undefined;
+      const newMap = await mapService.uploadMap(file, userId, (percent) => {
         setUploadProgress(percent);
       });
       setCurrentMap(newMap);
       fetchMaps();
     } catch (e) {
-      alert("Upload thất bại");
+      toast.error("Tải bản đồ lên thất bại!");
     }
     setIsUploading(false);
     setUploadProgress(0);
@@ -279,16 +283,29 @@ export default function SimulationPage() {
     setIsUploading(true);
     setUploadProgress(0);
     try {
-      const newMap = await mapService.uploadMap(file, (percent) => {
+      const userId = sessionStorage.getItem("userId") || undefined;
+      const newMap = await mapService.uploadMap(file, userId, (percent) => {
         setUploadProgress(percent);
       });
       setCurrentMap(newMap);
       fetchMaps();
     } catch (e) {
-      alert("Upload thất bại");
+      toast.error("Tải bản đồ lên thất bại!");
     }
     setIsUploading(false);
     setUploadProgress(0);
+  };
+
+  const handleRenameMap = async (mapId: string, newName: string) => {
+    try {
+      await mapService.renameMap(mapId, newName);
+      if (currentMap?.id === mapId) {
+        setCurrentMap({ ...currentMap, name: newName });
+      }
+      fetchMaps();
+    } catch (e) {
+      toast.error("Đổi tên bản đồ thất bại!");
+    }
   };
 
   const handleMapClick = (e: L.LeafletMouseEvent) => {
@@ -306,11 +323,11 @@ export default function SimulationPage() {
   };
 
   const calculateCalibration = async () => {
-    if (!currentMap) return alert("Hãy chọn bản đồ trước");
+    if (!currentMap) return toast.error("Hãy chọn bản đồ trước!");
     if (!p1.rawX || !p1.rawY || !p2.rawX || !p2.rawY)
-      return alert("Cần chọn đủ 2 điểm trên bản đồ!");
+      return toast.error("Cần chọn đủ 2 điểm trên bản đồ!");
     if (!p1.realX || !p1.realY || !p2.realX || !p2.realY)
-      return alert("Cần nhập tọa độ thực tế VN-2000 cho cả 2 điểm!");
+      return toast.error("Cần nhập tọa độ thực tế VN-2000 cho cả 2 điểm!");
 
     const rX1 = parseFloat(p1.realX);
     const rY1 = parseFloat(p1.realY);
@@ -321,7 +338,7 @@ export default function SimulationPage() {
     const sY = (rY2 - rY1) / (p2.rawY! - p1.rawY!);
 
     if (sX === 0 || sY === 0 || !isFinite(sX))
-      return alert("2 điểm không hợp lệ (không được trùng nhau)!");
+      return toast.error("2 điểm không hợp lệ (không được trùng nhau)!");
 
     const calData = { p1, p2, scale: { x: sX, y: sY } };
     setScale({ x: sX, y: sY });
@@ -355,7 +372,7 @@ export default function SimulationPage() {
 
   const handleSearch = () => {
     if (!isCalibrated)
-      return alert("Bạn phải Hiệu chuẩn bản đồ trước khi tìm tọa độ thật!");
+      return toast.error("Bạn phải hiệu chuẩn bản đồ trước khi tìm tọa độ thật!");
     const x = parseFloat(searchX);
     const y = parseFloat(searchY);
     if (!isNaN(x) && !isNaN(y)) {
@@ -371,7 +388,7 @@ export default function SimulationPage() {
           rawTarget.lat > 0 ||
           rawTarget.lat < -(mHeight / maxScale)
         ) {
-          return alert(
+          return toast.error(
             "Tọa độ " +
               x +
               ", " +
@@ -469,8 +486,8 @@ export default function SimulationPage() {
   };
 
   const onAddPoint = () => {
-    if (!isCalibrated) return alert("Bạn cần hiệu chuẩn bản đồ trước!");
-    if (!clickedRaw) return alert("Vui lòng chọn một vị trí trên bản đồ!");
+    if (!isCalibrated) return toast.error("Bạn cần hiệu chuẩn bản đồ trước!");
+    if (!clickedRaw) return toast.error("Vui lòng chọn một vị trí trên bản đồ!");
 
     const currentResults = performCalculation({
       targetDefenseData,
@@ -572,7 +589,7 @@ export default function SimulationPage() {
     }
 
     if (listToCalculate.length === 0) {
-      return alert("Vui lòng chọn vị trí trên bản đồ và cấu hình rồi bấm Điểm kế tiếp hoặc Tính toán!");
+      return toast.error("Vui lòng chọn vị trí trên bản đồ và cấu hình rồi bấm Điểm kế tiếp hoặc Tính toán!");
     }
 
     const aggregatedResults = listToCalculate.reduce(
@@ -630,6 +647,7 @@ export default function SimulationPage() {
         uploadProgress={uploadProgress}
         handleUpload={handleUpload}
         handleUploadFile={handleUploadFile}
+        onRenameMap={handleRenameMap}
         isCalibrated={isCalibrated}
         setIsCalibrated={setIsCalibrated}
         showCalibration={showCalibration}
