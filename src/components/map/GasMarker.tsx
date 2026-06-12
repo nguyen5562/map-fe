@@ -27,7 +27,7 @@ export function GasMarker({
     >
       <g
         style={{
-          transform: `rotate(${angle}deg)`,
+          transform: `rotate(${angle + 180}deg)`,
           transformOrigin: "125px 125px",
         }}
       >

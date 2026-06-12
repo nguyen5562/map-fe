@@ -2,15 +2,16 @@ import { Target, Crosshair, Search } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
-export const TargetPanel = ({
-  isCalibrated,
-  currentRealCoords,
-  searchX,
-  setSearchX,
-  searchY,
-  setSearchY,
-  handleSearch,
-}: any) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const TargetPanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const currentRealCoords = useSimulation((s) => s.currentRealCoords);
+  const searchX = useSimulation((s) => s.searchX);
+  const setSearchX = useSimulation((s) => s.setSearchX);
+  const searchY = useSimulation((s) => s.searchY);
+  const setSearchY = useSimulation((s) => s.setSearchY);
+  const handleSearch = useSimulation((s) => s.handleSearch);
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${!isCalibrated && "opacity-30 pointer-events-none"}`}

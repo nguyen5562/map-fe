@@ -1,22 +1,15 @@
 import { useState } from "react";
 import { Route } from "lucide-react";
 
-type SmokeMethodData = {
-  lineType: "Thẳng" | "Vòng";
-  areaEnabled: boolean;
-};
 
-export const SmokeMethodPanel = ({
-  isCalibrated,
-  smokeMethodData,
-  setSmokeMethodData,
-  targetDefenseData,
-}: {
-  isCalibrated: boolean;
-  smokeMethodData: SmokeMethodData;
-  setSmokeMethodData: (data: SmokeMethodData) => void;
-  targetDefenseData: any;
-}) => {
+
+import { useSimulation } from "../../context/SimulationContext";
+
+export const SmokeMethodPanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const smokeMethodData = useSimulation((s) => s.smokeMethodData);
+  const setSmokeMethodData = useSimulation((s) => s.setSmokeMethodData);
+  const targetDefenseData = useSimulation((s) => s.targetDefenseData);
   const [showPanel, setShowPanel] = useState(true);
 
   return (

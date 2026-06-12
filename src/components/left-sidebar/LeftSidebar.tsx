@@ -12,146 +12,35 @@ import {
   X,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import type { SmokeTimeRange } from "./SmokeTimePanel";
+import { createPortal } from "react-dom";
 import { CalibrationPanel } from "./CalibrationPanel";
 import { TargetDefensePanel } from "./TargetDefensePanel";
 import { WeatherPanel } from "./WeatherPanel";
 import { SmokeTimePanel } from "./SmokeTimePanel";
 import { SmokeMethodPanel } from "./SmokeMethodPanel";
-import { SmokeVehiclePanel, type VehicleConfig } from "./SmokeVehiclePanel";
+import { SmokeVehiclePanel } from "./SmokeVehiclePanel";
 import { BattlefieldPanel } from "./BattlefieldPanel";
 import { TargetPanel } from "./TargetPanel";
 import { UploadProgressDialog } from "./UploadProgressDialog";
 import { PointsListPanel } from "./PointsListPanel";
+import { useSimulation } from "../../context/SimulationContext";
 
+export const LeftSidebar = () => {
+  const isSidebarOpen = useSimulation((s) => s.isSidebarOpen);
+  const setIsSidebarOpen = useSimulation((s) => s.setIsSidebarOpen);
+  const maps = useSimulation((s) => s.maps);
+  const currentMap = useSimulation((s) => s.currentMap);
+  const setCurrentMap = useSimulation((s) => s.setCurrentMap);
+  const isUploading = useSimulation((s) => s.isUploading);
+  const uploadProgress = useSimulation((s) => s.uploadProgress);
+  const handleUploadFile = useSimulation((s) => s.handleUploadFile);
+  const handleRenameMap = useSimulation((s) => s.handleRenameMap);
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const onCalculate = useSimulation((s) => s.onCalculate);
+  const pointsList = useSimulation((s) => s.pointsList);
+  const onAddPoint = useSimulation((s) => s.onAddPoint);
+  const currentRealCoords = useSimulation((s) => s.currentRealCoords);
 
-type LeftSidebarProps = {
-  // Sidebar toggle
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (v: boolean) => void;
-
-  // Map library
-  maps: any[];
-  currentMap: any;
-  setCurrentMap: (m: any) => void;
-  isUploading: boolean;
-  uploadProgress: number;
-  handleUpload: (e: any) => void;
-  handleUploadFile: (file: File) => void;
-  onRenameMap: (mapId: string, name: string) => void;
-
-  // Calibration
-  isCalibrated: boolean;
-  setIsCalibrated: (v: boolean) => void;
-  showCalibration: boolean;
-  setShowCalibration: (v: boolean) => void;
-  p1: any;
-  setP1: (v: any) => void;
-  p2: any;
-  setP2: (v: any) => void;
-  isSelectingFor: "p1" | "p2" | null;
-  setIsSelectingFor: (v: "p1" | "p2" | null) => void;
-  calculateCalibration: () => void;
-
-  // Target Defense (Mục 2)
-  targetDefenseData: any;
-  setTargetDefenseData: (v: any) => void;
-
-  // Weather (Mục 3)
-  showWeather: boolean;
-  setShowWeather: (v: boolean) => void;
-  weatherActive: boolean;
-  setWeatherActive: (v: boolean) => void;
-  weatherData: any;
-  setWeatherData: (v: any) => void;
-
-  // Smoke Time (Mục 4)
-  smokeTime: SmokeTimeRange;
-  setSmokeTime: (v: SmokeTimeRange) => void;
-
-  // Smoke Method (Mục 5)
-  smokeMethodData: any;
-  setSmokeMethodData: (v: any) => void;
-
-  // Smoke Vehicle (Mục 6)
-  selectedVehicles: string[];
-  setSelectedVehicles: (v: string[]) => void;
-  vehicleConfigs: Record<string, VehicleConfig>;
-  setVehicleConfigs: React.Dispatch<React.SetStateAction<Record<string, VehicleConfig>>>;
-
-  // Battlefield (Mục 7)
-  battlefieldData: any;
-  setBattlefieldData: (v: any) => void;
-  onCalculate: () => void;
-  pointsList: any[];
-  onDeletePoint: (id: string) => void;
-  onAddPoint: () => void;
-  onRenamePoint: (id: string, name: string) => void;
-  selectedPointId: string | null;
-  onSelectPoint: (id: string) => void;
-
-  // Target / Search (Mục 8)
-  currentRealCoords: { x: number; y: number } | null;
-  searchX: string;
-  setSearchX: (v: string) => void;
-  searchY: string;
-  setSearchY: (v: string) => void;
-  handleSearch: () => void;
-};
-
-export const LeftSidebar = ({
-  isSidebarOpen,
-  setIsSidebarOpen,
-  maps,
-  currentMap,
-  setCurrentMap,
-  isUploading,
-  uploadProgress,
-  handleUploadFile,
-  onRenameMap,
-  isCalibrated,
-  setIsCalibrated,
-  showCalibration,
-  setShowCalibration,
-  p1,
-  setP1,
-  p2,
-  setP2,
-  isSelectingFor,
-  setIsSelectingFor,
-  calculateCalibration,
-  targetDefenseData,
-  setTargetDefenseData,
-  showWeather,
-  setShowWeather,
-  weatherActive,
-  setWeatherActive,
-  weatherData,
-  setWeatherData,
-  smokeTime,
-  setSmokeTime,
-  smokeMethodData,
-  setSmokeMethodData,
-  selectedVehicles,
-  setSelectedVehicles,
-  vehicleConfigs,
-  setVehicleConfigs,
-  battlefieldData,
-  setBattlefieldData,
-  onCalculate,
-  pointsList,
-  onDeletePoint,
-  onAddPoint,
-  onRenamePoint,
-  selectedPointId,
-  onSelectPoint,
-  currentRealCoords,
-  searchX,
-  setSearchX,
-  searchY,
-  setSearchY,
-  handleSearch,
-}: LeftSidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProgress, setShowProgress] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
@@ -163,8 +52,8 @@ export const LeftSidebar = ({
 
   const handleSaveRename = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMapName.trim() !== "") {
-      onRenameMap(currentMap.id, newMapName.trim());
+    if (newMapName.trim() !== "" && currentMap) {
+      handleRenameMap(currentMap.id, newMapName.trim());
       setRenameModalOpen(false);
     }
   };
@@ -175,7 +64,6 @@ export const LeftSidebar = ({
     setUploadedFileName(file.name);
     setShowProgress(true);
     handleUploadFile(file);
-    // Reset input để có thể chọn lại cùng file
     e.target.value = "";
   };
 
@@ -344,89 +232,31 @@ export const LeftSidebar = ({
           className={`p-4 flex-1 overflow-y-auto space-y-6 ${!currentMap || currentMap.status !== "ready" ? "opacity-50 pointer-events-none" : ""}`}
         >
           {/* LIST OF SAVED POINTS */}
-          <PointsListPanel
-            pointsList={pointsList}
-            onDeletePoint={onDeletePoint}
-            onRenamePoint={onRenamePoint}
-            selectedPointId={selectedPointId}
-            onSelectPoint={onSelectPoint}
-          />
+          <PointsListPanel />
 
           {/* STEP 1: CALIBRATION */}
-          <CalibrationPanel
-            isCalibrated={isCalibrated}
-            setIsCalibrated={setIsCalibrated}
-            showCalibration={showCalibration}
-            setShowCalibration={setShowCalibration}
-            p1={p1}
-            setP1={setP1}
-            p2={p2}
-            setP2={setP2}
-            isSelectingFor={isSelectingFor}
-            setIsSelectingFor={setIsSelectingFor}
-            calculateCalibration={calculateCalibration}
-          />
+          <CalibrationPanel />
 
           {/* STEP 2: TARGET DEFENSE */}
-          <TargetDefensePanel
-            isCalibrated={isCalibrated}
-            targetDefenseData={targetDefenseData}
-            setTargetDefenseData={setTargetDefenseData}
-          />
+          <TargetDefensePanel />
 
           {/* STEP 3: FIND & CHECK COORDS (chuyển lên từ mục 8) */}
-          <TargetPanel
-            isCalibrated={isCalibrated}
-            currentRealCoords={currentRealCoords}
-            searchX={searchX}
-            setSearchX={setSearchX}
-            searchY={searchY}
-            setSearchY={setSearchY}
-            handleSearch={handleSearch}
-          />
+          <TargetPanel />
 
           {/* STEP 4: WEATHER */}
-          <WeatherPanel
-            isCalibrated={isCalibrated}
-            showWeather={showWeather}
-            setShowWeather={setShowWeather}
-            weatherActive={weatherActive}
-            setWeatherActive={setWeatherActive}
-            weatherData={weatherData}
-            setWeatherData={setWeatherData}
-          />
+          <WeatherPanel />
 
           {/* STEP 5: SMOKE TIME */}
-          <SmokeTimePanel
-            isCalibrated={isCalibrated}
-            smokeTime={smokeTime}
-            setSmokeTime={setSmokeTime}
-          />
+          <SmokeTimePanel />
 
           {/* STEP 6: SMOKE METHOD */}
-          <SmokeMethodPanel
-            isCalibrated={isCalibrated}
-            smokeMethodData={smokeMethodData}
-            setSmokeMethodData={setSmokeMethodData}
-            targetDefenseData={targetDefenseData}
-          />
+          <SmokeMethodPanel />
 
           {/* STEP 7: SMOKE VEHICLE */}
-          <SmokeVehiclePanel
-            isCalibrated={isCalibrated}
-            selectedVehicles={selectedVehicles}
-            setSelectedVehicles={setSelectedVehicles}
-            vehicleConfigs={vehicleConfigs}
-            setVehicleConfigs={setVehicleConfigs}
-          />
+          <SmokeVehiclePanel />
 
           {/* STEP 8: BATTLEFIELD STRUCTURE */}
-          <BattlefieldPanel
-            isCalibrated={isCalibrated}
-            battlefieldData={battlefieldData}
-            setBattlefieldData={setBattlefieldData}
-          />
-
+          <BattlefieldPanel />
         </div>
 
         {/* ── Sticky Action Footer ── */}
@@ -466,7 +296,7 @@ export const LeftSidebar = ({
       </button>
 
       {/* RENAME MAP MODAL */}
-      {renameModalOpen && (
+      {renameModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl animate-scaleUp">
             <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
@@ -512,7 +342,8 @@ export const LeftSidebar = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

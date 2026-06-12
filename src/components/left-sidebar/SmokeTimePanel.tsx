@@ -33,15 +33,12 @@ const TimeInput = ({
   />
 );
 
-export const SmokeTimePanel = ({
-  isCalibrated,
-  smokeTime,
-  setSmokeTime,
-}: {
-  isCalibrated: boolean;
-  smokeTime: SmokeTimeRange;
-  setSmokeTime: (val: SmokeTimeRange) => void;
-}) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const SmokeTimePanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const smokeTime = useSimulation((s) => s.smokeTime);
+  const setSmokeTime = useSimulation((s) => s.setSmokeTime);
   const [showPanel, setShowPanel] = useState(true);
 
   return (

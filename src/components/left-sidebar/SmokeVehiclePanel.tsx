@@ -67,19 +67,14 @@ const VEHICLES = [
   { id: "KHOI_UNG_DUNG", name: "KHÓI ỨNG DỤNG", desc: "Khói ứng dụng" },
 ];
 
-export const SmokeVehiclePanel = ({
-  isCalibrated,
-  selectedVehicles,
-  setSelectedVehicles,
-  vehicleConfigs,
-  setVehicleConfigs,
-}: {
-  isCalibrated: boolean;
-  selectedVehicles: string[];
-  setSelectedVehicles: (val: string[]) => void;
-  vehicleConfigs: Record<string, VehicleConfig>;
-  setVehicleConfigs: React.Dispatch<React.SetStateAction<Record<string, VehicleConfig>>>;
-}) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const SmokeVehiclePanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const selectedVehicles = useSimulation((s) => s.selectedVehicles);
+  const setSelectedVehicles = useSimulation((s) => s.setSelectedVehicles);
+  const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
+  const setVehicleConfigs = useSimulation((s) => s.setVehicleConfigs);
   const [showPanel, setShowPanel] = useState(true);
 
   const toggleVehicle = (id: string) => {

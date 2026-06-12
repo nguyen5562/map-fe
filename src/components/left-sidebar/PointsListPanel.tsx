@@ -1,19 +1,14 @@
 import { MapPin, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-export const PointsListPanel = ({
-  pointsList,
-  onDeletePoint,
-  onRenamePoint,
-  selectedPointId,
-  onSelectPoint,
-}: {
-  pointsList: any[];
-  onDeletePoint: (id: string) => void;
-  onRenamePoint: (id: string, name: string) => void;
-  selectedPointId: string | null;
-  onSelectPoint: (id: string) => void;
-}) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const PointsListPanel = () => {
+  const pointsList = useSimulation((s) => s.pointsList);
+  const onDeletePoint = useSimulation((s) => s.onDeletePoint);
+  const onRenamePoint = useSimulation((s) => s.onRenamePoint);
+  const selectedPointId = useSimulation((s) => s.selectedPointId);
+  const onSelectPoint = useSimulation((s) => s.onSelectPoint);
   const [showPanel, setShowPanel] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempName, setTempName] = useState<string>("");

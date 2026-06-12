@@ -12,23 +12,14 @@ const TARGET_TYPES = [
   "Đội hình hành quân",
 ];
 
-type TargetDefenseData = {
-  targetType: string;
-  length: string;
-  width: string;
-  area: string;
-  coverageMultiplier: string;
-};
 
-export const TargetDefensePanel = ({
-  isCalibrated,
-  targetDefenseData,
-  setTargetDefenseData,
-}: {
-  isCalibrated: boolean;
-  targetDefenseData: TargetDefenseData;
-  setTargetDefenseData: (data: TargetDefenseData) => void;
-}) => {
+
+import { useSimulation } from "../../context/SimulationContext";
+
+export const TargetDefensePanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const targetDefenseData = useSimulation((s) => s.targetDefenseData);
+  const setTargetDefenseData = useSimulation((s) => s.setTargetDefenseData);
   const [showPanel, setShowPanel] = useState(true);
   const [comboOpen, setComboOpen] = useState(false);
   const [comboInput, setComboInput] = useState(targetDefenseData.targetType);
@@ -131,7 +122,7 @@ export const TargetDefensePanel = ({
           </div>
 
           {/* Chiều dài & Chiều rộng */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">
                 Chiều dài (m)

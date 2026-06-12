@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
-import { authService } from "../services/auth.service";
+import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -20,16 +21,8 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const response = await authService.login({ username, password });
-      if (response && response.success) {
-        sessionStorage.setItem("auth", "true");
-        sessionStorage.setItem("userRole", response.user.role);
-        sessionStorage.setItem("userName", response.user.name || response.user.username);
-        sessionStorage.setItem("userId", response.user.id);
-        navigate("/simulation");
-      } else {
-        toast.error("Đăng nhập thất bại.");
-      }
+      await login({ username, password });
+      navigate("/simulation");
     } catch (err: any) {
       console.error(err);
       toast.error(

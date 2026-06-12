@@ -2,19 +2,20 @@ import { Settings } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
-export const CalibrationPanel = ({
-  isCalibrated,
-  setIsCalibrated,
-  showCalibration,
-  setShowCalibration,
-  p1,
-  setP1,
-  p2,
-  setP2,
-  isSelectingFor,
-  setIsSelectingFor,
-  calculateCalibration,
-}: any) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const CalibrationPanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const setIsCalibrated = useSimulation((s) => s.setIsCalibrated);
+  const showCalibration = useSimulation((s) => s.showCalibration);
+  const setShowCalibration = useSimulation((s) => s.setShowCalibration);
+  const p1 = useSimulation((s) => s.p1);
+  const setP1 = useSimulation((s) => s.setP1);
+  const p2 = useSimulation((s) => s.p2);
+  const setP2 = useSimulation((s) => s.setP2);
+  const isSelectingFor = useSimulation((s) => s.isSelectingFor);
+  const setIsSelectingFor = useSimulation((s) => s.setIsSelectingFor);
+  const calculateCalibration = useSimulation((s) => s.calculateCalibration);
   return (
     <div
       className={`space-y-4 p-4 rounded-xl border ${isCalibrated ? "bg-slate-50 border-slate-200 opacity-80" : "bg-blue-50/50 border-blue-200 shadow-sm"}`}

@@ -16,15 +16,16 @@ const DIRECTIONS = [
   { name: "Tây Bắc", short: "TB", angle: 315 },
 ];
 
-export const WeatherPanel = ({
-  isCalibrated,
-  showWeather,
-  setShowWeather,
-  weatherActive,
-  setWeatherActive,
-  weatherData,
-  setWeatherData,
-}: any) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const WeatherPanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const showWeather = useSimulation((s) => s.showWeather);
+  const setShowWeather = useSimulation((s) => s.setShowWeather);
+  const weatherActive = useSimulation((s) => s.weatherActive);
+  const setWeatherActive = useSimulation((s) => s.setWeatherActive);
+  const weatherData = useSimulation((s) => s.weatherData);
+  const setWeatherData = useSimulation((s) => s.setWeatherData);
   const toast = useToast();
   const selectedDir =
     DIRECTIONS.find((d) => d.name === weatherData.windDirection) ||

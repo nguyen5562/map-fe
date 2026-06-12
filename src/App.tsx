@@ -4,18 +4,20 @@ import DocsPage from "./pages/DocsPage";
 import SimulationPage from "./pages/SimulationPage";
 import AdminPage from "./pages/AdminPage";
 import Navbar from "./layout/Navbar";
+import { useAuth } from "./context/AuthContext";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const isAuth = sessionStorage.getItem("auth") === "true";
-  if (!isAuth) return <Navigate to="/login" replace />;
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null; // chờ kiểm tra session xong mới render
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const isAuth = sessionStorage.getItem("auth") === "true";
-  const role = sessionStorage.getItem("userRole");
-  if (!isAuth) return <Navigate to="/login" replace />;
-  if (role !== "admin") return <Navigate to="/simulation" replace />;
+  const { isAuthenticated, isLoading, user } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== "admin") return <Navigate to="/simulation" replace />;
   return <>{children}</>;
 }
 

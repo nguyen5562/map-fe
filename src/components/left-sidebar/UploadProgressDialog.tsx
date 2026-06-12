@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   UploadCloud,
   X,
@@ -57,7 +58,7 @@ export function UploadProgressDialog({
 
   const canClose = phase === "done" || phase === "error";
 
-  return (
+  return createPortal(
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget && canClose) onClose();
@@ -364,7 +365,8 @@ export function UploadProgressDialog({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

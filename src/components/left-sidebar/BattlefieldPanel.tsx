@@ -60,15 +60,12 @@ const PositionInput = ({
 
 export type { BattlefieldData };
 
-export const BattlefieldPanel = ({
-  isCalibrated,
-  battlefieldData,
-  setBattlefieldData,
-}: {
-  isCalibrated: boolean;
-  battlefieldData: BattlefieldData;
-  setBattlefieldData: (data: BattlefieldData) => void;
-}) => {
+import { useSimulation } from "../../context/SimulationContext";
+
+export const BattlefieldPanel = () => {
+  const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const battlefieldData = useSimulation((s) => s.battlefieldData);
+  const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
   const [showPanel, setShowPanel] = useState(true);
 
   return (

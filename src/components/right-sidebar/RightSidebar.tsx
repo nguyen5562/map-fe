@@ -29,11 +29,7 @@ export type CalculationResults = {
   coverTime_min?: number;
 };
 
-type RightSidebarProps = {
-  isOpen: boolean;
-  setIsOpen: (v: boolean) => void;
-  results?: CalculationResults;
-};
+import { useSimulation } from "../../context/SimulationContext";
 
 // ─── Helper: một hàng kết quả ─────────────────────────────────────────────────
 const ResultRow = ({
@@ -80,13 +76,12 @@ const GroupLabel = ({ children }: { children: React.ReactNode }) => (
   </p>
 );
 
-// ─── Main component ───────────────────────────────────────────────────────────
-export const RightSidebar = ({
-  isOpen,
-  setIsOpen,
-  results = {},
-}: RightSidebarProps) => {
-  const hasResults = Object.values(results).some((v) => v !== undefined);
+export const RightSidebar = () => {
+  const isOpen = useSimulation((s) => s.isRightSidebarOpen);
+  const setIsOpen = useSimulation((s) => s.setIsRightSidebarOpen);
+  const rawResults = useSimulation((s) => s.results);
+  const results = rawResults || {};
+  const hasResults = rawResults ? Object.values(rawResults).some((v) => v !== undefined) : false;
 
   return (
     <div
