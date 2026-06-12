@@ -10,6 +10,7 @@ import {
   FileText,
   PenTool,
   FileDown,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -52,6 +53,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 export const DocumentsTab = () => {
   const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const toast = useToast();
 
   // Modal Section
@@ -89,10 +91,12 @@ export const DocumentsTab = () => {
 
   const loadDocuments = async () => {
     setLoading(true);
+    setError(false);
     try {
       const data = await documentService.getDocumentSections();
       setSections(data);
     } catch (err) {
+      setError(true);
       toast.error("Không thể tải danh mục và tài liệu.");
     } finally {
       setLoading(false);
@@ -270,7 +274,20 @@ export const DocumentsTab = () => {
         </Button>
       </div>
 
-      {loading && sections.length === 0 ? (
+      {error ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-200 rounded-xl bg-white p-6 shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
+            <AlertTriangle size={20} />
+          </div>
+          <p className="text-slate-800 font-bold text-sm">Không thể tải danh sách tài liệu</p>
+          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+          </p>
+          <Button onClick={loadDocuments} variant="secondary" className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50">
+            Tải lại
+          </Button>
+        </div>
+      ) : loading && sections.length === 0 ? (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, secIdx) => (
             <div key={secIdx} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">

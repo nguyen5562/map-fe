@@ -218,6 +218,7 @@ export default function SimulationPage() {
       setMaps(data);
     } catch (e) {
       console.error("Cannot fetch maps", e);
+      toast.error("Không thể kết nối máy chủ để tải thư viện bản đồ.");
     }
   };
 
@@ -789,13 +790,17 @@ export default function SimulationPage() {
             </p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
-            <MapIcon size={64} className="mb-4 opacity-50" />
-            <h3 className="text-lg font-medium">
-              Chưa có Bản đồ nào được chọn
+          <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-400 p-6 text-center">
+            <MapIcon size={64} className="mb-4 opacity-50 animate-pulse text-slate-350" />
+            <h3 className="text-lg font-bold text-slate-700">
+              {maps.length === 0 
+                ? "Hệ thống chưa có Bản đồ nào" 
+                : "Chưa có Bản đồ nào được chọn"}
             </h3>
-            <p className="text-sm">
-              Vui lòng chọn từ thư viện bên trái hoặc Upload bản đồ mới
+            <p className="text-sm text-slate-500 mt-1 max-w-sm">
+              {maps.length === 0 
+                ? "Vui lòng tải lên bản đồ mới bằng nút ở thanh bên trái để bắt đầu giả định." 
+                : "Vui lòng chọn một bản đồ từ thư viện bên trái hoặc tải lên bản đồ mới."}
             </p>
           </div>
         )}

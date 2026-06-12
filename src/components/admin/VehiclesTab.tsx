@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit, X } from "lucide-react";
+import { Plus, Trash2, Edit, X, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { vehicleService } from "../../services/vehicle.service";
@@ -10,6 +10,7 @@ import { Skeleton } from "../ui/Skeleton";
 export const VehiclesTab = () => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const toast = useToast();
 
   // Modal states
@@ -31,10 +32,12 @@ export const VehiclesTab = () => {
 
   const loadVehicles = async () => {
     setLoading(true);
+    setError(false);
     try {
       const data = await vehicleService.getVehicles();
       setVehicles(data);
     } catch (err) {
+      setError(true);
       toast.error("Không thể tải danh sách khí tài.");
     } finally {
       setLoading(false);
@@ -134,53 +137,67 @@ export const VehiclesTab = () => {
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="bg-slate-50 text-slate-500 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
-              <th className="p-4">Mã khí tài</th>
-              <th className="p-4">Tên hiển thị</th>
-              <th className="p-4">Mô tả</th>
-              <th className="p-4 text-center">Độ dài L (m)</th>
-              <th className="p-4 text-center">Độ rộng R (m)</th>
-              <th className="p-4 text-center">Thời gian (phút)</th>
-              <th className="p-4 text-right">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {loading ? (
-              Array.from({ length: 4 }).map((_, idx) => (
-                <tr key={idx}>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-16 rounded-full" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-28 rounded-full" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-36 rounded-full" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-8 rounded-full mx-auto" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-8 rounded-full mx-auto" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-8 rounded-full mx-auto" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-6 w-16 rounded-full ml-auto" />
+      {error ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-200 rounded-xl bg-white p-6 shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
+            <AlertTriangle size={20} />
+          </div>
+          <p className="text-slate-800 font-bold text-sm">Không thể tải danh sách khí tài mặc định</p>
+          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+          </p>
+          <Button onClick={loadVehicles} variant="secondary" className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50">
+            Tải lại
+          </Button>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-slate-500 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
+                <th className="p-4">Mã khí tài</th>
+                <th className="p-4">Tên hiển thị</th>
+                <th className="p-4">Mô tả</th>
+                <th className="p-4 text-center">Độ dài L (m)</th>
+                <th className="p-4 text-center">Độ rộng R (m)</th>
+                <th className="p-4 text-center">Thời gian (phút)</th>
+                <th className="p-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-16 rounded-full" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-28 rounded-full" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-36 rounded-full" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-8 rounded-full mx-auto" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-8 rounded-full mx-auto" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-8 rounded-full mx-auto" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-6 w-16 rounded-full ml-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : vehicles.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                    Chưa có khí tài nào được định nghĩa
                   </td>
                 </tr>
-              ))
-            ) : vehicles.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
-                  Chưa có khí tài nào được định nghĩa
-                </td>
-              </tr>
-            ) : (
+              ) : (
               vehicles.map((v) => (
                 <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="p-4 font-mono font-bold text-slate-900">{v.id}</td>
@@ -213,6 +230,7 @@ export const VehiclesTab = () => {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* MODAL: KHÍ TÀI MẶC ĐỊNH */}
       {vehicleModalOpen && (

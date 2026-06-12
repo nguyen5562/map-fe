@@ -12,6 +12,7 @@ import {
   Film,
   PenTool,
   FileDown,
+  AlertTriangle,
 } from "lucide-react";
 
 // ── AUTHORS ──────────────────────────────────────────────
@@ -56,6 +57,7 @@ type Section = {
 
 import { documentService } from "../services/document.service";
 import { useEffect } from "react";
+import { Skeleton } from "../components/ui/Skeleton";
 
 const FILE_BADGE: Record<string, { label: string; color: string }> = {
   pdf: { label: "PDF", color: "bg-rose-50 text-rose-600 border border-rose-100/70" },
@@ -164,15 +166,25 @@ export default function DocsPage() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
+  const loadDocuments = () => {
+    setLoading(true);
+    setError(false);
     documentService.getDocumentSections()
       .then((data: any[]) => {
         setSections(data || []);
         if (data && data.length > 0) setActiveSection(data[0].id);
       })
-      .catch((err) => console.error("Lỗi tải tài liệu từ BE:", err))
+      .catch((err) => {
+        console.error("Lỗi tải tài liệu từ BE:", err);
+        setError(true);
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadDocuments();
   }, []);
 
   return (
@@ -203,14 +215,32 @@ export default function DocsPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-6">
         {/* Loading State */}
-        {loading ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-slate-200 rounded-xl bg-white p-6 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
+              <AlertTriangle size={20} />
+            </div>
+            <p className="text-slate-800 font-bold text-sm">Không thể tải thư viện tài liệu</p>
+            <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+              Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+            </p>
+            <button
+              onClick={loadDocuments}
+              className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center justify-center bg-white text-slate-700 shadow-xs"
+            >
+              Tải lại
+            </button>
+          </div>
+        ) : loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse">
-                <div className="h-16 bg-slate-100" />
-                <div className="p-4 space-y-2">
-                  <div className="h-3 bg-slate-100 rounded w-3/4" />
-                  <div className="h-3 bg-slate-100 rounded w-1/2" />
+              <div key={n} className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-4 w-48 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-32 rounded-full" />
                 </div>
               </div>
             ))}

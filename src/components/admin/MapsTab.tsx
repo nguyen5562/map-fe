@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Edit, Trash2, X } from "lucide-react";
+import { Edit, Trash2, X, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { mapService } from "../../services/map.service";
@@ -12,6 +12,7 @@ export const MapsTab = () => {
   const [maps, setMaps] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const toast = useToast();
 
   // Rename states
@@ -25,6 +26,7 @@ export const MapsTab = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(false);
     try {
       const [mapsData, usersData] = await Promise.all([
         mapService.getAllMaps(),
@@ -33,6 +35,7 @@ export const MapsTab = () => {
       setMaps(mapsData);
       setUsers(usersData);
     } catch (err) {
+      setError(true);
       toast.error("Không thể tải danh sách bản đồ.");
     } finally {
       setLoading(false);
@@ -93,43 +96,57 @@ export const MapsTab = () => {
         </h3>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="bg-slate-50 text-slate-500 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
-              <th className="p-4">Tên bản đồ</th>
-              <th className="p-4">Người đăng</th>
-              <th className="p-4 text-center">Kích thước</th>
-              <th className="p-4 text-center">Trạng thái</th>
-              <th className="p-4 text-center">Ngày tải lên</th>
-              <th className="p-4 text-right">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {loading && maps.length === 0 ? (
-              Array.from({ length: 4 }).map((_, idx) => (
-                <tr key={idx}>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-40 rounded-full" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-5 w-16 rounded-full" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-20 rounded-full mx-auto" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-5 w-16 rounded-full mx-auto" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-4 w-24 rounded-full mx-auto" />
-                  </td>
-                  <td className="p-4">
-                    <Skeleton className="h-6 w-16 rounded-full ml-auto" />
-                  </td>
-                </tr>
-              ))
-            ) : maps.length === 0 ? (
+      {error ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-200 rounded-xl bg-white p-6 shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
+            <AlertTriangle size={20} />
+          </div>
+          <p className="text-slate-800 font-bold text-sm">Không thể tải danh sách bản đồ</p>
+          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+          </p>
+          <Button onClick={loadData} variant="secondary" className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50">
+            Tải lại
+          </Button>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-slate-500 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
+                <th className="p-4">Tên bản đồ</th>
+                <th className="p-4">Người đăng</th>
+                <th className="p-4 text-center">Kích thước</th>
+                <th className="p-4 text-center">Trạng thái</th>
+                <th className="p-4 text-center">Ngày tải lên</th>
+                <th className="p-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {loading && maps.length === 0 ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-40 rounded-full" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-20 rounded-full mx-auto" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-5 w-16 rounded-full mx-auto" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-4 w-24 rounded-full mx-auto" />
+                    </td>
+                    <td className="p-4">
+                      <Skeleton className="h-6 w-16 rounded-full ml-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : maps.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
                   Chưa có bản đồ nào được tải lên
@@ -200,6 +217,7 @@ export const MapsTab = () => {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* MODAL: ĐỔI TÊN BẢN ĐỒ */}
       {renameMapModalOpen && (

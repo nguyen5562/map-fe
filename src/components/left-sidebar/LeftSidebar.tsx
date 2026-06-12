@@ -252,23 +252,29 @@ export const LeftSidebar = ({
                   onClick={() => setIsMapDropdownOpen(false)} 
                 />
                 <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-auto rounded-lg border border-slate-250 bg-white py-1 shadow-lg z-40">
-                  {maps.map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        setCurrentMap(m);
-                        setIsMapDropdownOpen(false);
-                      }}
-                      className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${
-                        currentMap?.id === m.id ? "bg-slate-50/70 font-semibold text-blue-600" : "text-slate-700"
-                      }`}
-                    >
-                      <span className="truncate">{m.name}</span>
-                      {m.status !== "ready" && (
-                        <span className="text-[10px] text-amber-500 font-medium shrink-0 ml-1">(Đang xử lý...)</span>
-                      )}
-                    </button>
-                  ))}
+                  {maps.length === 0 ? (
+                    <div className="px-3 py-3 text-xs text-slate-400 italic text-center">
+                      Chưa có bản đồ nào trong thư viện
+                    </div>
+                  ) : (
+                    maps.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setCurrentMap(m);
+                          setIsMapDropdownOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${
+                          currentMap?.id === m.id ? "bg-slate-50/70 font-semibold text-blue-600" : "text-slate-700"
+                        }`}
+                      >
+                        <span className="truncate">{m.name}</span>
+                        {m.status !== "ready" && (
+                          <span className="text-[10px] text-amber-500 font-medium shrink-0 ml-1">(Đang xử lý...)</span>
+                        )}
+                      </button>
+                    ))
+                  )}
                 </div>
               </>
             )}

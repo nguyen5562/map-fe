@@ -2,20 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
 import { authService } from "../services/auth.service";
+import { useToast } from "../context/ToastContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     if (!username || !password) {
-      setError("Vui lòng nhập đầy đủ thông tin.");
+      toast.error("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
     setLoading(true);
@@ -28,11 +28,11 @@ export default function LoginPage() {
         sessionStorage.setItem("userId", response.user.id);
         navigate("/simulation");
       } else {
-        setError("Đăng nhập thất bại.");
+        toast.error("Đăng nhập thất bại.");
       }
     } catch (err: any) {
       console.error(err);
-      setError(
+      toast.error(
         err.response?.data?.message || "Tên đăng nhập hoặc mật khẩu không đúng."
       );
     } finally {
@@ -200,13 +200,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                <p className="text-red-400 text-xs">{error}</p>
-              </div>
-            )}
+
 
             {/* Submit */}
             <button
