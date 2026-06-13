@@ -20,13 +20,14 @@ export const documentService = {
     const response = await api.delete(`${API_ROUTES.DOCUMENTS}/sections/${id}`);
     return response.data;
   },
-  uploadFile: async (file: File) => {
+  uploadFile: async (file: File, onProgress?: (progressEvent: any) => void) => {
     const formData = new FormData();
     formData.append("file", file);
     const response = await api.post(`${API_ROUTES.DOCUMENTS}/upload`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      onUploadProgress: onProgress,
     });
     return response.data;
   },

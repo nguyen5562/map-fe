@@ -77,6 +77,17 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
     url: "",
   });
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFileName, setUploadFileName] = useState("");
+  const [uploadFileSize, setUploadFileSize] = useState("");
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
 
   // Delete modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -96,8 +107,18 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
     if (!file) return;
 
     setUploading(true);
+    setUploadProgress(0);
+    setUploadFileName(file.name);
+    setUploadFileSize(formatFileSize(file.size));
+
     try {
-      const res = await documentService.uploadFile(file);
+      const res = await documentService.uploadFile(file, (progressEvent) => {
+        const total = progressEvent.total || 0;
+        if (total > 0) {
+          const percent = Math.round((progressEvent.loaded * 100) / total);
+          setUploadProgress(percent);
+        }
+      });
       
       // Auto-determine document type/format based on file extension
       let detectedType = docForm.type;
@@ -132,6 +153,7 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
       toast.error("Không thể tải tệp lên. Vui lòng thử lại.");
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       e.target.value = "";
     }
   };
@@ -731,6 +753,42 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TIẾN ĐỘ TẢI LÊN */}
+      {uploading && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl p-6 space-y-4 animate-scaleUp">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 shrink-0">
+                <Upload size={18} className="animate-bounce" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-slate-800 font-bold text-sm truncate">
+                  Đang tải tệp lên...
+                </h4>
+                <p className="text-[10px] text-slate-500 truncate mt-0.5" title={uploadFileName}>
+                  {uploadFileName} ({uploadFileSize})
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50">
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-350 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center text-[10px] font-bold">
+                <span className="text-slate-400">
+                  {uploadProgress === 100 ? "Đang xử lý tệp..." : "Vui lòng chờ..."}
+                </span>
+                <span className="text-emerald-600">{uploadProgress}%</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
