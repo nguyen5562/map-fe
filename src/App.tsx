@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DocsPage from "./pages/DocsPage";
+import VideosPage from "./pages/VideosPage";
 import SimulationPage from "./pages/SimulationPage";
 import AdminPage from "./pages/AdminPage";
 import Navbar from "./layout/Navbar";
@@ -43,6 +44,16 @@ function App() {
           <RequireAuth>
             <AppLayout>
               <SimulationPage />
+            </AppLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/videos"
+        element={
+          <RequireAuth>
+            <AppLayout>
+              <VideosPage />
             </AppLayout>
           </RequireAuth>
         }

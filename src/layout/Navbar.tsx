@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Map, BookOpen, LogOut, User, Shield, ChevronDown, Key, X, Eye, EyeOff, Lock } from "lucide-react";
+import { Map, BookOpen, Film, LogOut, User, Shield, ChevronDown, Key, X, Eye, EyeOff, Lock } from "lucide-react";
 import { userService } from "../services/user.service";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
@@ -31,7 +31,8 @@ export default function Navbar() {
   const [loading, setLoading] = useState(false);
 
   const navItems = [
-    { path: "/simulation", label: "Mô phỏng", icon: Map },
+    { path: "/simulation", label: "Tính toán", icon: Map },
+    { path: "/videos", label: "Video", icon: Film },
     { path: "/docs", label: "Tài liệu", icon: BookOpen },
   ];
 

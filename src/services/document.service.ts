@@ -2,8 +2,10 @@ import { api } from "./api";
 import { API_ROUTES } from "../const/apiConfig";
 
 export const documentService = {
-  getDocumentSections: async () => {
-    const response = await api.get(`${API_ROUTES.DOCUMENTS}/sections`);
+  getDocumentSections: async (type?: string) => {
+    const response = await api.get(`${API_ROUTES.DOCUMENTS}/sections`, {
+      params: type ? { type } : undefined,
+    });
     return response.data;
   },
   createSection: async (data: any) => {
@@ -16,6 +18,16 @@ export const documentService = {
   },
   deleteSection: async (id: string) => {
     const response = await api.delete(`${API_ROUTES.DOCUMENTS}/sections/${id}`);
+    return response.data;
+  },
+  uploadFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await api.post(`${API_ROUTES.DOCUMENTS}/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
   createDocument: async (data: any) => {

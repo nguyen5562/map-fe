@@ -11,6 +11,7 @@ import {
   PenTool,
   FileDown,
   AlertTriangle,
+  Upload,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -50,7 +51,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   word: <FileDown size={10} />,
 };
 
-export const DocumentsTab = () => {
+export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video" }) => {
   const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -75,6 +76,7 @@ export const DocumentsTab = () => {
     classified: false,
     url: "",
   });
+  const [uploading, setUploading] = useState(false);
 
   // Delete modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -89,12 +91,57 @@ export const DocumentsTab = () => {
   const dragItemRef = useRef<{ sectionId: string; index: number } | null>(null);
   const [dragOverKey, setDragOverKey] = useState<string | null>(null);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const res = await documentService.uploadFile(file);
+      
+      // Auto-determine document type/format based on file extension
+      let detectedType = docForm.type;
+      if (mode !== "video") {
+        const ext = res.extension;
+        if (ext === "pdf") {
+          detectedType = "pdf";
+        } else if (["doc", "docx"].includes(ext)) {
+          detectedType = "word";
+        } else if (["xls", "xlsx"].includes(ext)) {
+          detectedType = "excel";
+        } else if (["ppt", "pptx"].includes(ext)) {
+          detectedType = "powerpoint";
+        } else if (["dwg", "dxf"].includes(ext)) {
+          detectedType = "drawing";
+        }
+      }
+
+      // Auto-populate Title if it's currently empty
+      const originalNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+      
+      setDocForm((prev) => ({
+        ...prev,
+        title: prev.title ? prev.title : originalNameWithoutExt,
+        url: res.url,
+        type: mode === "video" ? "video" : detectedType,
+      }));
+
+      toast.success("Tải tệp lên thành công!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Không thể tải tệp lên. Vui lòng thử lại.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
   const loadDocuments = async () => {
     setLoading(true);
     setError(false);
     try {
-      const data = await documentService.getDocumentSections();
-      setSections(data);
+      const data = await documentService.getDocumentSections(mode);
+      setSections(data || []);
     } catch (err) {
       setError(true);
       toast.error("Không thể tải danh mục và tài liệu.");
@@ -105,7 +152,7 @@ export const DocumentsTab = () => {
 
   useEffect(() => {
     loadDocuments();
-  }, []);
+  }, [mode]);
 
   const handleOpenSectionModal = (sec: any = null) => {
     if (sec) {
@@ -133,11 +180,12 @@ export const DocumentsTab = () => {
       return;
     }
     try {
+      const payload = { ...sectionForm, type: mode };
       if (editingSection) {
-        await documentService.updateSection(editingSection.id, sectionForm);
+        await documentService.updateSection(editingSection.id, payload);
         toast.success("Cập nhật chuyên mục thành công!");
       } else {
-        await documentService.createSection(sectionForm);
+        await documentService.createSection(payload);
         toast.success("Tạo chuyên mục thành công!");
       }
       setSectionModalOpen(false);
@@ -161,7 +209,7 @@ export const DocumentsTab = () => {
       setEditingDoc(null);
       setDocForm({
         title: "",
-        type: "pdf",
+        type: mode === "video" ? "video" : "pdf",
         classified: false,
         url: "",
       });
@@ -263,14 +311,14 @@ export const DocumentsTab = () => {
 
       <div className="flex justify-between items-center pb-2 border-b border-slate-100">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-          Danh mục & tài liệu
+          {mode === "video" ? "Danh mục & Video" : "Danh mục & tài liệu"}
         </h3>
         <Button
           onClick={() => handleOpenSectionModal()}
           variant="success"
           className="h-8 text-xs font-bold gap-1 px-3"
         >
-          <Plus size={13} /> Thêm chuyên mục
+          <Plus size={13} /> {mode === "video" ? "Thêm chuyên mục video" : "Thêm chuyên mục"}
         </Button>
       </div>
 
@@ -334,7 +382,7 @@ export const DocumentsTab = () => {
             {/* Header */}
             <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="inline-flex h-5 items-center justify-center rounded bg-slate-200 px-2 font-mono text-[10px] font-bold text-slate-700 border border-slate-300 shadow-sm">
                     MỤC {section.roman}
                   </span>
@@ -353,7 +401,7 @@ export const DocumentsTab = () => {
                   onClick={() => handleOpenDocModal(section.id)}
                   className="text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-2 py-1 rounded-lg border border-emerald-200 transition-all flex items-center gap-1 shadow-xs"
                 >
-                  <Plus size={10} /> Thêm tài liệu
+                  <Plus size={10} /> {mode === "video" ? "Thêm video" : "Thêm tài liệu"}
                 </button>
                 <button
                   onClick={() => handleOpenSectionModal(section)}
@@ -544,7 +592,9 @@ export const DocumentsTab = () => {
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl animate-scaleUp">
             <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
               <h4 className="text-slate-800 font-bold text-sm">
-                {editingDoc ? "SỬA TÀI LIỆU" : "THÊM TÀI LIỆU MỚI"}
+                {editingDoc
+                  ? (mode === "video" ? "SỬA VIDEO" : "SỬA TÀI LIỆU")
+                  : (mode === "video" ? "THÊM VIDEO MỚI" : "THÊM TÀI LIỆU MỚI")}
               </h4>
               <button
                 onClick={() => setDocModalOpen(false)}
@@ -556,7 +606,7 @@ export const DocumentsTab = () => {
             <form onSubmit={handleSaveDoc} className="p-5 space-y-4">
               <div>
                 <label className="text-slate-655 font-semibold mb-1 block">
-                  Tên tài liệu
+                  {mode === "video" ? "Tên video" : "Tên tài liệu"}
                 </label>
                 <Input
                   type="text"
@@ -564,7 +614,7 @@ export const DocumentsTab = () => {
                   onChange={(e: any) =>
                     setDocForm({ ...docForm, title: e.target.value })
                   }
-                  placeholder="Tên tài liệu hiển thị..."
+                  placeholder={mode === "video" ? "Tên video hiển thị..." : "Tên tài liệu hiển thị..."}
                   className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
@@ -573,19 +623,28 @@ export const DocumentsTab = () => {
                   <label className="text-slate-650 font-semibold mb-1 block">
                     Định dạng
                   </label>
-                  <select
-                    value={docForm.type}
-                    onChange={(e) =>
-                      setDocForm({ ...docForm, type: e.target.value })
-                    }
-                    className="w-full h-9 bg-white border border-slate-300 rounded-lg px-3 text-slate-850 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
-                  >
-                    <option value="pdf">Tài liệu PDF</option>
-                    <option value="video">Bài giảng Video</option>
-                    <option value="drawing">Bản vẽ 2D/3D</option>
-                    <option value="doc">Tài liệu Word</option>
-                    <option value="word">Văn bản hướng dẫn</option>
-                  </select>
+                  {mode === "video" ? (
+                    <select
+                      disabled
+                      value="video"
+                      className="w-full h-9 bg-slate-50 border border-slate-200 rounded-lg px-3 text-slate-500 focus:outline-none shadow-sm cursor-not-allowed"
+                    >
+                      <option value="video">Bài giảng Video</option>
+                    </select>
+                  ) : (
+                    <select
+                      value={docForm.type}
+                      onChange={(e) =>
+                        setDocForm({ ...docForm, type: e.target.value })
+                      }
+                      className="w-full h-9 bg-white border border-slate-300 rounded-lg px-3 text-slate-850 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
+                    >
+                      <option value="pdf">Tài liệu PDF</option>
+                      <option value="drawing">Bản vẽ 2D/3D</option>
+                      <option value="doc">Tài liệu Word</option>
+                      <option value="word">Văn bản hướng dẫn</option>
+                    </select>
+                  )}
                 </div>
                 <div className="flex items-end pb-2">
                   <label className="flex items-center gap-2 cursor-pointer text-slate-650 font-semibold select-none">
@@ -600,23 +659,63 @@ export const DocumentsTab = () => {
                       }
                       className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                     />
-                    <span>Tài liệu MẬT</span>
+                    <span>{mode === "video" ? "Video MẬT" : "Tài liệu MẬT"}</span>
                   </label>
                 </div>
               </div>
-              <div>
-                <label className="text-slate-650 font-semibold mb-1 block">
-                  Đường dẫn (URL / File)
-                </label>
-                <Input
-                  type="text"
-                  value={docForm.url}
-                  onChange={(e: any) =>
-                    setDocForm({ ...docForm, url: e.target.value })
-                  }
-                  placeholder="uploads/... hoặc liên kết ngoài..."
-                  className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
-                />
+              <div className="space-y-3">
+                <div>
+                  <label className="text-slate-650 font-semibold mb-1 block">
+                    {mode === "video" ? "Tải video lên" : "Tải tài liệu lên"}
+                  </label>
+                  <div className="border border-dashed border-slate-200 hover:border-emerald-500 rounded-xl p-4 bg-slate-50/50 transition-colors flex flex-col items-center justify-center text-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 text-xs font-semibold bg-white flex items-center gap-1.5 border-slate-200"
+                      onClick={() => document.getElementById("file-upload-input")?.click()}
+                      disabled={uploading}
+                    >
+                      <Upload size={14} className="text-slate-500" />
+                      {uploading ? "Đang tải tệp lên..." : "Chọn tệp từ thiết bị"}
+                    </Button>
+                    <input
+                      id="file-upload-input"
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      accept={mode === "video" ? "video/*" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.dwg,.dxf"}
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      {mode === "video" 
+                        ? "Hỗ trợ định dạng MP4, WebM, OGG..." 
+                        : "Hỗ trợ PDF, Word, Excel, PowerPoint, Bản vẽ DWG/DXF..."
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-slate-650 font-semibold block">
+                      Đường dẫn tệp tĩnh hoặc liên kết ngoài (URL)
+                    </label>
+                    {docForm.url && (
+                      <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 animate-pulse">
+                        Đã có liên kết file
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    type="text"
+                    value={docForm.url}
+                    onChange={(e: any) =>
+                      setDocForm({ ...docForm, url: e.target.value })
+                    }
+                    placeholder={mode === "video" ? "Ví dụ: /uploads/... hoặc liên kết Youtube..." : "Ví dụ: /uploads/... hoặc liên kết ngoài..."}
+                    className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 text-xs h-9"
+                  />
+                </div>
               </div>
               <div className="flex gap-3 justify-end pt-2">
                 <Button

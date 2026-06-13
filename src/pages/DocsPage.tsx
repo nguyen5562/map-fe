@@ -13,7 +13,10 @@ import {
   PenTool,
   FileDown,
   AlertTriangle,
+  Search,
 } from "lucide-react";
+import { documentService } from "../services/document.service";
+import { resolveBackendUrl } from "../const/apiConfig";
 
 // ── AUTHORS ──────────────────────────────────────────────
 const AUTHORS = [
@@ -55,7 +58,6 @@ type Section = {
   items: DocItem[];
 };
 
-import { documentService } from "../services/document.service";
 import { useEffect } from "react";
 import { Skeleton } from "../components/ui/Skeleton";
 
@@ -160,21 +162,71 @@ function AboutModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// Helper to extract file extension
+const getFileExtension = (url: string | null | undefined): string => {
+  if (!url) return "";
+  const cleanUrl = url.split("?")[0];
+  const parts = cleanUrl.split(".");
+  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+};
+
 // ── MAIN PAGE ─────────────────────────────────────────────
 export default function DocsPage() {
   const [showAbout, setShowAbout] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [activeDoc, setActiveDoc] = useState<any | null>(null);
+
+  const handleDownload = (e: React.MouseEvent, url: string | null, title: string) => {
+    e.preventDefault();
+    if (!url) return;
+    const fullUrl = resolveBackendUrl(url);
+    const filename = url.split("/").pop() || `${title}.pdf`;
+
+    fetch(fullUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error("Mạng có lỗi");
+        return res.blob();
+      })
+      .then((blob) => {
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(blobUrl);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải file:", err);
+        window.open(fullUrl, "_blank");
+      });
+  };
 
   const loadDocuments = () => {
     setLoading(true);
     setError(false);
-    documentService.getDocumentSections()
+    documentService.getDocumentSections("document")
       .then((data: any[]) => {
-        setSections(data || []);
-        if (data && data.length > 0) setActiveSection(data[0].id);
+        // Filter out videos from items, and exclude sections that become empty
+        const filtered = (data || [])
+          .filter((sec: any) => sec.type !== "video")
+          .map((sec: any) => ({
+            ...sec,
+            items: (sec.items || []).filter((item: any) => item.type !== "video"),
+          }))
+          .filter((sec: any) => sec.items.length > 0);
+
+        setSections(filtered);
+        if (filtered && filtered.length > 0) {
+          setActiveSection(filtered[0].id);
+        } else {
+          setActiveSection(null);
+        }
       })
       .catch((err) => {
         console.error("Lỗi tải tài liệu từ BE:", err);
@@ -187,29 +239,150 @@ export default function DocsPage() {
     loadDocuments();
   }, []);
 
+  // Filtered sections and items based on search query
+  const filteredSections = sections
+    .map((sec) => ({
+      ...sec,
+      items: sec.items.filter((item) =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    }))
+    .filter((sec) => sec.items.length > 0);
+
   return (
     <div className="min-h-[calc(100vh-48px)] bg-slate-50/70">
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
 
+      {/* DOCUMENT VIEWER MODAL */}
+      {activeDoc && activeDoc.url && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-xs"
+          onClick={() => setActiveDoc(null)}
+        >
+          <div
+            className="w-full max-w-7xl h-[90vh] mx-4 overflow-hidden rounded-2xl bg-slate-950 shadow-2xl border border-white/10 flex flex-col animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-slate-900 px-5 py-3.5 flex items-center justify-between border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-2.5 mr-4 min-w-0">
+                <span className="text-emerald-400 shrink-0">
+                  {TYPE_ICON[activeDoc.type] || <FileText size={15} />}
+                </span>
+                <h3 className="text-white font-bold text-xs truncate">
+                  {activeDoc.title}
+                </h3>
+                {activeDoc.classified && (
+                  <span className="bg-rose-600/95 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded border border-rose-500/40 flex items-center gap-1 shrink-0 shadow-sm">
+                    <Lock size={8} /> MẬT
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => handleDownload(e, activeDoc.url, activeDoc.title)}
+                  className="bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white transition-all px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold mr-2 shadow-md shadow-emerald-950/30 hover:scale-[1.02]"
+                  title="Tải xuống tài liệu"
+                >
+                  <FileDown size={14} />
+                  <span className="hidden sm:inline">Tải xuống</span>
+                </button>
+                <button
+                  onClick={() => setActiveDoc(null)}
+                  className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 bg-slate-900 overflow-hidden relative flex items-center justify-center">
+              {(() => {
+                const ext = getFileExtension(activeDoc.url);
+                const fullUrl = resolveBackendUrl(activeDoc.url);
+
+                if (ext === "pdf") {
+                  return (
+                    <iframe
+                      src={`${fullUrl}#toolbar=1`}
+                      className="w-full h-full border-none bg-slate-900"
+                      title={activeDoc.title}
+                    />
+                  );
+                }
+
+                if (["png", "jpg", "jpeg", "svg", "gif", "webp"].includes(ext)) {
+                  return (
+                    <div className="w-full h-full overflow-auto flex items-center justify-center p-4 bg-slate-950/20">
+                      <img
+                        src={fullUrl}
+                        alt={activeDoc.title}
+                        className="max-w-full max-h-full object-contain rounded shadow-lg bg-white"
+                      />
+                    </div>
+                  );
+                }
+
+                // Default fallback for Word/Excel files or files that cannot be viewed inline
+                return (
+                  <div className="flex flex-col items-center justify-center text-center p-8 text-slate-400 max-w-sm mx-auto animate-in fade-in zoom-in-95">
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-slate-300 mb-4 border border-white/10 shadow-inner">
+                      <FileText size={30} />
+                    </div>
+                    <p className="font-bold text-white text-sm">Định dạng file không hỗ trợ xem trực tiếp</p>
+                    <p className="text-xs text-slate-450 mt-1 leading-relaxed">
+                      Trình duyệt không hỗ trợ hiển thị trực tiếp định dạng tệp tin này ({ext.toUpperCase()}). Vui lòng tải về máy để xem.
+                    </p>
+                    <button
+                      onClick={(e) => handleDownload(e, activeDoc.url, activeDoc.title)}
+                      className="mt-5 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-600/20 hover:scale-[1.02]"
+                    >
+                      <FileDown size={14} />
+                      Tải tài liệu về máy
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-200">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-200 shrink-0">
               <BookOpen size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-900 tracking-tight">Thư viện tài liệu</h1>
-              <p className="text-slate-500 text-xs mt-0.5">Tài liệu kỹ thuật, bài giảng và hướng dẫn sử dụng phần mềm</p>
+              <h1 className="text-base font-bold text-slate-900 tracking-tight">Thư viện tài liệu</h1>
+              <p className="text-slate-500 text-[11px] mt-0.5">Tài liệu kỹ thuật, bài giảng và hướng dẫn sử dụng phần mềm</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowAbout(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-xs font-semibold shadow-sm"
-          >
-            <Info size={14} />
-            Về phần mềm
-          </button>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {/* Search bar */}
+            <div className="relative w-full md:w-64 shrink-0">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm tài liệu..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 bg-white border border-slate-200 hover:border-slate-300 focus:border-emerald-500 rounded-lg pl-9 pr-4 text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
+              />
+            </div>
+
+            <button
+              onClick={() => setShowAbout(true)}
+              className="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-slate-650 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-xs font-semibold shadow-sm shrink-0"
+            >
+              <Info size={14} />
+              Về phần mềm
+            </button>
+          </div>
         </div>
       </div>
 
@@ -253,10 +426,18 @@ export default function DocsPage() {
             <p className="text-slate-700 font-semibold text-sm">Chưa có tài liệu nào</p>
             <p className="text-slate-400 text-xs mt-1">Liên hệ quản trị viên để thêm tài liệu.</p>
           </div>
+        ) : filteredSections.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <Search size={24} className="text-slate-400" />
+            </div>
+            <p className="text-slate-700 font-semibold text-sm">Không tìm thấy tài liệu phù hợp</p>
+            <p className="text-slate-400 text-xs mt-1">Thử lại bằng từ khóa hoặc cụm từ khác.</p>
+          </div>
         ) : (
           <div className="space-y-3">
-            {sections.map((section) => {
-              const isOpen = activeSection === section.id;
+            {filteredSections.map((section) => {
+              const isOpen = searchQuery !== "" || activeSection === section.id;
 
               return (
                 <div
@@ -306,7 +487,7 @@ export default function DocsPage() {
                             return (
                               <div
                                 key={i}
-                                onClick={() => { if (item.url) window.open(item.url, "_blank"); }}
+                                onClick={() => { if (item.url) setActiveDoc(item); }}
                                 className={`flex items-center justify-between px-5 py-3.5 ${
                                   item.url ? "hover:bg-emerald-50/40 cursor-pointer" : "cursor-default"
                                 } transition-colors group`}
@@ -328,7 +509,7 @@ export default function DocsPage() {
                                 {item.url && (
                                   <ExternalLink
                                     size={13}
-                                    className="text-slate-300 group-hover:text-emerald-500 shrink-0 ml-4 transition-colors"
+                                    className="text-emerald-600 hover:text-emerald-700 shrink-0 ml-4 transition-colors"
                                   />
                                 )}
                               </div>
