@@ -4,11 +4,10 @@ import {
   Play,
   Search,
   Lock,
-  AlertTriangle,
-  ExternalLink,
   X,
   SlidersHorizontal,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { documentService } from "../services/document.service";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -31,6 +30,18 @@ type Section = {
   title: string;
   items: any[];
 };
+
+// const isDirectVideoFile = (url: string | null) => {
+//   if (!url) return false;
+//   const cleanUrl = url.toLowerCase().split("?")[0];
+//   return (
+//     cleanUrl.endsWith(".mp4") ||
+//     cleanUrl.endsWith(".webm") ||
+//     cleanUrl.endsWith(".ogg") ||
+//     cleanUrl.startsWith("uploads/") ||
+//     cleanUrl.startsWith("/uploads/")
+//   );
+// };
 
 export default function VideosPage() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -95,27 +106,6 @@ export default function VideosPage() {
       .includes(searchQuery.toLowerCase());
     return matchesSection && matchesSearch;
   });
-
-  const isDirectVideoFile = (url: string | null) => {
-    if (!url) return false;
-    const cleanUrl = url.toLowerCase().split("?")[0];
-    return (
-      cleanUrl.endsWith(".mp4") ||
-      cleanUrl.endsWith(".webm") ||
-      cleanUrl.endsWith(".ogg") ||
-      cleanUrl.startsWith("uploads/") ||
-      cleanUrl.startsWith("/uploads/")
-    );
-  };
-
-  const getFullDirectUrl = (url: string) => {
-    return resolveBackendUrl(url);
-  };
-
-  const handlePlayVideo = (video: VideoItem) => {
-    if (!video.url) return;
-    setActiveVideo(video);
-  };
 
   return (
     <div className="min-h-[calc(100vh-48px)] bg-slate-50/70 text-xs">
@@ -258,14 +248,11 @@ export default function VideosPage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredVideos.map((video) => {
-                    const hasUrl = !!video.url;
                     return (
                       <div
                         key={video.id}
-                        onClick={() => hasUrl && handlePlayVideo(video)}
-                        className={`bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col group ${
-                          hasUrl ? "cursor-pointer" : "cursor-default"
-                        }`}
+                        onClick={() => setActiveVideo(video)}
+                        className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col group cursor-pointer"
                       >
                         {/* Video Thumbnail Area */}
                         <div className="relative aspect-video w-full bg-slate-900 flex items-center justify-center overflow-hidden">
@@ -274,20 +261,13 @@ export default function VideosPage() {
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.15)_0%,transparent_70%)]" />
 
                           {/* Play Button Overlay */}
-                          {hasUrl ? (
-                            <div className="relative z-10 w-12 h-12 rounded-full bg-white/10 group-hover:bg-emerald-600 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:border-emerald-400/30 text-white shadow-lg transition-all duration-300 group-hover:scale-110">
-                              <Play
-                                size={18}
-                                fill="currentColor"
-                                className="ml-0.5"
-                              />
-                            </div>
-                          ) : (
-                            <Film
-                              size={28}
-                              className="text-slate-600 relative z-10"
+                          <div className="relative z-10 w-12 h-12 rounded-full bg-white/10 group-hover:bg-emerald-600 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:border-emerald-400/30 text-white shadow-lg transition-all duration-300 group-hover:scale-110">
+                            <Play
+                              size={18}
+                              fill="currentColor"
+                              className="ml-0.5"
                             />
-                          )}
+                          </div>
 
                           {/* Classified badge */}
                           {video.classified && (
@@ -315,27 +295,15 @@ export default function VideosPage() {
                             </h3>
                           </div>
 
-                          {hasUrl ? (
-                            <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600 group-hover:text-emerald-700 pt-2 border-t border-slate-50">
-                              <span className="flex items-center gap-1">
-                                Xem video
-                                <ChevronRight
-                                  size={10}
-                                  className="transition-transform group-hover:translate-x-0.5"
-                                />
-                              </span>
-                              {!isDirectVideoFile(video.url) && (
-                                <ExternalLink
-                                  size={10}
-                                  className="text-slate-400"
-                                />
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 italic">
-                              Không có link video
+                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600 group-hover:text-emerald-700 pt-2 border-t border-slate-50">
+                            <span className="flex items-center gap-1">
+                              Xem video
+                              <ChevronRight
+                                size={10}
+                                className="transition-transform group-hover:translate-x-0.5"
+                              />
                             </span>
-                          )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -380,34 +348,12 @@ export default function VideosPage() {
 
             {/* Video Player Box */}
             <div className="flex-1 bg-black flex items-center justify-center overflow-hidden">
-              {isDirectVideoFile(activeVideo.url) ? (
-                <video
-                  src={getFullDirectUrl(activeVideo.url)}
-                  controls
-                  autoPlay
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
-                  <AlertTriangle size={32} className="text-yellow-500 mb-2" />
-                  <p className="font-semibold text-sm text-slate-300">
-                    Định dạng URL không được hỗ trợ trực tiếp
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                    Không thể nhúng hoặc chạy link này trực tiếp. Vui lòng nhấn
-                    vào nút bên dưới để mở liên kết trong tab mới.
-                  </p>
-                  <a
-                    href={activeVideo.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition-all shadow-md shadow-emerald-600/20"
-                  >
-                    Mở liên kết gốc
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-              )}
+              <video
+                src={resolveBackendUrl(activeVideo.url)}
+                controls
+                autoPlay
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
         </div>

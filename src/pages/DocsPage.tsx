@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BookOpen,
   ChevronRight,
@@ -9,14 +9,14 @@ import {
   X,
   Monitor,
   Lock,
-  Film,
   PenTool,
   FileDown,
-  AlertTriangle,
   Search,
+  AlertTriangle,
 } from "lucide-react";
 import { documentService } from "../services/document.service";
 import { resolveBackendUrl } from "../const/apiConfig";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ── AUTHORS ──────────────────────────────────────────────
 const AUTHORS = [
@@ -46,7 +46,7 @@ const AUTHORS = [
 // ── SECTION TYPES ─────────────────────────────────────────
 type DocItem = {
   title: string;
-  type: "pdf" | "video" | "drawing" | "doc" | "word";
+  type: "pdf" | "drawing" | "doc" | "word";
   classified?: boolean;
 };
 
@@ -58,12 +58,8 @@ type Section = {
   items: DocItem[];
 };
 
-import { useEffect } from "react";
-import { Skeleton } from "../components/ui/Skeleton";
-
 const FILE_BADGE: Record<string, { label: string; color: string }> = {
   pdf: { label: "PDF", color: "bg-rose-50 text-rose-600 border border-rose-100/70" },
-  video: { label: "VIDEO", color: "bg-indigo-50 text-indigo-600 border border-indigo-100/70" },
   drawing: { label: "BẢN VẼ", color: "bg-sky-50 text-sky-600 border border-sky-100/70" },
   doc: { label: "DOC", color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70" },
   word: { label: "DOCX", color: "bg-blue-50 text-blue-600 border border-blue-100/70" },
@@ -71,7 +67,6 @@ const FILE_BADGE: Record<string, { label: string; color: string }> = {
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   pdf: <FileText size={13} />,
-  video: <Film size={13} />,
   drawing: <PenTool size={13} />,
   doc: <FileDown size={13} />,
   word: <FileText size={13} />,
