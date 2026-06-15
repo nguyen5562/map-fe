@@ -8,6 +8,7 @@ let _onUnauthorized: (() => void) | null = null;
 let _refreshPromise: Promise<string> | null = null;
 
 export const setAccessToken = (token: string) => { _accessToken = token; };
+export const getAccessToken = () => _accessToken;
 export const clearAccessToken = () => { _accessToken = ""; };
 export const setUnauthorizedHandler = (handler: () => void) => { _onUnauthorized = handler; };
 

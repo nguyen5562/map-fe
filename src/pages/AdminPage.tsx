@@ -1,15 +1,21 @@
-import { useState } from "react";
-import { Users, FileText, Truck, Shield, Film } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { Users, FileText, Truck, Shield, Film, MessageSquare } from "lucide-react";
 import { Map as MapIcon } from "lucide-react";
-import { UsersTab } from "../components/admin/UsersTab";
-import { DocumentsTab } from "../components/admin/DocumentsTab";
-import { VehiclesTab } from "../components/admin/VehiclesTab";
-import { MapsTab } from "../components/admin/MapsTab";
+import { UsersTab, DocumentsTab, VehiclesTab, MapsTab, FeedbackTab } from "../components/admin";
 
-type TabType = "users" | "documents" | "videos" | "vehicles" | "maps";
+type TabType = "users" | "documents" | "videos" | "vehicles" | "maps" | "feedback";
 
 export default function AdminPage() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>("users");
+
+  useEffect(() => {
+    const state = location.state as { activeTab?: TabType; feedbackId?: string } | null;
+    if (state?.activeTab) {
+      setActiveTab(state.activeTab);
+    }
+  }, [location.state]);
 
   return (
     <div className="min-h-[calc(100vh-48px)] bg-slate-50/70 text-xs">
@@ -61,6 +67,11 @@ export default function AdminPage() {
                   label: "Bản đồ",
                   icon: <MapIcon size={15} />,
                 },
+                {
+                  id: "feedback" as TabType,
+                  label: "Ý kiến phản hồi",
+                  icon: <MessageSquare size={15} />,
+                },
               ].map((tab, idx) => (
                 <button
                   key={tab.id}
@@ -96,6 +107,7 @@ export default function AdminPage() {
               {activeTab === "videos" && <DocumentsTab mode="video" />}
               {activeTab === "vehicles" && <VehiclesTab />}
               {activeTab === "maps" && <MapsTab />}
+              {activeTab === "feedback" && <FeedbackTab />}
             </div>
           </div>
         </div>

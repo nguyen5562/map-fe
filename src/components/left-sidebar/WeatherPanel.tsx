@@ -373,15 +373,25 @@ export const WeatherPanel = () => {
           {/* Lượng mây */}
           <div>
             <label className="text-xs font-semibold text-slate-500">
-              Lượng mây (%)
+              Lượng mây (/10)
             </label>
             <Input
-              type="text"
+              type="number"
+              min={0}
+              max={10}
               value={weatherData.rainfall ?? ""}
-              onChange={(e: any) =>
-                setWeatherData({ ...weatherData, rainfall: e.target.value })
-              }
-              placeholder="VD: 0"
+              onChange={(e: any) => {
+                const val = e.target.value;
+                if (val === "") {
+                  setWeatherData({ ...weatherData, rainfall: "" });
+                  return;
+                }
+                let num = Number(val);
+                if (num < 0) num = 0;
+                if (num > 10) num = 10;
+                setWeatherData({ ...weatherData, rainfall: num });
+              }}
+              placeholder="VD: 5"
             />
           </div>
 
@@ -446,6 +456,26 @@ export const WeatherPanel = () => {
                 placeholder="Đến"
               />
             </div>
+          </div>
+
+          {/* Độ ẩm không khí */}
+          <div>
+            <label className="text-xs font-semibold text-slate-500">
+              Độ ẩm không khí (%)
+            </label>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              value={weatherData.humidity ?? ""}
+              onChange={(e: any) =>
+                setWeatherData({
+                  ...weatherData,
+                  humidity: e.target.value === "" ? "" : Number(e.target.value),
+                })
+              }
+              placeholder="VD: 70"
+            />
           </div>
         </div>
       )}

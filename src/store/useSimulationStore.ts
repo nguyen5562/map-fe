@@ -97,7 +97,8 @@ const performCalculation = (inputs: {
   smokeTime: SmokeTimeRange;
   vehicleConfigs: Record<string, VehicleConfig>;
 }) => {
-  const area = parseFloat(inputs.targetDefenseData.area) || 1000;
+  const areaInHa = parseFloat(inputs.targetDefenseData.area);
+  const area = (!isNaN(areaInHa) ? areaInHa : 0.1) * 10000;
   const coverage = parseFloat(inputs.targetDefenseData.coverageMultiplier) || 1.2;
   const targetArea = area * coverage;
 
@@ -217,11 +218,12 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     secondaryWindAngle: 270,
     alpha: 0,
     speed: 5,
-    rainfall: 50,
+    rainfall: 5,
     tkkMin: 28,
     tkkMax: 35,
     tmdMin: 30,
     tmdMax: 37,
+    humidity: 70,
   },
 
   // Setters

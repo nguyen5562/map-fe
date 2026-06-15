@@ -21,7 +21,7 @@ export const DEFAULT_VEHICLE_CONFIGS: Record<string, VehicleConfig> = {
     t: 3,
     materials: "Hộp thuốc khói HPK-2.5",
   },
-  "TPK": {
+  TPK: {
     id: "TPK",
     name: "TPK",
     desc: "Thùng thả khói",
@@ -37,7 +37,8 @@ export const DEFAULT_VEHICLE_CONFIGS: Record<string, VehicleConfig> = {
     l: 1000,
     r: 150,
     t: 90,
-    materials: "Hỗn hợp DO/FO (1400 L/h), Dầu DO đầu đốt (37.5 L/h), Xăng máy phát (1.4 L/h)",
+    materials:
+      "Hỗn hợp DO/FO (1400 L/h), Dầu DO đầu đốt (37.5 L/h), Xăng máy phát (1.4 L/h)",
   },
   "TDA-M": {
     id: "TDA-M",
@@ -46,26 +47,22 @@ export const DEFAULT_VEHICLE_CONFIGS: Record<string, VehicleConfig> = {
     l: 1000,
     r: 150,
     t: 90,
-    materials: "Dầu tạo khói (550 L/h), Xăng phụ trợ (6% thể tích dầu tạo khói)",
+    materials:
+      "Dầu tạo khói (550 L/h), Xăng phụ trợ (6% thể tích dầu tạo khói)",
   },
-  "KHOI_UNG_DUNG": {
+  KHOI_UNG_DUNG: {
     id: "KHOI_UNG_DUNG",
     name: "KHÓI ỨNG DỤNG",
     desc: "Khói ứng dụng",
     l: 50,
     r: 5,
     t: 15,
-    materials: "Chất cháy (lá khô/củi khô), chất tạo khói (lá tươi/rơm bùn ẩm), dầu mồi (mazut/DO)",
+    materials:
+      "Chất cháy (lá khô/củi khô), chất tạo khói (lá tươi/rơm bùn ẩm), dầu mồi (mazut/DO)",
   },
 };
 
-const VEHICLES = [
-  { id: "HPK-2.5", name: "HPK-2.5", desc: "Hộp phát khói" },
-  { id: "TPK", name: "TPK", desc: "Thùng thả khói" },
-  { id: "KH-1", name: "KH-1", desc: "Xe thả khói" },
-  { id: "TDA-M", name: "TDA-M", desc: "Xe thả khói" },
-  { id: "KHOI_UNG_DUNG", name: "KHÓI ỨNG DỤNG", desc: "Khói ứng dụng" },
-];
+const PREFERRED_ORDER = ["HPK-2.5", "TPK", "KH-1", "TDA-M", "KHOI_UNG_DUNG"];
 
 import { useSimulation } from "../../context/SimulationContext";
 
@@ -76,6 +73,15 @@ export const SmokeVehiclePanel = () => {
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
   const setVehicleConfigs = useSimulation((s) => s.setVehicleConfigs);
   const [showPanel, setShowPanel] = useState(true);
+
+  const sortedVehicles = Object.values(vehicleConfigs).sort((a, b) => {
+    const indexA = PREFERRED_ORDER.indexOf(a.id);
+    const indexB = PREFERRED_ORDER.indexOf(b.id);
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    return a.id.localeCompare(b.id);
+  });
 
   const toggleVehicle = (id: string) => {
     if (selectedVehicles.includes(id)) {
@@ -92,7 +98,9 @@ export const SmokeVehiclePanel = () => {
   const isCustomized =
     config &&
     defaultConfig &&
-    (config.l !== defaultConfig.l || config.r !== defaultConfig.r || config.t !== defaultConfig.t);
+    (config.l !== defaultConfig.l ||
+      config.r !== defaultConfig.r ||
+      config.t !== defaultConfig.t);
 
   const handleConfigChange = (field: keyof VehicleConfig, val: any) => {
     if (!selectedId) return;
@@ -137,7 +145,7 @@ export const SmokeVehiclePanel = () => {
       {showPanel && (
         <div className="mt-2 space-y-3">
           <div className="flex flex-wrap gap-2">
-            {VEHICLES.map((v) => {
+            {sortedVehicles.map((v) => {
               const isSelected = selectedVehicles.includes(v.id);
               return (
                 <button
@@ -190,7 +198,9 @@ export const SmokeVehiclePanel = () => {
                     <input
                       type="number"
                       value={config.l}
-                      onChange={(e) => handleConfigChange("l", parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleConfigChange("l", parseFloat(e.target.value) || 0)
+                      }
                       className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
@@ -207,7 +217,9 @@ export const SmokeVehiclePanel = () => {
                     <input
                       type="number"
                       value={config.r}
-                      onChange={(e) => handleConfigChange("r", parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleConfigChange("r", parseFloat(e.target.value) || 0)
+                      }
                       className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
@@ -224,7 +236,9 @@ export const SmokeVehiclePanel = () => {
                     <input
                       type="number"
                       value={config.t}
-                      onChange={(e) => handleConfigChange("t", parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleConfigChange("t", parseFloat(e.target.value) || 0)
+                      }
                       className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">

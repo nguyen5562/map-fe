@@ -209,10 +209,10 @@ export const LeftSidebar = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-800">
-                Tính toán Khí tài phát khói
+                THIẾT LẬP CÁC THÔNG SỐ TÍNH TOÁN
               </h1>
               <p className="text-sm font-medium flex items-center gap-1">
-                Trạng thái:{" "}
+                Trạng thái bản đồ:{" "}
                 {isCalibrated ? (
                   <span className="text-emerald-600 flex items-center">
                     <CheckCircle2 size={14} className="mr-1" /> Đã hiệu chuẩn
@@ -267,7 +267,7 @@ export const LeftSidebar = () => {
             className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all border border-slate-300 hover:bg-slate-105 text-slate-700 bg-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
           >
             <Plus size={14} />
-            ĐIỂM KẾ TIẾP
+            MỤC TIÊU KẾ TIẾP
           </button>
           <button
             onClick={onCalculate}

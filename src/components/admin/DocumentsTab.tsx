@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Plus,
   Trash2,
@@ -758,8 +759,8 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
       )}
 
       {/* MODAL: TIẾN ĐỘ TẢI LÊN */}
-      {uploading && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+      {uploading && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl p-6 space-y-4 animate-scaleUp">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 shrink-0">
@@ -790,7 +791,8 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* CONFIRM DELETE MODAL */}

@@ -14,7 +14,7 @@ export const getStability = (tkkMin: number, tkkMax: number, tmdMin: number, tmd
   const avgTkk = (tkkMin + tkkMax) / 2;
   const avgTmd = (tmdMin + tmdMax) / 2;
   if (avgTmd > avgTkk) return "ĐỐI LƯU";
-  if (avgTmd < avgTkk) return "NGHỊCH LƯU";
+  if (avgTmd < avgTkk) return "BÌNH LƯU";
   return "ĐẲNG NHIỆT";
 };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Shield, ChevronDown } from "lucide-react";
+import { Shield, ChevronDown, AlertTriangle } from "lucide-react";
 import { Input } from "../ui/Input";
 
 const TARGET_TYPES = [
@@ -125,27 +125,7 @@ export const TargetDefensePanel = () => {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">
-                Chiều dài (m)
-              </label>
-              <Input
-                type="number"
-                min={0}
-                value={targetDefenseData.length}
-                onChange={(e: any) => {
-                  const val = e.target.value;
-                  if (val === "" || parseFloat(val) >= 0) {
-                    setTargetDefenseData({
-                      ...targetDefenseData,
-                      length: val,
-                    });
-                  }
-                }}
-                placeholder="Chiều dài"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500">
-                Chiều rộng (m)
+                Chính diện hướng gió (m)
               </label>
               <Input
                 type="number"
@@ -154,13 +134,45 @@ export const TargetDefensePanel = () => {
                 onChange={(e: any) => {
                   const val = e.target.value;
                   if (val === "" || parseFloat(val) >= 0) {
+                    const lVal = parseFloat(targetDefenseData.length);
+                    const wVal = parseFloat(val);
+                    const calculatedArea = (val && targetDefenseData.length)
+                      ? Number(((lVal * wVal) / 10000).toFixed(4)).toString()
+                      : "";
                     setTargetDefenseData({
                       ...targetDefenseData,
                       width: val,
+                      area: calculatedArea,
                     });
                   }
                 }}
-                placeholder="Chiều rộng"
+                placeholder="Nhập số"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">
+                Dọc theo hướng gió (m)
+              </label>
+              <Input
+                type="number"
+                min={0}
+                value={targetDefenseData.length}
+                onChange={(e: any) => {
+                  const val = e.target.value;
+                  if (val === "" || parseFloat(val) >= 0) {
+                    const wVal = parseFloat(targetDefenseData.width);
+                    const lVal = parseFloat(val);
+                    const calculatedArea = (targetDefenseData.width && val)
+                      ? Number(((wVal * lVal) / 10000).toFixed(4)).toString()
+                      : "";
+                    setTargetDefenseData({
+                      ...targetDefenseData,
+                      length: val,
+                      area: calculatedArea,
+                    });
+                  }
+                }}
+                placeholder="Nhập số"
               />
             </div>
           </div>
@@ -168,7 +180,7 @@ export const TargetDefensePanel = () => {
           {/* Diện tích mục tiêu */}
           <div>
             <label className="text-xs font-semibold text-slate-500">
-              Diện tích mục tiêu (m²)
+              Diện tích mục tiêu (ha)
             </label>
             <Input
               type="number"
@@ -183,7 +195,7 @@ export const TargetDefensePanel = () => {
                   });
                 }
               }}
-              placeholder="Diện tích mục tiêu"
+              placeholder="VD: 0.1"
             />
           </div>
 
@@ -219,9 +231,46 @@ export const TargetDefensePanel = () => {
                   parseFloat(targetDefenseData.area) *
                   parseFloat(targetDefenseData.coverageMultiplier)
                 ).toLocaleString()}{" "}
-                m²
+                ha
               </p>
             )}
+
+            {(() => {
+              const areaVal = parseFloat(targetDefenseData.area);
+              const multVal = parseFloat(targetDefenseData.coverageMultiplier);
+              if (isNaN(areaVal) || isNaN(multVal)) return null;
+
+              let recommendedMin = 0;
+              let recommendedMax = 0;
+              let categoryLabel = "";
+
+              if (areaVal < 30) {
+                recommendedMin = 10;
+                recommendedMax = 15;
+                categoryLabel = "nhỏ (< 30 ha)";
+              } else if (areaVal >= 30 && areaVal <= 50) {
+                recommendedMin = 6;
+                recommendedMax = 10;
+                categoryLabel = "vừa (30 - 50 ha)";
+              } else {
+                recommendedMin = 3;
+                recommendedMax = 5;
+                categoryLabel = "lớn (> 50 ha)";
+              }
+
+              const isOutOfRange = multVal < recommendedMin || multVal > recommendedMax;
+
+              if (!isOutOfRange) return null;
+
+              return (
+                <div className="mt-2.5 p-2.5 rounded-lg bg-rose-50 border border-rose-100 text-[11px] text-rose-700 flex items-start gap-1.5 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
+                  <AlertTriangle size={13} className="shrink-0 mt-0.5 text-rose-500" />
+                  <div>
+                    <span className="font-bold">Khuyến nghị:</span> Diện tích mục tiêu {categoryLabel} nên chọn từ <span className="font-bold">{recommendedMin} - {recommendedMax} lần</span>.
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

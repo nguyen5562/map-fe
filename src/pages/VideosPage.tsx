@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { documentService } from "../services/document.service";
 import { Skeleton } from "../components/ui/Skeleton";
-import { resolveBackendUrl } from "../const/apiConfig";
+import { resolveBackendUrl } from "../utils/url";
 
 type VideoItem = {
   id: string;
@@ -30,18 +30,6 @@ type Section = {
   title: string;
   items: any[];
 };
-
-// const isDirectVideoFile = (url: string | null) => {
-//   if (!url) return false;
-//   const cleanUrl = url.toLowerCase().split("?")[0];
-//   return (
-//     cleanUrl.endsWith(".mp4") ||
-//     cleanUrl.endsWith(".webm") ||
-//     cleanUrl.endsWith(".ogg") ||
-//     cleanUrl.startsWith("uploads/") ||
-//     cleanUrl.startsWith("/uploads/")
-//   );
-// };
 
 export default function VideosPage() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -121,8 +109,7 @@ export default function VideosPage() {
                 Thư viện Video mô phỏng
               </h1>
               <p className="text-slate-500 text-[11px] mt-0.5">
-                Các video mô phỏng, hướng dẫn thực hành và vận hành khí tài phát
-                khói
+                Các video mô phỏng cấu tạo, nguyên lý hoạt động, hướng dẫn thực hành và vận hành khí tài phát khói
               </p>
             </div>
           </div>
@@ -256,9 +243,19 @@ export default function VideosPage() {
                       >
                         {/* Video Thumbnail Area */}
                         <div className="relative aspect-video w-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                          {/* Rich Aesthetic Gradient background */}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-950 via-slate-900 to-slate-800 opacity-90 transition-transform duration-300 group-hover:scale-105" />
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.15)_0%,transparent_70%)]" />
+                          {video.url ? (
+                            <video
+                              src={`${resolveBackendUrl(video.url)}#t=3`}
+                              preload="metadata"
+                              className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-300 group-hover:scale-105"
+                              muted
+                              playsInline
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-950 via-slate-900 to-slate-800 opacity-90 transition-transform duration-300 group-hover:scale-105" />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent z-0" />
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.1)_0%,transparent_70%)] z-0" />
 
                           {/* Play Button Overlay */}
                           <div className="relative z-10 w-12 h-12 rounded-full bg-white/10 group-hover:bg-emerald-600 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:border-emerald-400/30 text-white shadow-lg transition-all duration-300 group-hover:scale-110">

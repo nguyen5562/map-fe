@@ -39,6 +39,7 @@ export interface WeatherData {
   tkkMax: number;
   tmdMin: number;
   tmdMax: number;
+  humidity: number | string;
 }
 
 // Export hook directly referencing Zustand store for 100% compatibility

@@ -13,23 +13,26 @@ import {
   FileDown,
   Search,
   AlertTriangle,
+  Mail,
 } from "lucide-react";
 import { documentService } from "../services/document.service";
-import { resolveBackendUrl } from "../const/apiConfig";
+import { resolveBackendUrl } from "../utils/url";
 import { Skeleton } from "../components/ui/Skeleton";
 
 // ── AUTHORS ──────────────────────────────────────────────
 const AUTHORS = [
   {
     name: "Nguyễn Văn Hưng",
-    rank: "Trung tá",
+    rank: "Trung tá, ThS",
+    email: "hungnv@bchh.bqp",
     role: "Phó Chủ nhiệm",
     unit: "Phòng Hậu cần - Kỹ thuật",
     school: "Trường Sĩ quan Phòng hóa",
   },
   {
     name: "Đặng Quang Dũng",
-    rank: "Thượng tá",
+    rank: "Thượng tá, ThS",
+    email: "dungdq@bchh.bqp",
     role: "Phó Chủ nhiệm",
     unit: "Khoa Chiến thuật",
     school: "Trường Sĩ quan Phòng hóa",
@@ -37,6 +40,7 @@ const AUTHORS = [
   {
     name: "Nguyễn Khôi Nguyên",
     rank: "Trung úy",
+    email: "nguyennk@bchh.bqp",
     role: "Trợ lý",
     unit: "Phòng Hậu cần - Kỹ thuật",
     school: "Trường Sĩ quan Phòng hóa",
@@ -59,10 +63,22 @@ type Section = {
 };
 
 const FILE_BADGE: Record<string, { label: string; color: string }> = {
-  pdf: { label: "PDF", color: "bg-rose-50 text-rose-600 border border-rose-100/70" },
-  drawing: { label: "BẢN VẼ", color: "bg-sky-50 text-sky-600 border border-sky-100/70" },
-  doc: { label: "DOC", color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70" },
-  word: { label: "DOCX", color: "bg-blue-50 text-blue-600 border border-blue-100/70" },
+  pdf: {
+    label: "PDF",
+    color: "bg-rose-50 text-rose-600 border border-rose-100/70",
+  },
+  drawing: {
+    label: "BẢN VẼ",
+    color: "bg-sky-50 text-sky-600 border border-sky-100/70",
+  },
+  doc: {
+    label: "DOC",
+    color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70",
+  },
+  word: {
+    label: "DOCX",
+    color: "bg-blue-50 text-blue-600 border border-blue-100/70",
+  },
 };
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
@@ -76,14 +92,14 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 function AboutModal({ onClose }: { onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl flex flex-col max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-slate-900 px-6 py-5 flex items-center justify-between">
+        <div className="bg-slate-900 px-6 py-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <img
               src="/favicon.ico"
@@ -91,10 +107,10 @@ function AboutModal({ onClose }: { onClose: () => void }) {
               className="w-9 h-9 object-contain"
             />
             <div>
-              <h2 className="text-white font-bold text-base">
-                Mô phỏng Khí tài phát khói
+              <h2 className="text-white font-bold text-base tracking-tight">
+                Tổ hợp Chương trình tính toán, mô phỏng Khí tài phát khói trong huấn luyện và thực hiện nhiệm vụ của Bộ đội Hóa học
               </h2>
-              <p className="text-slate-400 text-xs">Phiên bản 1.0.0 - 2026</p>
+              <p className="text-slate-400 text-xs pt-2">Phiên bản 1.0.0 - 2026</p>
             </div>
           </div>
           <button
@@ -104,7 +120,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
             <X size={18} />
           </button>
         </div>
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto">
           <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
             <Monitor size={18} className="text-emerald-600 shrink-0 mt-0.5" />
             <div className="text-sm">
@@ -137,20 +153,23 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                     <p className="text-sm font-semibold text-slate-800">
                       {a.rank} {a.name}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 mt-1">
                       {a.role} {a.unit}
                     </p>
-                    <p className="text-xs text-emerald-600 font-medium">
+                    <p className="text-xs text-emerald-600 font-medium mt-1">
                       {a.school}
                     </p>
+                    {a.email && (
+                      <p className="text-xs text-slate-450 font-mono mt-1 flex items-center gap-1">
+                        <Mail size={10} className="text-slate-400 shrink-0" />
+                        <span>{a.email}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <p className="text-center text-slate-400 text-xs pt-2 border-t border-slate-100">
-            © 2026 Binh chủng Hóa học - Quân đội Nhân dân Việt Nam
-          </p>
         </div>
       </div>
     </div>
@@ -175,7 +194,11 @@ export default function DocsPage() {
   const [error, setError] = useState(false);
   const [activeDoc, setActiveDoc] = useState<any | null>(null);
 
-  const handleDownload = (e: React.MouseEvent, url: string | null, title: string) => {
+  const handleDownload = (
+    e: React.MouseEvent,
+    url: string | null,
+    title: string,
+  ) => {
     e.preventDefault();
     if (!url) return;
     const fullUrl = resolveBackendUrl(url);
@@ -205,14 +228,17 @@ export default function DocsPage() {
   const loadDocuments = () => {
     setLoading(true);
     setError(false);
-    documentService.getDocumentSections("document")
+    documentService
+      .getDocumentSections("document")
       .then((data: any[]) => {
         // Filter out videos from items, and exclude sections that become empty
         const filtered = (data || [])
           .filter((sec: any) => sec.type !== "video")
           .map((sec: any) => ({
             ...sec,
-            items: (sec.items || []).filter((item: any) => item.type !== "video"),
+            items: (sec.items || []).filter(
+              (item: any) => item.type !== "video",
+            ),
           }))
           .filter((sec: any) => sec.items.length > 0);
 
@@ -239,7 +265,7 @@ export default function DocsPage() {
     .map((sec) => ({
       ...sec,
       items: sec.items.filter((item) =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase())
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
     }))
     .filter((sec) => sec.items.length > 0);
@@ -275,7 +301,9 @@ export default function DocsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={(e) => handleDownload(e, activeDoc.url, activeDoc.title)}
+                  onClick={(e) =>
+                    handleDownload(e, activeDoc.url, activeDoc.title)
+                  }
                   className="bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white transition-all px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold mr-2 shadow-md shadow-emerald-950/30 hover:scale-[1.02]"
                   title="Tải xuống tài liệu"
                 >
@@ -307,7 +335,9 @@ export default function DocsPage() {
                   );
                 }
 
-                if (["png", "jpg", "jpeg", "svg", "gif", "webp"].includes(ext)) {
+                if (
+                  ["png", "jpg", "jpeg", "svg", "gif", "webp"].includes(ext)
+                ) {
                   return (
                     <div className="w-full h-full overflow-auto flex items-center justify-center p-4 bg-slate-950/20">
                       <img
@@ -325,12 +355,17 @@ export default function DocsPage() {
                     <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-slate-300 mb-4 border border-white/10 shadow-inner">
                       <FileText size={30} />
                     </div>
-                    <p className="font-bold text-white text-sm">Định dạng file không hỗ trợ xem trực tiếp</p>
+                    <p className="font-bold text-white text-sm">
+                      Định dạng file không hỗ trợ xem trực tiếp
+                    </p>
                     <p className="text-xs text-slate-450 mt-1 leading-relaxed">
-                      Trình duyệt không hỗ trợ hiển thị trực tiếp định dạng tệp tin này ({ext.toUpperCase()}). Vui lòng tải về máy để xem.
+                      Trình duyệt không hỗ trợ hiển thị trực tiếp định dạng tệp
+                      tin này ({ext.toUpperCase()}). Vui lòng tải về máy để xem.
                     </p>
                     <button
-                      onClick={(e) => handleDownload(e, activeDoc.url, activeDoc.title)}
+                      onClick={(e) =>
+                        handleDownload(e, activeDoc.url, activeDoc.title)
+                      }
                       className="mt-5 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-600/20 hover:scale-[1.02]"
                     >
                       <FileDown size={14} />
@@ -352,15 +387,22 @@ export default function DocsPage() {
               <BookOpen size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-slate-900 tracking-tight">Thư viện tài liệu</h1>
-              <p className="text-slate-500 text-[11px] mt-0.5">Tài liệu kỹ thuật, bài giảng và hướng dẫn sử dụng phần mềm</p>
+              <h1 className="text-base font-bold text-slate-900 tracking-tight">
+                Thư viện tài liệu
+              </h1>
+              <p className="text-slate-500 text-[11px] mt-0.5">
+                Tài liệu kỹ thuật, bài giảng và hướng dẫn sử dụng phần mềm
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
             {/* Search bar */}
             <div className="relative w-full md:w-64 shrink-0">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
               <input
                 type="text"
                 placeholder="Tìm kiếm tài liệu..."
@@ -388,9 +430,12 @@ export default function DocsPage() {
             <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
               <AlertTriangle size={20} />
             </div>
-            <p className="text-slate-800 font-bold text-sm">Không thể tải thư viện tài liệu</p>
+            <p className="text-slate-800 font-bold text-sm">
+              Không thể tải thư viện tài liệu
+            </p>
             <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
-              Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+              Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng
+              kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
             </p>
             <button
               onClick={loadDocuments}
@@ -402,7 +447,10 @@ export default function DocsPage() {
         ) : loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+              <div
+                key={n}
+                className="bg-white border border-slate-200 rounded-xl p-5 space-y-4"
+              >
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-5 w-16 rounded-full" />
@@ -418,16 +466,24 @@ export default function DocsPage() {
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
               <BookOpen size={24} className="text-slate-400" />
             </div>
-            <p className="text-slate-700 font-semibold text-sm">Chưa có tài liệu nào</p>
-            <p className="text-slate-400 text-xs mt-1">Liên hệ quản trị viên để thêm tài liệu.</p>
+            <p className="text-slate-700 font-semibold text-sm">
+              Chưa có tài liệu nào
+            </p>
+            <p className="text-slate-400 text-xs mt-1">
+              Liên hệ quản trị viên để thêm tài liệu.
+            </p>
           </div>
         ) : filteredSections.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
               <Search size={24} className="text-slate-400" />
             </div>
-            <p className="text-slate-700 font-semibold text-sm">Không tìm thấy tài liệu phù hợp</p>
-            <p className="text-slate-400 text-xs mt-1">Thử lại bằng từ khóa hoặc cụm từ khác.</p>
+            <p className="text-slate-700 font-semibold text-sm">
+              Không tìm thấy tài liệu phù hợp
+            </p>
+            <p className="text-slate-400 text-xs mt-1">
+              Thử lại bằng từ khóa hoặc cụm từ khác.
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -447,11 +503,17 @@ export default function DocsPage() {
                     <div className="flex items-center gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phần {section.roman}</span>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Phần {section.roman}
+                          </span>
                         </div>
-                        <h2 className="font-bold text-slate-800 text-sm leading-tight">{section.title}</h2>
+                        <h2 className="font-bold text-slate-800 text-sm leading-tight">
+                          {section.title}
+                        </h2>
                         {section.subtitle && (
-                          <p className="text-slate-400 text-xs mt-0.5">{section.subtitle}</p>
+                          <p className="text-slate-400 text-xs mt-0.5">
+                            {section.subtitle}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -471,29 +533,40 @@ export default function DocsPage() {
                   {/* Content */}
                   <div
                     className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                      isOpen
+                        ? "max-h-[2000px] opacity-100"
+                        : "max-h-0 opacity-0 pointer-events-none"
                     }`}
                   >
                     <div className="border-t border-slate-100">
                       {section.items && section.items.length > 0 ? (
                         <div className="divide-y divide-slate-100">
                           {section.items.map((item: any, i: number) => {
-                            const badge = FILE_BADGE[item.type] || FILE_BADGE.pdf;
+                            const badge =
+                              FILE_BADGE[item.type] || FILE_BADGE.pdf;
                             return (
                               <div
                                 key={i}
-                                onClick={() => { if (item.url) setActiveDoc(item); }}
+                                onClick={() => {
+                                  if (item.url) setActiveDoc(item);
+                                }}
                                 className={`flex items-center justify-between px-5 py-3.5 ${
-                                  item.url ? "hover:bg-emerald-50/40 cursor-pointer" : "cursor-default"
+                                  item.url
+                                    ? "hover:bg-emerald-50/40 cursor-pointer"
+                                    : "cursor-default"
                                 } transition-colors group`}
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}>
+                                  <span
+                                    className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
+                                  >
                                     {TYPE_ICON[item.type] || TYPE_ICON.pdf}
                                     {badge.label}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    <p className="text-sm font-medium text-slate-700">{item.title}</p>
+                                    <p className="text-sm font-medium text-slate-700">
+                                      {item.title}
+                                    </p>
                                     {item.classified && (
                                       <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
                                         <Lock size={9} /> MẬT
@@ -514,7 +587,9 @@ export default function DocsPage() {
                       ) : (
                         <div className="flex items-center gap-3 px-5 py-5 text-slate-400">
                           <FileText size={16} className="text-slate-300" />
-                          <p className="text-xs">Chưa có tài liệu trong chuyên mục này</p>
+                          <p className="text-xs">
+                            Chưa có tài liệu trong chuyên mục này
+                          </p>
                         </div>
                       )}
                     </div>

@@ -102,7 +102,7 @@ export const SmokeMethodPanel = () => {
                   <div className="flex-1 h-9 flex items-center px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-bold text-teal-700 tabular-nums">
                     {computed !== null ? computed.toLocaleString('vi-VN') : <span className="text-slate-400 font-normal">Chưa có dữ liệu mục 2</span>}
                   </div>
-                  <span className="text-sm text-slate-500 font-medium whitespace-nowrap">m²</span>
+                  <span className="text-sm text-slate-500 font-medium whitespace-nowrap">ha</span>
                 </div>
               );
             })()}

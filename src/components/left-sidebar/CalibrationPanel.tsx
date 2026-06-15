@@ -24,16 +24,16 @@ export const CalibrationPanel = () => {
         className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
         onClick={() => setShowCalibration(!showCalibration)}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 min-w-0">
           <Settings
-            size={18}
-            className={isCalibrated ? "text-slate-400" : "text-blue-600"}
+            size={16}
+            className={`shrink-0 ${isCalibrated ? "text-slate-400" : "text-blue-600"}`}
           />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            1. Hiệu chuẩn
+          <h2 className="text-sm font-bold uppercase tracking-tighter text-slate-700 whitespace-nowrap">
+            1. Hiệu chuẩn hệ tọa độ
           </h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
           {isCalibrated && (
             <Button
               variant="outline"
@@ -44,7 +44,7 @@ export const CalibrationPanel = () => {
               }}
               className="h-7 text-xs px-2"
             >
-              Căn lại
+              Sửa
             </Button>
           )}
           <span className="text-slate-400 text-xs">
@@ -71,12 +71,13 @@ export const CalibrationPanel = () => {
                 variant={isSelectingFor === "p1" ? "primary" : "outline"}
                 onClick={() => setIsSelectingFor("p1")}
                 className="h-7 text-xs px-2"
+                disabled={isCalibrated}
               >
                 {isSelectingFor === "p1"
-                  ? "Chọn trên Map..."
+                  ? "Chọn trên map..."
                   : p1.rawX
-                    ? "Sửa điểm Map"
-                    : "Click lên Map"}
+                    ? "Sửa điểm"
+                    : "Chọn điểm trên map"}
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
@@ -107,12 +108,13 @@ export const CalibrationPanel = () => {
                 variant={isSelectingFor === "p2" ? "primary" : "outline"}
                 onClick={() => setIsSelectingFor("p2")}
                 className="h-7 text-xs px-2"
+                disabled={isCalibrated}
               >
                 {isSelectingFor === "p2"
-                  ? "Chọn trên Map..."
+                  ? "Chọn trên map..."
                   : p2.rawX
-                    ? "Sửa điểm Map"
-                    : "Click lên Map"}
+                    ? "Sửa điểm"
+                    : "Chọn điểm trên map"}
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">

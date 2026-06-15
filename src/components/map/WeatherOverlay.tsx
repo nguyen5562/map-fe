@@ -141,7 +141,7 @@ export const WeatherOverlay = ({
             fontWeight="bold" fontSize="16"
             fill="#0f172a"
             style={{ fontFamily: UTM_FONT }}
-          >{weatherData.speed}</text>
+          >{weatherData.rainfall}</text>
         </svg>
       </div>
 

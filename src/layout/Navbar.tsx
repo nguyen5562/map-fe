@@ -1,10 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Map, BookOpen, Film, LogOut, User, Shield, ChevronDown, Key, X, Eye, EyeOff, Lock } from "lucide-react";
+import {
+  Map,
+  BookOpen,
+  Film,
+  LogOut,
+  User,
+  Shield,
+  ChevronDown,
+  Key,
+  X,
+  Eye,
+  EyeOff,
+  Lock,
+  MessageSquare,
+  Bell,
+} from "lucide-react";
 import { userService } from "../services/user.service";
+import { feedbackService } from "../services/feedback.service";
+import { getAccessToken } from "../services/api";
+import { API_URL, API_ROUTES } from "../const/apiConfig";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
+import FeedbackModal from "../components/feedback/FeedbackModal";
 
 export default function Navbar() {
   const location = useLocation();
@@ -18,12 +37,109 @@ export default function Navbar() {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [initialFeedbackId, setInitialFeedbackId] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [bellDropdownOpen, setBellDropdownOpen] = useState(false);
+
+  const loadNotifications = async () => {
+    if (!user) return;
+    try {
+      const data = await feedbackService.getNotifications();
+      setNotifications(data);
+    } catch (err) {
+      console.error("Lỗi tải thông báo:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+
+    const handleReload = () => {
+      loadNotifications();
+    };
+    window.addEventListener("reloadNotifications", handleReload);
+
+    let eventSource: EventSource | null = null;
+    if (user) {
+      const token = getAccessToken();
+      const sseUrl = `${API_URL}${API_ROUTES.FEEDBACK}/sse?token=${token}`;
+      
+      eventSource = new EventSource(sseUrl);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data && data.type === "reload") {
+            loadNotifications();
+            window.dispatchEvent(new Event("reloadFeedbacksList"));
+          }
+        } catch (err) {
+          console.error("Lỗi parse dữ liệu SSE:", err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("EventSource connection error:", err);
+      };
+    }
+
+    const interval = setInterval(loadNotifications, 60000);
+
+    return () => {
+      window.removeEventListener("reloadNotifications", handleReload);
+      clearInterval(interval);
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [user]);
+
+  const formatTimeAgo = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      const diffMs = new Date().getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      
+      if (diffMins < 1) return "Vừa xong";
+      if (diffMins < 60) return `${diffMins} phút trước`;
+      
+      const diffHrs = Math.floor(diffMins / 60);
+      if (diffHrs < 24) return `${diffHrs} giờ trước`;
+      
+      return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
+  const handleNotificationClick = async (notification: any) => {
+    setBellDropdownOpen(false);
+    try {
+      await feedbackService.markAsRead(notification.id);
+      loadNotifications();
+    } catch (err) {
+      console.error(err);
+    }
+
+    if (userRole === "admin") {
+      navigate("/admin", { state: { activeTab: "feedback", feedbackId: notification.id } });
+      window.dispatchEvent(
+        new CustomEvent("selectFeedbackAdmin", {
+          detail: { feedbackId: notification.id },
+        })
+      );
+    } else {
+      setInitialFeedbackId(notification.id);
+      setFeedbackOpen(true);
+    }
+  };
 
   // Change Password Form State
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   // Show/Hide Password States
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
@@ -32,7 +148,7 @@ export default function Navbar() {
 
   const navItems = [
     { path: "/simulation", label: "Tính toán", icon: Map },
-    { path: "/videos", label: "Video", icon: Film },
+    { path: "/videos", label: "Mô phỏng", icon: Film },
     { path: "/docs", label: "Tài liệu", icon: BookOpen },
   ];
 
@@ -76,7 +192,8 @@ export default function Navbar() {
     } catch (err: any) {
       console.error(err);
       toast.error(
-        err.response?.data?.message || "Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu cũ."
+        err.response?.data?.message ||
+          "Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu cũ.",
       );
     } finally {
       setLoading(false);
@@ -89,7 +206,7 @@ export default function Navbar() {
       <div className="flex items-center gap-2 mr-4">
         <img src="/favicon.ico" alt="Logo" className="w-7 h-7 object-contain" />
         <span className="text-white font-bold text-sm tracking-wide hidden sm:block">
-          MÔ PHỎNG KHÍ TÀI PHÁT KHÓI
+          CHƯƠNG TRÌNH TÍNH TOÁN MÔ PHỎNG KHÍ TÀI PHÁT KHÓI{" "}
         </span>
       </div>
 
@@ -118,6 +235,86 @@ export default function Navbar() {
       {/* Spacer */}
       <div className="flex-1" />
 
+      {/* Notification Bell */}
+      <div className="relative flex items-center">
+        <button
+          onClick={() => setBellDropdownOpen(!bellDropdownOpen)}
+          className="relative flex items-center justify-center w-8 h-8 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all active:scale-[0.98] select-none"
+        >
+          <Bell size={14} />
+          {notifications.length > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 bg-rose-500 text-white rounded-full text-[9px] font-black flex items-center justify-center animate-pulse border border-slate-900 shadow-sm leading-none px-1">
+              {notifications.length}
+            </span>
+          )}
+        </button>
+
+        {bellDropdownOpen && (
+          <>
+            {/* Click-outside backdrop */}
+            <div
+              className="fixed inset-0 z-30"
+              onClick={() => setBellDropdownOpen(false)}
+            />
+            {/* Notifications Dropdown */}
+            <div className="absolute right-0 mt-1.5 w-72 top-full rounded-xl border border-slate-200 bg-white shadow-xl z-40 text-xs overflow-hidden flex flex-col max-h-[360px] animate-scaleUp">
+              <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                <span>Thông báo ({notifications.length})</span>
+                {notifications.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await Promise.all(notifications.map(n => feedbackService.markAsRead(n.id)));
+                        loadNotifications();
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="text-emerald-600 hover:text-emerald-700 font-semibold text-[10px] hover:underline"
+                  >
+                    Đánh dấu đã đọc hết
+                  </button>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[300px]">
+                {notifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-slate-400 gap-1.5 p-4">
+                    <Bell size={18} className="text-slate-300 stroke-[1.5]" />
+                    <span>Không có thông báo mới</span>
+                  </div>
+                ) : (
+                  notifications.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleNotificationClick(item)}
+                      className="p-3 hover:bg-slate-50 cursor-pointer transition-colors flex flex-col gap-1 text-left"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-slate-800 truncate">
+                          {userRole === "admin"
+                            ? `Phản hồi từ ${item.senderName}`
+                            : "Ban quản trị phản hồi"}
+                        </span>
+                        <span className="text-[9px] text-slate-400 shrink-0 font-medium">
+                          {formatTimeAgo(item.updatedAt)}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-emerald-600 font-bold block truncate">
+                        {item.title}
+                      </span>
+                      <p className="text-[10px] text-slate-500 line-clamp-2 leading-normal mt-0.5 break-all">
+                        {item.lastMessage}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
       {/* User Dropdown */}
       <div className="relative">
         <button
@@ -126,15 +323,18 @@ export default function Navbar() {
         >
           <User size={12} className="text-emerald-500" />
           <span className="font-semibold">{userName}</span>
-          <ChevronDown size={12} className={`text-slate-400 transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            size={12}
+            className={`text-slate-400 transition-transform duration-150 ${dropdownOpen ? "rotate-180" : ""}`}
+          />
         </button>
 
         {dropdownOpen && (
           <>
             {/* Click-outside backdrop */}
-            <div 
-              className="fixed inset-0 z-30" 
-              onClick={() => setDropdownOpen(false)} 
+            <div
+              className="fixed inset-0 z-30"
+              onClick={() => setDropdownOpen(false)}
             />
             {/* Dropdown Menu */}
             <div className="absolute right-0 mt-1.5 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg z-40 text-xs">
@@ -147,6 +347,17 @@ export default function Navbar() {
               >
                 <Key size={13} className="text-emerald-600" />
                 Đổi mật khẩu
+              </button>
+              <div className="border-t border-slate-100 my-1" />
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  setFeedbackOpen(true);
+                }}
+                className="w-full px-3 py-2 text-left text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center gap-1.5 font-medium"
+              >
+                <MessageSquare size={13} className="text-emerald-600" />
+                Hỗ trợ & Góp ý
               </button>
               <div className="border-t border-slate-100 my-1" />
               <button
@@ -165,123 +376,153 @@ export default function Navbar() {
       </div>
 
       {/* CHANGE PASSWORD MODAL */}
-      {changePasswordOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl animate-scaleUp">
-            {/* Header */}
-            <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
-              <h4 className="text-slate-800 font-bold text-sm flex items-center gap-1.5">
-                <Key size={16} className="text-emerald-600" />
-                ĐỔI MẬT KHẨU
-              </h4>
-              <button
-                type="button"
-                onClick={() => setChangePasswordOpen(false)}
-                className="text-slate-400 hover:text-slate-650 transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleChangePassword} className="p-5 space-y-4 text-xs">
-              {/* Mật khẩu cũ */}
-              <div>
-                <label className="text-slate-600 font-semibold mb-1.5 block">
-                  Mật khẩu hiện tại
-                </label>
-                <div className="relative">
-                  <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showOldPass ? "text" : "password"}
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    placeholder="Nhập mật khẩu hiện tại..."
-                    className="w-full h-9 bg-white border border-slate-300 hover:border-slate-400 focus:border-emerald-500 rounded-lg pl-8 pr-9 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOldPass(!showOldPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-450 hover:text-slate-600 transition"
-                  >
-                    {showOldPass ? <EyeOff size={13} /> : <Eye size={13} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Mật khẩu mới */}
-              <div>
-                <label className="text-slate-600 font-semibold mb-1.5 block">
-                  Mật khẩu mới
-                </label>
-                <div className="relative">
-                  <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showNewPass ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Nhập mật khẩu mới..."
-                    className="w-full h-9 bg-white border border-slate-300 hover:border-slate-400 focus:border-emerald-500 rounded-lg pl-8 pr-9 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPass(!showNewPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-455 hover:text-slate-600 transition"
-                  >
-                    {showNewPass ? <EyeOff size={13} /> : <Eye size={13} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Nhập lại mật khẩu mới */}
-              <div>
-                <label className="text-slate-600 font-semibold mb-1.5 block">
-                  Xác nhận mật khẩu mới
-                </label>
-                <div className="relative">
-                  <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showConfirmPass ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Nhập lại mật khẩu mới..."
-                    className="w-full h-9 bg-white border border-slate-300 hover:border-slate-400 focus:border-emerald-500 rounded-lg pl-8 pr-9 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPass(!showConfirmPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-455 hover:text-slate-600 transition"
-                  >
-                    {showConfirmPass ? <EyeOff size={13} /> : <Eye size={13} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-end pt-3 border-t border-slate-200 mt-5">
+      {changePasswordOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+            <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl animate-scaleUp">
+              {/* Header */}
+              <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
+                <h4 className="text-slate-800 font-bold text-sm flex items-center gap-1.5">
+                  <Key size={16} className="text-emerald-600" />
+                  ĐỔI MẬT KHẨU
+                </h4>
                 <button
                   type="button"
                   onClick={() => setChangePasswordOpen(false)}
-                  className="h-8 px-4 rounded-lg text-xs border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold transition-colors"
+                  className="text-slate-400 hover:text-slate-650 transition-colors"
                 >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="h-8 px-4 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {loading && <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />}
-                  Đổi mật khẩu
+                  <X size={16} />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+
+              {/* Form */}
+              <form
+                onSubmit={handleChangePassword}
+                className="p-5 space-y-4 text-xs"
+              >
+                {/* Mật khẩu cũ */}
+                <div>
+                  <label className="text-slate-600 font-semibold mb-1.5 block">
+                    Mật khẩu hiện tại
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      size={13}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      type={showOldPass ? "text" : "password"}
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      placeholder="Nhập mật khẩu hiện tại..."
+                      className="w-full h-9 bg-white border border-slate-300 hover:border-slate-400 focus:border-emerald-500 rounded-lg pl-8 pr-9 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPass(!showOldPass)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-450 hover:text-slate-600 transition"
+                    >
+                      {showOldPass ? <EyeOff size={13} /> : <Eye size={13} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mật khẩu mới */}
+                <div>
+                  <label className="text-slate-600 font-semibold mb-1.5 block">
+                    Mật khẩu mới
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      size={13}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      type={showNewPass ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Nhập mật khẩu mới..."
+                      className="w-full h-9 bg-white border border-slate-300 hover:border-slate-400 focus:border-emerald-500 rounded-lg pl-8 pr-9 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPass(!showNewPass)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-455 hover:text-slate-600 transition"
+                    >
+                      {showNewPass ? <EyeOff size={13} /> : <Eye size={13} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Nhập lại mật khẩu mới */}
+                <div>
+                  <label className="text-slate-600 font-semibold mb-1.5 block">
+                    Xác nhận mật khẩu mới
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      size={13}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      type={showConfirmPass ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Nhập lại mật khẩu mới..."
+                      className="w-full h-9 bg-white border border-slate-300 hover:border-slate-400 focus:border-emerald-500 rounded-lg pl-8 pr-9 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPass(!showConfirmPass)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-455 hover:text-slate-600 transition"
+                    >
+                      {showConfirmPass ? (
+                        <EyeOff size={13} />
+                      ) : (
+                        <Eye size={13} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end pt-3 border-t border-slate-200 mt-5">
+                  <button
+                    type="button"
+                    onClick={() => setChangePasswordOpen(false)}
+                    className="h-8 px-4 rounded-lg text-xs border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="h-8 px-4 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {loading && (
+                      <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                    )}
+                    Đổi mật khẩu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {feedbackOpen &&
+        createPortal(
+          <FeedbackModal
+            onClose={() => {
+              setFeedbackOpen(false);
+              setInitialFeedbackId(null);
+            }}
+            initialFeedbackId={initialFeedbackId}
+          />,
+          document.body,
+        )}
     </nav>
   );
 }
-
