@@ -80,6 +80,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
             fetchMaps();
             clearInterval(interval);
           } else if (updated.status === "error") {
+            useSimulationStore.setState({ currentMap: updated });
             toast.error("Xử lý bản đồ thất bại!");
             clearInterval(interval);
           } else {
