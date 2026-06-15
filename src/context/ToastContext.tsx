@@ -25,7 +25,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => [...prev, { id, type, message }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000); // auto dismiss after 4 seconds
+    }, 1500); // auto dismiss after 1.5 seconds
   }, []);
 
   const removeToast = useCallback((id: string) => {

@@ -158,6 +158,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logout();
+    toast.success("Đăng xuất thành công!");
     navigate("/login");
   };
 

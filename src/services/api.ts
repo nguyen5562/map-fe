@@ -32,11 +32,12 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // Chỉ retry 1 lần, và không retry chính request /auth/refresh (tránh loop)
+    // Chỉ retry 1 lần, và không retry chính request /auth/refresh (tránh loop) hoặc /auth/login
     if (
       error.response?.status === 401 &&
       !original._retry &&
-      !original.url?.includes(`${API_ROUTES.AUTH}/refresh`)
+      !original.url?.includes(`${API_ROUTES.AUTH}/refresh`) &&
+      !original.url?.includes(`${API_ROUTES.AUTH}/login`)
     ) {
       original._retry = true;
 

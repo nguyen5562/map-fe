@@ -106,7 +106,7 @@ export function UploadProgressDialog({
                 ? "linear-gradient(135deg,#f0fdf4,#fff)"
                 : phase === "error"
                   ? "linear-gradient(135deg,#fff1f2,#fff)"
-                  : "linear-gradient(135deg,#eff6ff,#fff)",
+                  : "linear-gradient(135deg,#ecfdf5,#fff)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -121,7 +121,7 @@ export function UploadProgressDialog({
                     ? "#dcfce7"
                     : phase === "error"
                       ? "#fee2e2"
-                      : "#dbeafe",
+                      : "#d1fae5",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -133,9 +133,9 @@ export function UploadProgressDialog({
               ) : phase === "error" ? (
                 <AlertCircle size={18} color="#dc2626" />
               ) : phase === "processing" ? (
-                <Layers size={18} color="#2563eb" />
+                <Layers size={18} color="#059669" />
               ) : (
-                <UploadCloud size={18} color="#2563eb" />
+                <UploadCloud size={18} color="#059669" />
               )}
             </div>
 
@@ -205,7 +205,7 @@ export function UploadProgressDialog({
                 <span style={{ fontSize: "12px", color: "#475569", fontWeight: 600 }}>
                   Đang tải file lên máy chủ
                 </span>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb" }}>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#059669" }}>
                   {uploadProgress}%
                 </span>
               </div>
@@ -222,7 +222,7 @@ export function UploadProgressDialog({
                   style={{
                     height: "100%",
                     width: `${uploadProgress}%`,
-                    background: "linear-gradient(90deg,#3b82f6,#6366f1)",
+                    background: "linear-gradient(90deg,#10b981,#059669)",
                     borderRadius: "99px",
                     transition: "width 0.3s ease",
                   }}
@@ -259,7 +259,7 @@ export function UploadProgressDialog({
                   style={{
                     height: "100%",
                     width: "100%",
-                    background: "linear-gradient(90deg, #3b82f6 0%, #818cf8 50%, #3b82f6 100%)",
+                    background: "linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%)",
                     backgroundSize: "200% 100%",
                     borderRadius: "99px",
                     animation: "shimmer 1.5s infinite linear",
@@ -396,7 +396,7 @@ function Step({
             status === "done"
               ? "#dcfce7"
               : status === "active"
-                ? "#dbeafe"
+                ? "#d1fae5"
                 : "#f1f5f9",
         }}
       >
@@ -405,7 +405,7 @@ function Step({
         ) : status === "active" ? (
           <Loader2
             size={15}
-            color="#2563eb"
+            color="#059669"
             style={{ animation: "spin 1s linear infinite" }}
           />
         ) : (
@@ -442,7 +442,7 @@ function Step({
             style={{
               margin: 0,
               fontSize: "11px",
-              color: status === "active" ? "#3b82f6" : "#94a3b8",
+              color: status === "active" ? "#059669" : "#94a3b8",
               marginTop: "1px",
               animation: status === "active" ? "pulse 2s infinite" : "none",
             }}

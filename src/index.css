@@ -156,4 +156,10 @@
   animation: shimmer 1.6s infinite linear;
 }
 
+/* ===== HIDE BROWSER NATIVE PASSWORD REVEAL EYE BUTTONS ===== */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 

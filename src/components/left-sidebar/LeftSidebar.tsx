@@ -113,9 +113,14 @@ export const LeftSidebar = () => {
                 className="flex h-9 flex-1 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-left transition-all"
               >
                 <span className="truncate">
-                  {currentMap?.name ? `${currentMap.name} ${currentMap.status !== "ready" ? "(Đang xử lý...)" : ""}` : "Chọn một bản đồ..."}
+                  {currentMap?.name
+                    ? `${currentMap.name} ${currentMap.status !== "ready" ? "(Đang xử lý...)" : ""}`
+                    : "Chọn một bản đồ..."}
                 </span>
-                <ChevronDown size={14} className="text-slate-400 shrink-0 ml-1" />
+                <ChevronDown
+                  size={14}
+                  className="text-slate-400 shrink-0 ml-1"
+                />
               </button>
 
               {currentMap && (
@@ -132,12 +137,12 @@ export const LeftSidebar = () => {
                 </button>
               )}
             </div>
-            
+
             {isMapDropdownOpen && (
               <>
-                <div 
-                  className="fixed inset-0 z-30" 
-                  onClick={() => setIsMapDropdownOpen(false)} 
+                <div
+                  className="fixed inset-0 z-30"
+                  onClick={() => setIsMapDropdownOpen(false)}
                 />
                 <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-auto rounded-lg border border-slate-250 bg-white py-1 shadow-lg z-40">
                   {maps.length === 0 ? (
@@ -153,12 +158,16 @@ export const LeftSidebar = () => {
                           setIsMapDropdownOpen(false);
                         }}
                         className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${
-                          currentMap?.id === m.id ? "bg-slate-50/70 font-semibold text-blue-600" : "text-slate-700"
+                          currentMap?.id === m.id
+                            ? "bg-slate-50/70 font-semibold text-blue-600"
+                            : "text-slate-700"
                         }`}
                       >
                         <span className="truncate">{m.name}</span>
                         {m.status !== "ready" && (
-                          <span className="text-[10px] text-amber-500 font-medium shrink-0 ml-1">(Đang xử lý...)</span>
+                          <span className="text-[10px] text-amber-500 font-medium shrink-0 ml-1">
+                            (Đang xử lý...)
+                          </span>
                         )}
                       </button>
                     ))
@@ -271,7 +280,9 @@ export const LeftSidebar = () => {
           </button>
           <button
             onClick={onCalculate}
-            disabled={!isCalibrated || (pointsList.length === 0 && !currentRealCoords)}
+            disabled={
+              !isCalibrated || (pointsList.length === 0 && !currentRealCoords)
+            }
             className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
             style={{
               background: "linear-gradient(135deg, #dc2626, #ef4444)",
@@ -296,55 +307,59 @@ export const LeftSidebar = () => {
       </button>
 
       {/* RENAME MAP MODAL */}
-      {renameModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl animate-scaleUp">
-            <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
-              <h4 className="text-slate-800 font-bold text-sm">
-                ĐỔI TÊN BẢN ĐỒ
-              </h4>
-              <button
-                type="button"
-                onClick={() => setRenameModalOpen(false)}
-                className="text-slate-400 hover:text-slate-650 transition-colors"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveRename} className="p-5 space-y-4 text-xs">
-              <div>
-                <label className="text-slate-600 font-semibold mb-1 block">
-                  Tên bản đồ mới
-                </label>
-                <input
-                  type="text"
-                  value={newMapName}
-                  onChange={(e) => setNewMapName(e.target.value)}
-                  placeholder="Nhập tên bản đồ mới..."
-                  className="w-full h-9 bg-white border border-slate-300 rounded-lg px-3 text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-3 justify-end pt-2">
+      {renameModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+            <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl animate-scaleUp">
+              <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
+                <h4 className="text-slate-800 font-bold text-sm">
+                  ĐỔI TÊN BẢN ĐỒ
+                </h4>
                 <button
                   type="button"
                   onClick={() => setRenameModalOpen(false)}
-                  className="h-8 px-4 rounded-lg text-xs border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold transition-colors"
+                  className="text-slate-400 hover:text-slate-650 transition-colors"
                 >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="h-8 px-4 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                >
-                  Lưu lại
+                  <X size={16} />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+              <form
+                onSubmit={handleSaveRename}
+                className="p-5 space-y-4 text-xs"
+              >
+                <div>
+                  <label className="text-slate-600 font-semibold mb-1 block">
+                    Tên bản đồ mới
+                  </label>
+                  <input
+                    type="text"
+                    value={newMapName}
+                    onChange={(e) => setNewMapName(e.target.value)}
+                    placeholder="Nhập tên bản đồ mới..."
+                    className="w-full h-9 bg-white border border-slate-300 rounded-lg px-3 text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setRenameModalOpen(false)}
+                    className="h-8 px-4 rounded-lg text-xs border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="h-8 px-4 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                  >
+                    Lưu lại
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

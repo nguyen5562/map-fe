@@ -22,6 +22,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ username, password });
+      toast.success("Đăng nhập thành công!");
       navigate("/simulation");
     } catch (err: any) {
       console.error(err);
