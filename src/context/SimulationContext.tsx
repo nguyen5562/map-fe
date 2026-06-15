@@ -70,7 +70,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   // Handle map processing update polling
   useEffect(() => {
     let interval: any;
-    if (currentMap?.status === "processing") {
+    const activeStatuses = ["processing", "resizing", "tiling"];
+    if (currentMap && activeStatuses.includes(currentMap.status)) {
       interval = setInterval(async () => {
         try {
           const updated = await mapService.getMapById(currentMap.id);
@@ -81,9 +82,11 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
           } else if (updated.status === "error") {
             toast.error("Xử lý bản đồ thất bại!");
             clearInterval(interval);
+          } else {
+            useSimulationStore.setState({ currentMap: updated });
           }
         } catch (e) {}
-      }, 3000);
+      }, 1000);
     }
     return () => clearInterval(interval);
   }, [currentMap?.status, currentMap?.id, fetchMaps, toast]);

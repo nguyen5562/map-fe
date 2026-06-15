@@ -216,9 +216,9 @@ function SimulationInner() {
               );
             })}
           </MapContainer>
-        ) : currentMap?.status === "processing" ? (
+        ) : (currentMap?.status === "processing" || currentMap?.status === "resizing" || currentMap?.status === "tiling") ? (
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-500">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <h3 className="text-lg font-bold text-slate-700">
               Đang xử lý trích xuất lớp bản đồ (Tiles)...
             </h3>

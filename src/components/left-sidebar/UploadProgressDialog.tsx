@@ -9,7 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-type Phase = "uploading" | "processing" | "done" | "error";
+type Phase = "uploading" | "resizing" | "tiling" | "done" | "error";
 
 interface UploadProgressDialogProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ interface UploadProgressDialogProps {
   fileName: string;
   isUploading: boolean;
   uploadProgress: number;
-  mapStatus?: string; // 'processing' | 'ready' | 'error'
+  mapStatus?: string; // 'processing' | 'resizing' | 'tiling' | 'ready' | 'error'
 }
 
 function getPhase(
@@ -25,7 +25,9 @@ function getPhase(
   mapStatus?: string,
 ): Phase {
   if (isUploading) return "uploading";
-  if (mapStatus === "processing") return "processing";
+  if (mapStatus === "processing") return "resizing";
+  if (mapStatus === "resizing") return "resizing";
+  if (mapStatus === "tiling") return "tiling";
   if (mapStatus === "ready") return "done";
   if (mapStatus === "error") return "error";
   return "uploading";
@@ -132,7 +134,7 @@ export function UploadProgressDialog({
                 <CheckCircle2 size={18} color="#16a34a" />
               ) : phase === "error" ? (
                 <AlertCircle size={18} color="#dc2626" />
-              ) : phase === "processing" ? (
+              ) : phase === "resizing" || phase === "tiling" ? (
                 <Layers size={18} color="#059669" />
               ) : (
                 <UploadCloud size={18} color="#059669" />
@@ -149,7 +151,8 @@ export function UploadProgressDialog({
                 }}
               >
                 {phase === "uploading" && "Đang tải lên bản đồ..."}
-                {phase === "processing" && "Đang xử lý bản đồ..."}
+                {phase === "resizing" && "Đang tối ưu hóa bản đồ..."}
+                {phase === "tiling" && "Đang xẻ mảnh bản đồ..."}
                 {phase === "done" && "Hoàn tất!"}
                 {phase === "error" && "Xử lý thất bại"}
               </h2>
@@ -192,9 +195,9 @@ export function UploadProgressDialog({
 
         {/* Body */}
         <div style={{ padding: "24px 20px" }}>
-          {/* Phase: UPLOADING */}
-          {phase === "uploading" && (
-            <div>
+          {/* Progress bar or Shimmer */}
+          {(phase === "uploading" || phase === "resizing" || phase === "tiling") && (
+            <div style={{ marginBottom: "20px" }}>
               <div
                 style={{
                   display: "flex",
@@ -203,13 +206,16 @@ export function UploadProgressDialog({
                 }}
               >
                 <span style={{ fontSize: "12px", color: "#475569", fontWeight: 600 }}>
-                  Đang tải file lên máy chủ
+                  {phase === "uploading" && "Đang tải file lên máy chủ"}
+                  {phase === "resizing" && "Đang tối ưu hóa kích thước bản đồ"}
+                  {phase === "tiling" && "Đang cắt mảnh bản đồ"}
                 </span>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#059669" }}>
-                  {uploadProgress}%
-                </span>
+                {phase === "uploading" && (
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#059669" }}>
+                    {uploadProgress}%
+                  </span>
+                )}
               </div>
-              {/* Progress bar */}
               <div
                 style={{
                   height: "8px",
@@ -218,92 +224,76 @@ export function UploadProgressDialog({
                   overflow: "hidden",
                 }}
               >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${uploadProgress}%`,
-                    background: "linear-gradient(90deg,#10b981,#059669)",
-                    borderRadius: "99px",
-                    transition: "width 0.3s ease",
-                  }}
-                />
+                {phase === "uploading" ? (
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${uploadProgress}%`,
+                      background: "linear-gradient(90deg,#10b981,#059669)",
+                      borderRadius: "99px",
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: "100%",
+                      width: "100%",
+                      background: "linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%)",
+                      backgroundSize: "200% 100%",
+                      borderRadius: "99px",
+                      animation: "shimmer 1.5s infinite linear",
+                    }}
+                  />
+                )}
               </div>
-
-              {/* Steps */}
-              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                <Step
-                  status="active"
-                  label="Tải file lên máy chủ"
-                  sub={`${uploadProgress}% hoàn thành`}
-                />
-                <Step status="pending" label="Xẻ mảnh bản đồ (Tiling)" sub="Chờ upload hoàn tất" />
-                <Step status="pending" label="Bản đồ sẵn sàng" sub="" />
-              </div>
+              <style>{`@keyframes shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }`}</style>
             </div>
           )}
 
-          {/* Phase: PROCESSING (tiling) */}
-          {phase === "processing" && (
-            <div>
-              {/* Animated bar */}
-              <div
-                style={{
-                  height: "8px",
-                  background: "#e2e8f0",
-                  borderRadius: "99px",
-                  overflow: "hidden",
-                  marginBottom: "20px",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: "100%",
-                    background: "linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%)",
-                    backgroundSize: "200% 100%",
-                    borderRadius: "99px",
-                    animation: "shimmer 1.5s infinite linear",
-                  }}
-                />
-                <style>{`@keyframes shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }`}</style>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <Step status="done" label="Tải file lên máy chủ" sub="Hoàn tất" />
-                <Step status="active" label="Xẻ mảnh bản đồ (Tiling)" sub="Đang cắt ảnh thành các tile 256×256px..." />
-                <Step status="pending" label="Bản đồ sẵn sàng" sub="" />
-              </div>
-
-              <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "16px", textAlign: "center" }}>
-                Tuỳ kích thước file, quá trình này có thể mất từ 30 giây đến vài phút
-              </p>
+          {/* Steps List */}
+          {phase !== "error" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: phase === "done" ? "16px" : 0 }}>
+              <Step
+                status={phase === "uploading" ? "active" : "done"}
+                label="Tải file lên máy chủ"
+                sub={phase === "uploading" ? `${uploadProgress}% hoàn thành` : "Hoàn tất"}
+              />
+              <Step
+                status={phase === "resizing" ? "active" : (phase === "uploading" ? "pending" : "done")}
+                label="Tối ưu kích thước bản đồ"
+                sub={phase === "resizing" ? "Đang co ảnh về kích thước an toàn..." : (phase === "uploading" ? "Chờ upload xong" : "Hoàn tất")}
+              />
+              <Step
+                status={phase === "tiling" ? "active" : (phase === "done" ? "done" : "pending")}
+                label="Xẻ mảnh bản đồ (Tiling)"
+                sub={phase === "tiling" ? "Đang cắt ảnh thành các tile 256×256px..." : (phase === "done" ? "Hoàn tất" : "Chờ tối ưu hóa xong")}
+              />
+              <Step
+                status={phase === "done" ? "done" : "pending"}
+                label="Bản đồ sẵn sàng"
+                sub={phase === "done" ? "Đã được nạp lên bản đồ" : ""}
+              />
             </div>
           )}
 
-          {/* Phase: DONE */}
+          {/* Phase: DONE Toast */}
           {phase === "done" && (
-            <div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
-                <Step status="done" label="Tải file lên máy chủ" sub="Hoàn tất" />
-                <Step status="done" label="Xẻ mảnh bản đồ (Tiling)" sub="Hoàn tất" />
-                <Step status="done" label="Bản đồ sẵn sàng" sub="Đã được nạp lên bản đồ" />
-              </div>
-              <div
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <CheckCircle2 size={14} color="#16a34a" />
-                <p style={{ margin: 0, fontSize: "12px", color: "#15803d", fontWeight: 500 }}>
-                  {autoClosing ? "Tự động đóng sau vài giây..." : "Bản đồ đã sẵn sàng sử dụng!"}
-                </p>
-              </div>
+            <div
+              style={{
+                padding: "10px 14px",
+                borderRadius: "8px",
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <CheckCircle2 size={14} color="#16a34a" />
+              <p style={{ margin: 0, fontSize: "12px", color: "#15803d", fontWeight: 500 }}>
+                {autoClosing ? "Tự động đóng sau vài giây..." : "Bản đồ đã sẵn sàng sử dụng!"}
+              </p>
             </div>
           )}
 
