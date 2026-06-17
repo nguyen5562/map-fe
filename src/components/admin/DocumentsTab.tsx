@@ -13,6 +13,7 @@ import {
   FileDown,
   AlertTriangle,
   Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -34,13 +35,21 @@ const FILE_BADGE: Record<string, { label: string; color: string }> = {
     label: "BẢN VẼ",
     color: "bg-sky-50 text-sky-600 border border-sky-100/70",
   },
-  doc: {
-    label: "DOC",
-    color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70",
-  },
   word: {
-    label: "DOCX",
+    label: "WORD",
     color: "bg-blue-50 text-blue-600 border border-blue-100/70",
+  },
+  excel: {
+    label: "EXCEL",
+    color: "bg-green-50 text-green-700 border border-green-100/70",
+  },
+  powerpoint: {
+    label: "SLIDE",
+    color: "bg-orange-50 text-orange-600 border border-orange-100/70",
+  },
+  image: {
+    label: "HÌNH ẢNH",
+    color: "bg-purple-50 text-purple-600 border border-purple-100/70",
   },
 };
 
@@ -48,8 +57,10 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   pdf: <FileText size={10} />,
   video: <Film size={10} />,
   drawing: <PenTool size={10} />,
-  doc: <FileDown size={10} />,
   word: <FileDown size={10} />,
+  excel: <FileDown size={10} />,
+  powerpoint: <FileText size={10} />,
+  image: <ImageIcon size={10} />,
 };
 
 export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video" }) => {
@@ -107,6 +118,28 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    
+    if (mode === "video") {
+      const allowedVideoExtensions = ["mp4", "webm", "ogg"];
+      if (!allowedVideoExtensions.includes(ext)) {
+        toast.error("Định dạng video không được hỗ trợ. Vui lòng chỉ chọn tệp .mp4, .webm, .ogg");
+        e.target.value = "";
+        return;
+      }
+    } else {
+      const allowedDocExtensions = [
+        "doc", "docx", "xls", "xlsx", "pdf", "ppt", "pptx",
+        "png", "jpg", "jpeg", "webp", "svg",
+        "dwg", "dxf", "cdr"
+      ];
+      if (!allowedDocExtensions.includes(ext)) {
+        toast.error("Định dạng tệp không hỗ trợ. Vui lòng chọn tài liệu văn phòng (PDF, Word, Excel, PowerPoint) hoặc bản vẽ sơ đồ (DWG, DXF, CDR, Hình ảnh)");
+        e.target.value = "";
+        return;
+      }
+    }
+
     setUploading(true);
     setUploadProgress(0);
     setUploadFileName(file.name);
@@ -133,7 +166,9 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
           detectedType = "excel";
         } else if (["ppt", "pptx"].includes(ext)) {
           detectedType = "powerpoint";
-        } else if (["dwg", "dxf"].includes(ext)) {
+        } else if (["png", "jpg", "jpeg", "webp", "svg"].includes(ext)) {
+          detectedType = "image";
+        } else if (["dwg", "dxf", "cdr"].includes(ext)) {
           detectedType = "drawing";
         }
       }
@@ -662,10 +697,12 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                       }
                       className="w-full h-9 bg-white border border-slate-300 rounded-lg px-3 text-slate-850 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
                     >
-                      <option value="pdf">Tài liệu PDF</option>
-                      <option value="drawing">Bản vẽ 2D/3D</option>
-                      <option value="doc">Tài liệu Word</option>
-                      <option value="word">Văn bản hướng dẫn</option>
+                      <option value="pdf">Tài liệu PDF (.pdf)</option>
+                      <option value="word">Tài liệu Word (.doc, .docx)</option>
+                      <option value="excel">Tài liệu Excel (.xls, .xlsx)</option>
+                      <option value="powerpoint">Tài liệu PowerPoint (.ppt, .pptx)</option>
+                      <option value="image">Hình ảnh sơ đồ (.png, .jpg, .jpeg, .webp, .svg)</option>
+                      <option value="drawing">Bản vẽ (.dwg, .dxf, .cdr)</option>
                     </select>
                   )}
                 </div>
@@ -707,12 +744,12 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                       type="file"
                       className="hidden"
                       onChange={handleFileUpload}
-                      accept={mode === "video" ? "video/*" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.dwg,.dxf"}
+                      accept={mode === "video" ? ".mp4,.webm,.ogg" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.svg,.dwg,.dxf,.cdr"}
                     />
                     <p className="text-[10px] text-slate-400">
                       {mode === "video" 
                         ? "Hỗ trợ định dạng MP4, WebM, OGG..." 
-                        : "Hỗ trợ PDF, Word, Excel, PowerPoint, Bản vẽ DWG/DXF..."
+                        : "Hỗ trợ Văn phòng (PDF, Word, Excel, PowerPoint) hoặc Bản vẽ (DWG, DXF, CDR, Hình ảnh)"
                       }
                     </p>
                   </div>

@@ -266,7 +266,7 @@ export function UploadProgressDialog({
               />
               <Step
                 status={phase === "tiling" ? "active" : (phase === "done" ? "done" : "pending")}
-                label="Xẻ mảnh bản đồ (Tiling)"
+                label="Xẻ mảnh bản đồ"
                 sub={phase === "tiling" ? "Đang cắt ảnh thành các tile 256×256px..." : (phase === "done" ? "Hoàn tất" : "Chờ tối ưu hóa xong")}
               />
               <Step

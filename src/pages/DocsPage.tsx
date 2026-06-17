@@ -14,6 +14,7 @@ import {
   Search,
   AlertTriangle,
   Mail,
+  Image as ImageIcon,
 } from "lucide-react";
 import { documentService } from "../services/document.service";
 import { resolveBackendUrl } from "../utils/url";
@@ -50,7 +51,7 @@ const AUTHORS = [
 // ── SECTION TYPES ─────────────────────────────────────────
 type DocItem = {
   title: string;
-  type: "pdf" | "drawing" | "doc" | "word";
+  type: "pdf" | "drawing" | "word" | "excel" | "powerpoint" | "image";
   classified?: boolean;
 };
 
@@ -68,24 +69,34 @@ const FILE_BADGE: Record<string, { label: string; color: string }> = {
     color: "bg-rose-50 text-rose-600 border border-rose-100/70",
   },
   drawing: {
-    label: "BẢN VẼ",
+    label: "DRAWING",
     color: "bg-sky-50 text-sky-600 border border-sky-100/70",
   },
-  doc: {
-    label: "DOC",
-    color: "bg-emerald-50 text-emerald-600 border border-emerald-100/70",
-  },
   word: {
-    label: "DOCX",
+    label: "WORD",
     color: "bg-blue-50 text-blue-600 border border-blue-100/70",
+  },
+  excel: {
+    label: "EXCEL",
+    color: "bg-green-50 text-green-700 border border-green-100/70",
+  },
+  powerpoint: {
+    label: "SLIDE",
+    color: "bg-orange-50 text-orange-600 border border-orange-100/70",
+  },
+  image: {
+    label: "IMAGE",
+    color: "bg-purple-50 text-purple-600 border border-purple-100/70",
   },
 };
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   pdf: <FileText size={13} />,
   drawing: <PenTool size={13} />,
-  doc: <FileDown size={13} />,
   word: <FileText size={13} />,
+  excel: <FileDown size={13} />,
+  powerpoint: <FileText size={13} />,
+  image: <ImageIcon size={13} />,
 };
 
 // ── ABOUT MODAL ───────────────────────────────────────────

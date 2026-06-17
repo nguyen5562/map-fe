@@ -32,7 +32,9 @@ export interface WeatherData {
   windAngle: number;
   secondaryWindDirection: string | null;
   secondaryWindAngle: number | null;
+  beta: number;
   alpha: number;
+  alphaDirection: "left" | "right";
   speed: number;
   rainfall: number | string;
   tkkMin: number;

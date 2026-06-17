@@ -110,14 +110,16 @@ function SimulationInner() {
   };
 
   const baseDirectionAngle = weatherData.windAngle ?? (DIRECTION_ANGLES[weatherData.windDirection] ?? 0);
-  const computedAngle = baseDirectionAngle - 180 + weatherData.alpha;
+  const smokeOffset = (90 - weatherData.alpha) * (weatherData.alphaDirection === "right" ? 1 : -1);
+  const windAngleComputed = baseDirectionAngle - 180 + weatherData.beta;
+  const smokeAngleComputed = windAngleComputed + smokeOffset;
 
   const baseSecondaryDirectionAngle = weatherData.secondaryWindAngle ?? (weatherData.secondaryWindDirection ? DIRECTION_ANGLES[weatherData.secondaryWindDirection] : null);
   const computedSecondaryAngle = baseSecondaryDirectionAngle !== null ? baseSecondaryDirectionAngle - 180 : null;
 
   const weatherDataWithAngle = {
     ...weatherData,
-    angle: computedAngle,
+    angle: windAngleComputed,
     secondaryAngle: computedSecondaryAngle
   };
 
@@ -190,7 +192,7 @@ function SimulationInner() {
               (weatherActive ? (
                 <GasMarker
                   center={clickedRaw}
-                  angle={computedAngle}
+                  angle={smokeAngleComputed}
                   scaleX={scale.x}
                 />
               ) : (
@@ -200,13 +202,15 @@ function SimulationInner() {
             {/* Saved Points Markers */}
             {pointsList.map((p, idx) => {
               const baseDirAngle = p.weatherData.windAngle ?? (DIRECTION_ANGLES[p.weatherData.windDirection] ?? 0);
-              const compAngle = baseDirAngle - 180 + p.weatherData.alpha;
+              const pSmokeOffset = (90 - (p.weatherData.alpha ?? 90)) * ((p.weatherData.alphaDirection ?? "right") === "right" ? 1 : -1);
+              const compWindAngle = baseDirAngle - 180 + (p.weatherData.beta ?? p.weatherData.alpha ?? 0);
+              const compSmokeAngle = compWindAngle + pSmokeOffset;
 
               return weatherActive ? (
                 <GasMarker
                   key={p.id}
                   center={p.coords}
-                  angle={compAngle}
+                  angle={compSmokeAngle}
                   scaleX={scale.x}
                 />
               ) : (
