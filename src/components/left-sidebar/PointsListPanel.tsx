@@ -1,4 +1,4 @@
-import { MapPin, Trash2 } from "lucide-react";
+import { MapPin, Trash2, Edit, X } from "lucide-react";
 import { useState } from "react";
 
 import { useSimulation } from "../../context/SimulationContext";
@@ -9,6 +9,14 @@ export const PointsListPanel = () => {
   const onRenamePoint = useSimulation((s) => s.onRenamePoint);
   const selectedPointId = useSimulation((s) => s.selectedPointId);
   const onSelectPoint = useSimulation((s) => s.onSelectPoint);
+  const onStartEditPoint = useSimulation((s) => s.onStartEditPoint);
+  const editingPointId = useSimulation((s) => s.editingPointId);
+  const onCancelEditPoint = useSimulation((s) => s.onCancelEditPoint);
+  const onSelectUnsavedPoint = useSimulation((s) => s.onSelectUnsavedPoint);
+  const onClearUnsavedPoint = useSimulation((s) => s.onClearUnsavedPoint);
+  const clickedRaw = useSimulation((s) => s.clickedRaw);
+  const drafts = useSimulation((s) => s.drafts);
+  
   const [showPanel, setShowPanel] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempName, setTempName] = useState<string>("");
@@ -104,19 +112,72 @@ export const PointsListPanel = () => {
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeletePoint(p.id);
-                    }}
-                    className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0"
-                    title="Xóa điểm"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (editingPointId === p.id) {
+                          onCancelEditPoint();
+                        } else {
+                          onStartEditPoint(p.id);
+                        }
+                      }}
+                      className={`p-1 rounded-md transition-colors ${
+                        editingPointId === p.id
+                          ? "text-red-650 bg-red-50 hover:bg-red-100"
+                          : "text-slate-400 hover:text-blue-605 hover:bg-blue-50"
+                      }`}
+                      title={editingPointId === p.id ? "Hủy chỉnh sửa" : "Chỉnh sửa thông số"}
+                    >
+                      {editingPointId === p.id ? <X size={14} /> : <Edit size={14} />}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeletePoint(p.id);
+                      }}
+                      className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Xóa điểm"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               );
             })
+          )}
+
+          {/* Unsaved draft entry */}
+          {(drafts["new"] || (selectedPointId === null && clickedRaw)) && (
+            <div
+              onClick={() => onSelectUnsavedPoint()}
+              className={`flex items-center justify-between p-2 rounded-lg border border-dashed cursor-pointer transition-colors ${
+                selectedPointId === null && clickedRaw !== null
+                  ? "bg-amber-50 border-amber-300 hover:bg-amber-100/70"
+                  : "bg-slate-50 border-slate-200 hover:bg-slate-100/80"
+              }`}
+            >
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-xs font-bold text-amber-700">
+                  📍 * Mục tiêu tạm (Chưa lưu)
+                </p>
+                <p className="text-[10px] text-slate-500 italic mt-0.5">
+                  Nhấp để quay lại nhập liệu & lưu
+                </p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClearUnsavedPoint();
+                  }}
+                  className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="Hủy mục tiêu tạm"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}

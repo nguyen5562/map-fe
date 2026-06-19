@@ -5,13 +5,16 @@ export function GasMarker({
   center,
   angle,
   scaleX,
+  smokeLineLength = 700,
 }: {
   center: L.LatLng;
   angle: number;
   scaleX: number;
+  smokeLineLength?: number;
 }) {
-  // Chúng ta cần vẽ một đường dài 700m.
-  const rawWidth = 875 / Math.abs(scaleX);
+  // Tính chiều rộng overlay dựa trên độ dài tuyến khói (mét).
+  // SVG viewBox 250, line từ 25→225 (200px = 80%), nên overlay = length / 0.8
+  const rawWidth = (smokeLineLength * 1.25) / Math.abs(scaleX);
   const rawHeight = rawWidth; // Hình vuông để tránh bị clip khi xoay
 
   const bounds: L.LatLngBoundsExpression = [
@@ -21,7 +24,7 @@ export function GasMarker({
 
   return (
     <SVGOverlay
-      key={`${center.lat}-${center.lng}-${angle}`}
+      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}`}
       bounds={bounds}
       attributes={{ viewBox: "0 0 250 250" }}
     >

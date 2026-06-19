@@ -62,7 +62,13 @@ export const WeatherOverlay = ({
     weatherData.tmdMin, weatherData.tmdMax,
   );
   const dateStr = weatherData.combatTime
-    ? (() => { const [d, m, y] = weatherData.combatTime.split("."); return `${m}.${d}.${y}`; })()
+    ? (() => {
+        if (/^\d{2}\.\d{2}\.\d{2}$/.test(weatherData.combatTime)) {
+          const [d, m, y] = weatherData.combatTime.split(".");
+          return `${m}.${d}.${y}`;
+        }
+        return weatherData.combatTime;
+      })()
     : "--.--.--";
 
   return (

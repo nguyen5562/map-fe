@@ -82,7 +82,7 @@ export const WeatherPanel = () => {
               onChange={(val: string) =>
                 setWeatherData({ ...weatherData, combatTime: val })
               }
-              placeholder="DD.MM.YY"
+              placeholder="DD.MM.YY hoặc 06.30 - N-3"
             />
           </div>
 
@@ -323,39 +323,43 @@ export const WeatherPanel = () => {
                     </div>
                   )}
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-500">
-                    Góc lệch β (°)
-                  </label>
-                  <Input
-                    type="number"
-                    value={weatherData.beta}
-                    onChange={(e: any) =>
-                      setWeatherData({
-                        ...weatherData,
-                        beta: Number(e.target.value),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Lệch so với hướng chính trên la bàn
-                  </p>
-                </div>
-                <div className="text-[10px] text-slate-400 border-t border-slate-100 pt-2">
-                  Góc gió tổng hợp:{" "}
-                  <span className="font-bold text-slate-600">
-                    {selectedDir.angle + (weatherData.beta || 0)}°
-                  </span>
-                </div>
+                {activeWindTab === "primary" && (
+                  <>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500">
+                        Góc lệch β (°)
+                      </label>
+                      <Input
+                        type="number"
+                        value={weatherData.beta}
+                        onChange={(e: any) =>
+                          setWeatherData({
+                            ...weatherData,
+                            beta: Number(e.target.value),
+                          })
+                        }
+                        placeholder="0"
+                      />
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Lệch so với hướng chính trên la bàn
+                      </p>
+                    </div>
+                    <div className="text-[10px] text-slate-400 border-t border-slate-100 pt-2">
+                      Góc gió tổng hợp:{" "}
+                      <span className="font-bold text-slate-600">
+                        {selectedDir.angle + (weatherData.beta || 0)}°
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           {/* Alpha: Góc giữa hướng gió và tuyến khói — dòng riêng */}
           <div>
-            <label className="text-xs font-semibold text-slate-500">
-              Góc α — Gió / Tuyến khói (°)
+            <label className="text-xs font-semibold text-slate-500 tracking-tight">
+              Góc α — Góc lệch hướng gió so với tuyến bố trí (°)
             </label>
             <div className="flex items-center gap-2 mt-1">
               <Input
@@ -374,43 +378,41 @@ export const WeatherPanel = () => {
                 }}
                 placeholder="90"
               />
-              {/* Toggle trái/phải - chỉ hiện khi alpha ≠ 90 */}
-              {weatherData.alpha !== 90 && (
-                <div className="flex gap-1 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setWeatherData({
-                        ...weatherData,
-                        alphaDirection: "left",
-                      })
-                    }
-                    className={`py-1.5 px-3 rounded-md text-xs font-bold transition-all duration-200 border ${
-                      weatherData.alphaDirection === "left"
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                        : "bg-white text-slate-500 border-slate-300 hover:border-blue-300 hover:text-blue-600"
-                    }`}
-                  >
-                    ↶ Trái
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setWeatherData({
-                        ...weatherData,
-                        alphaDirection: "right",
-                      })
-                    }
-                    className={`py-1.5 px-3 rounded-md text-xs font-bold transition-all duration-200 border ${
-                      weatherData.alphaDirection === "right"
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                        : "bg-white text-slate-500 border-slate-300 hover:border-blue-300 hover:text-blue-600"
-                    }`}
-                  >
-                    Phải ↷
-                  </button>
-                </div>
-              )}
+              {/* Toggle trái/phải - luôn hiện để đồng bộ giao diện */}
+              <div className="flex gap-1 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setWeatherData({
+                      ...weatherData,
+                      alphaDirection: "left",
+                    })
+                  }
+                  className={`py-1.5 px-3 rounded-md text-xs font-bold transition-all duration-200 border ${
+                    weatherData.alphaDirection === "left"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-white text-slate-500 border-slate-300 hover:border-blue-300 hover:text-blue-600"
+                  }`}
+                >
+                  ↶ Trái
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setWeatherData({
+                      ...weatherData,
+                      alphaDirection: "right",
+                    })
+                  }
+                  className={`py-1.5 px-3 rounded-md text-xs font-bold transition-all duration-200 border ${
+                    weatherData.alphaDirection === "right"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-white text-slate-500 border-slate-300 hover:border-blue-300 hover:text-blue-600"
+                  }`}
+                >
+                  Phải ↷
+                </button>
+              </div>
             </div>
             <p className="text-[10px] text-slate-400 mt-1">
               90° = vuông góc với hướng gió (mặc định)

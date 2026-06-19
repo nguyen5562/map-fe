@@ -31,7 +31,11 @@ import { BASE_URL } from "../const/apiConfig";
 import { WeatherOverlay, GasMarker } from "../components/map";
 import { LeftSidebar } from "../components/left-sidebar";
 import { RightSidebar } from "../components/right-sidebar";
-import { SimulationProvider, useSimulation } from "../context/SimulationContext";
+import { ConfirmChangesModal } from "../components/ui/ConfirmChangesModal";
+import {
+  SimulationProvider,
+  useSimulation,
+} from "../context/SimulationContext";
 
 function ClickHandler({
   onMapClick,
@@ -94,6 +98,12 @@ function SimulationInner() {
   const weatherActive = useSimulation((s) => s.weatherActive);
   const weatherData = useSimulation((s) => s.weatherData);
   const pointsList = useSimulation((s) => s.pointsList);
+  const smokeLineLength = useSimulation((s) => s.smokeLineLength);
+  const editingPointId = useSimulation((s) => s.editingPointId);
+  const confirmModal = useSimulation((s) => s.confirmModal);
+  const closeConfirmModal = useSimulation((s) => s.closeConfirmModal);
+  const handleConfirmModalSave = useSimulation((s) => s.handleConfirmModalSave);
+  const handleConfirmModalDiscard = useSimulation((s) => s.handleConfirmModalDiscard);
 
   const handleMapClick = (e: L.LeafletMouseEvent) => {
     const rawX = e.latlng.lng;
@@ -109,18 +119,28 @@ function SimulationInner() {
     }
   };
 
-  const baseDirectionAngle = weatherData.windAngle ?? (DIRECTION_ANGLES[weatherData.windDirection] ?? 0);
-  const smokeOffset = (90 - weatherData.alpha) * (weatherData.alphaDirection === "right" ? 1 : -1);
+  const baseDirectionAngle =
+    weatherData.windAngle ?? DIRECTION_ANGLES[weatherData.windDirection] ?? 0;
+  const smokeOffset =
+    (90 - weatherData.alpha) *
+    (weatherData.alphaDirection === "right" ? 1 : -1);
   const windAngleComputed = baseDirectionAngle - 180 + weatherData.beta;
   const smokeAngleComputed = windAngleComputed + smokeOffset;
 
-  const baseSecondaryDirectionAngle = weatherData.secondaryWindAngle ?? (weatherData.secondaryWindDirection ? DIRECTION_ANGLES[weatherData.secondaryWindDirection] : null);
-  const computedSecondaryAngle = baseSecondaryDirectionAngle !== null ? baseSecondaryDirectionAngle - 180 : null;
+  const baseSecondaryDirectionAngle =
+    weatherData.secondaryWindAngle ??
+    (weatherData.secondaryWindDirection
+      ? DIRECTION_ANGLES[weatherData.secondaryWindDirection]
+      : null);
+  const computedSecondaryAngle =
+    baseSecondaryDirectionAngle !== null
+      ? baseSecondaryDirectionAngle - 180
+      : null;
 
   const weatherDataWithAngle = {
     ...weatherData,
     angle: windAngleComputed,
-    secondaryAngle: computedSecondaryAngle
+    secondaryAngle: computedSecondaryAngle,
   };
 
   // Calculate Map Bounds dynamically
@@ -194,16 +214,29 @@ function SimulationInner() {
                   center={clickedRaw}
                   angle={smokeAngleComputed}
                   scaleX={scale.x}
+                  smokeLineLength={smokeLineLength}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
               ))}
 
             {/* Saved Points Markers */}
-            {pointsList.map((p, idx) => {
-              const baseDirAngle = p.weatherData.windAngle ?? (DIRECTION_ANGLES[p.weatherData.windDirection] ?? 0);
-              const pSmokeOffset = (90 - (p.weatherData.alpha ?? 90)) * ((p.weatherData.alphaDirection ?? "right") === "right" ? 1 : -1);
-              const compWindAngle = baseDirAngle - 180 + (p.weatherData.beta ?? p.weatherData.alpha ?? 0);
+            {pointsList
+              .filter((p) => p.id !== editingPointId)
+              .map((p, idx) => {
+              const baseDirAngle =
+                p.weatherData.windAngle ??
+                DIRECTION_ANGLES[p.weatherData.windDirection] ??
+                0;
+              const pSmokeOffset =
+                (90 - (p.weatherData.alpha ?? 90)) *
+                ((p.weatherData.alphaDirection ?? "right") === "right"
+                  ? 1
+                  : -1);
+              const compWindAngle =
+                baseDirAngle -
+                180 +
+                (p.weatherData.beta ?? p.weatherData.alpha ?? 0);
               const compSmokeAngle = compWindAngle + pSmokeOffset;
 
               return weatherActive ? (
@@ -212,6 +245,7 @@ function SimulationInner() {
                   center={p.coords}
                   angle={compSmokeAngle}
                   scaleX={scale.x}
+                  smokeLineLength={p.smokeLineLength ?? 700}
                 />
               ) : (
                 <Marker key={p.id} position={p.coords}>
@@ -220,7 +254,9 @@ function SimulationInner() {
               );
             })}
           </MapContainer>
-        ) : (currentMap?.status === "processing" || currentMap?.status === "resizing" || currentMap?.status === "tiling") ? (
+        ) : currentMap?.status === "processing" ||
+          currentMap?.status === "resizing" ||
+          currentMap?.status === "tiling" ? (
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-500">
             <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <h3 className="text-lg font-bold text-slate-700">
@@ -236,15 +272,18 @@ function SimulationInner() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-400 p-6 text-center">
-            <MapIcon size={64} className="mb-4 opacity-50 animate-pulse text-slate-350" />
+            <MapIcon
+              size={64}
+              className="mb-4 opacity-50 animate-pulse text-slate-350"
+            />
             <h3 className="text-lg font-bold text-slate-700">
-              {maps.length === 0 
-                ? "Hệ thống chưa có Bản đồ nào" 
+              {maps.length === 0
+                ? "Hệ thống chưa có Bản đồ nào"
                 : "Chưa có Bản đồ nào được chọn"}
             </h3>
             <p className="text-sm text-slate-500 mt-1 max-w-sm">
-              {maps.length === 0 
-                ? "Vui lòng tải lên bản đồ mới bằng nút ở thanh bên trái để bắt đầu giả định." 
+              {maps.length === 0
+                ? "Vui lòng tải lên bản đồ mới bằng nút ở thanh bên trái để bắt đầu giả định."
                 : "Vui lòng chọn một bản đồ từ thư viện bên trái hoặc tải lên bản đồ mới."}
             </p>
           </div>
@@ -253,6 +292,15 @@ function SimulationInner() {
 
       {/* RIGHT SIDEBAR — Kết quả tính toán */}
       <RightSidebar />
+
+      <ConfirmChangesModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onClose={closeConfirmModal}
+        onSave={handleConfirmModalSave}
+        onDiscard={handleConfirmModalDiscard}
+      />
     </div>
   );
 }

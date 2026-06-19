@@ -10,6 +10,7 @@ import {
   Plus,
   Edit3,
   X,
+  Save,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -40,6 +41,8 @@ export const LeftSidebar = () => {
   const pointsList = useSimulation((s) => s.pointsList);
   const onAddPoint = useSimulation((s) => s.onAddPoint);
   const currentRealCoords = useSimulation((s) => s.currentRealCoords);
+  const selectedPointId = useSimulation((s) => s.selectedPointId);
+  const editingPointId = useSimulation((s) => s.editingPointId);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProgress, setShowProgress] = useState(false);
@@ -243,40 +246,42 @@ export const LeftSidebar = () => {
           {/* LIST OF SAVED POINTS */}
           <PointsListPanel />
 
-          {/* STEP 1: CALIBRATION */}
-          <CalibrationPanel />
+          <div className={`space-y-6 ${selectedPointId !== null && editingPointId === null ? "pointer-events-none opacity-80 select-none" : ""}`}>
+            {/* STEP 1: CALIBRATION */}
+            <CalibrationPanel />
 
-          {/* STEP 2: TARGET DEFENSE */}
-          <TargetDefensePanel />
+            {/* STEP 2: TARGET DEFENSE */}
+            <TargetDefensePanel />
 
-          {/* STEP 3: FIND & CHECK COORDS (chuyển lên từ mục 8) */}
-          <TargetPanel />
+            {/* STEP 3: FIND & CHECK COORDS (chuyển lên từ mục 8) */}
+            <TargetPanel />
 
-          {/* STEP 4: WEATHER */}
-          <WeatherPanel />
+            {/* STEP 4: WEATHER */}
+            <WeatherPanel />
 
-          {/* STEP 5: SMOKE TIME */}
-          <SmokeTimePanel />
+            {/* STEP 5: SMOKE TIME */}
+            <SmokeTimePanel />
 
-          {/* STEP 6: SMOKE METHOD */}
-          <SmokeMethodPanel />
+            {/* STEP 6: SMOKE METHOD */}
+            <SmokeMethodPanel />
 
-          {/* STEP 7: SMOKE VEHICLE */}
-          <SmokeVehiclePanel />
+            {/* STEP 7: SMOKE VEHICLE */}
+            <SmokeVehiclePanel />
 
-          {/* STEP 8: BATTLEFIELD STRUCTURE */}
-          <BattlefieldPanel />
+            {/* STEP 8: BATTLEFIELD STRUCTURE */}
+            <BattlefieldPanel />
+          </div>
         </div>
 
         {/* ── Sticky Action Footer ── */}
         <div className="p-4 border-t border-slate-200 bg-slate-50/80 backdrop-blur-sm grid grid-cols-2 gap-2 shrink-0">
           <button
             onClick={onAddPoint}
-            disabled={!isCalibrated || !currentRealCoords}
+            disabled={!isCalibrated || (!editingPointId && !currentRealCoords)}
             className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all border border-slate-300 hover:bg-slate-105 text-slate-700 bg-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
           >
-            <Plus size={14} />
-            MỤC TIÊU KẾ TIẾP
+            {editingPointId ? <Save size={14} /> : <Plus size={14} />}
+            {editingPointId ? "LƯU THAY ĐỔI" : "LƯU MỤC TIÊU"}
           </button>
           <button
             onClick={onCalculate}

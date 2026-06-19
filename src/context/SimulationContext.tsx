@@ -47,7 +47,11 @@ export interface WeatherData {
 // Export hook directly referencing Zustand store for 100% compatibility
 export const useSimulation = useSimulationStore;
 
-export function SimulationProvider({ children }: { children: React.ReactNode }) {
+export function SimulationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const toast = useToast();
   const initToast = useSimulationStore((state) => state.initToast);
   const fetchMaps = useSimulationStore((state) => state.fetchMaps);
@@ -96,7 +100,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
 
   // Get default vehicle configs from backend
   useEffect(() => {
-    vehicleService.getVehicles()
+    vehicleService
+      .getVehicles()
       .then((data: any[]) => {
         if (data && data.length > 0) {
           const configMap: Record<string, VehicleConfig> = {};

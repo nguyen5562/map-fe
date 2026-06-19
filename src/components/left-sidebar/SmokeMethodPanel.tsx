@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Route } from "lucide-react";
 
-
-
 import { useSimulation } from "../../context/SimulationContext";
 
 export const SmokeMethodPanel = () => {
@@ -66,43 +64,32 @@ export const SmokeMethodPanel = () => {
             </div>
           </div>
 
-          {/* Theo diện */}
+          {/* Diện tích */}
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <label className="text-xs font-semibold text-slate-500">
-                Theo diện (khu vực)
-              </label>
-              <button
-                onClick={() =>
-                  setSmokeMethodData({
-                    ...smokeMethodData,
-                    areaEnabled: !smokeMethodData.areaEnabled,
-                  })
-                }
-                className={`relative w-9 h-5 rounded-full transition-colors duration-205 active:scale-95 ${
-                  smokeMethodData.areaEnabled ? "bg-teal-600" : "bg-slate-300"
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-205 ${
-                    smokeMethodData.areaEnabled
-                      ? "translate-x-4"
-                      : "translate-x-0.5"
-                  }`}
-                ></div>
-              </button>
-            </div>
-            {smokeMethodData.areaEnabled && (() => {
-              const base = parseFloat(targetDefenseData?.area || '0');
-              const mult = parseFloat(targetDefenseData?.coverageMultiplier || '1');
-              const computed = isNaN(base) || isNaN(mult) ? null : base * mult;
+            {(() => {
+              const base = parseFloat(targetDefenseData?.area || "0");
+              const mult = parseFloat(
+                targetDefenseData?.coverageMultiplier || "1",
+              );
+              const computed =
+                isNaN(base) || isNaN(mult) ? null : base * mult;
               return (
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-slate-500 whitespace-nowrap">Diện tích</span>
+                  <span className="text-xs text-slate-500 whitespace-nowrap">
+                    Diện tích
+                  </span>
                   <div className="flex-1 h-9 flex items-center px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-bold text-teal-700 tabular-nums">
-                    {computed !== null ? computed.toLocaleString('vi-VN') : <span className="text-slate-400 font-normal">Chưa có dữ liệu mục 2</span>}
+                    {computed !== null ? (
+                      computed.toLocaleString("vi-VN")
+                    ) : (
+                      <span className="text-slate-400 font-normal">
+                        Chưa có dữ liệu mục 2
+                      </span>
+                    )}
                   </div>
-                  <span className="text-sm text-slate-500 font-medium whitespace-nowrap">ha</span>
+                  <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
+                    ha
+                  </span>
                 </div>
               );
             })()}
