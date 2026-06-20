@@ -23,7 +23,6 @@ export interface TargetDefenseData {
 
 export interface SmokeMethodData {
   lineType: "Thẳng" | "Vòng";
-  areaEnabled: boolean;
 }
 
 export interface WeatherData {
@@ -114,9 +113,13 @@ export function SimulationProvider({
               r: Number(v.r),
               t: Number(v.t),
               materials: v.materials || "",
+              unit: v.unit || "cái",
             };
           });
-          useSimulationStore.setState({ vehicleConfigs: configMap });
+          useSimulationStore.setState({
+            vehicleConfigs: configMap,
+            originalVehicleConfigs: JSON.parse(JSON.stringify(configMap)),
+          });
         }
       })
       .catch((err) => console.error("Lỗi lấy cấu hình khí tài:", err));

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import L from "leaflet";
 import { mapService } from "../services/map.service";
-import { DEFAULT_VEHICLE_CONFIGS } from "../components/left-sidebar/SmokeVehiclePanel";
 import type { VehicleConfig } from "../components/left-sidebar/SmokeVehiclePanel";
 import type { SmokeTimeRange } from "../components/left-sidebar/SmokeTimePanel";
 import type { BattlefieldData } from "../components/left-sidebar/BattlefieldPanel";
@@ -59,6 +58,7 @@ export interface SimulationStoreState {
   smokeMethodData: SmokeMethodData;
   selectedVehicles: string[];
   vehicleConfigs: Record<string, VehicleConfig>;
+  originalVehicleConfigs: Record<string, VehicleConfig>;
   battlefieldData: BattlefieldData;
   weatherActive: boolean;
   weatherData: WeatherData;
@@ -164,17 +164,24 @@ const performCalculation = (inputs: {
   const windSpeed = parseFloat(inputs.weatherData.speed.toString()) || 5;
   const routesCount = 1;
   const lineType = inputs.smokeMethodData.lineType;
-  const areaEnabled = inputs.smokeMethodData.areaEnabled;
   const vehicle = inputs.selectedVehicles[0] || "HPK-2.5";
 
-  const configs = inputs.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS;
-  const config = configs[vehicle] || DEFAULT_VEHICLE_CONFIGS["HPK-2.5"];
+  const configs = inputs.vehicleConfigs || {};
+  const config = configs[vehicle] || {
+    id: vehicle,
+    name: vehicle,
+    desc: "",
+    l: 120,
+    r: 10,
+    t: 3,
+    materials: "",
+    unit: "cái",
+  };
 
   let straightLine_vehicles = 0;
   let straightLine_routes = 0;
   let circularLine_vehicles = 0;
   let circularLine_routes = 0;
-  let pointDefense_vehicles = 0;
 
   const vehicleCoverArea = config.l * config.r || 1200;
   let baseVehicles =
@@ -189,14 +196,9 @@ const performCalculation = (inputs: {
     circularLine_routes = routesCount;
   }
 
-  if (areaEnabled) {
-    pointDefense_vehicles = Math.ceil(targetArea / vehicleCoverArea);
-  }
-
   const totalPoints =
-    straightLine_vehicles * straightLine_routes +
-    circularLine_vehicles * circularLine_routes +
-    pointDefense_vehicles;
+    straightLine_vehicles * routesCount +
+    circularLine_vehicles * routesCount;
 
   let kh1_fuel_lit = 0;
   let hpk_boxes = 0;
@@ -218,7 +220,6 @@ const performCalculation = (inputs: {
     straightLine_routes,
     circularLine_vehicles,
     circularLine_routes,
-    pointDefense_vehicles,
     kh1_fuel_lit,
     hpk_boxes,
     tpk_cans,
@@ -283,9 +284,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     coverageMultiplier: "1",
   },
   smokeTime: { fromH: "", fromM: "", toH: "", toM: "" },
-  smokeMethodData: { lineType: "Thẳng", areaEnabled: true },
+  smokeMethodData: { lineType: "Thẳng" },
   selectedVehicles: [],
-  vehicleConfigs: DEFAULT_VEHICLE_CONFIGS,
+  vehicleConfigs: {},
+  originalVehicleConfigs: {},
   battlefieldData: {
     firePoints: { distance: "", direction: "Bắc" },
     commandPost: { distance: "", direction: "Bắc" },
@@ -366,7 +368,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             battlefieldData: { ...draft.battlefieldData },
             weatherData: { ...draft.weatherData },
             smokeTime: { ...draft.smokeTime },
-            vehicleConfigs: draft.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS,
+            vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
             smokeLineLength: draft.smokeLineLength ?? 700,
           });
         } else {
@@ -815,7 +817,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         battlefieldData: { ...point.battlefieldData },
         weatherData: { ...point.weatherData },
         smokeTime: { ...point.smokeTime },
-        vehicleConfigs: point.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS,
+        vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
         clickedRaw: null,
         currentRealCoords: null,
@@ -863,7 +865,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         battlefieldData: { ...draft.battlefieldData },
         weatherData: { ...draft.weatherData },
         smokeTime: { ...draft.smokeTime },
-        vehicleConfigs: draft.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS,
+        vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
         clickedRaw: rawCoords,
         currentRealCoords: rawCoords ? get().rawToReal(rawCoords.lng, rawCoords.lat) : null,
@@ -890,7 +892,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         battlefieldData: { ...point.battlefieldData },
         weatherData: { ...point.weatherData },
         smokeTime: { ...point.smokeTime },
-        vehicleConfigs: point.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS,
+        vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
         clickedRaw: null,
         currentRealCoords: null,
@@ -929,7 +931,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         battlefieldData: { ...draft.battlefieldData },
         weatherData: { ...draft.weatherData },
         smokeTime: { ...draft.smokeTime },
-        vehicleConfigs: draft.vehicleConfigs || DEFAULT_VEHICLE_CONFIGS,
+        vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
         clickedRaw: rawCoords,
         currentRealCoords: rawCoords ? get().rawToReal(rawCoords.lng, rawCoords.lat) : null,
@@ -1092,8 +1094,6 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             (acc.circularLine_vehicles || 0) + (r.circularLine_vehicles || 0),
           circularLine_routes:
             (acc.circularLine_routes || 0) + (r.circularLine_routes || 0),
-          pointDefense_vehicles:
-            (acc.pointDefense_vehicles || 0) + (r.pointDefense_vehicles || 0),
           kh1_fuel_lit: (acc.kh1_fuel_lit || 0) + (r.kh1_fuel_lit || 0),
           hpk_boxes: (acc.hpk_boxes || 0) + (r.hpk_boxes || 0),
           tpk_cans: (acc.tpk_cans || 0) + (r.tpk_cans || 0),
@@ -1105,7 +1105,6 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         straightLine_routes: 0,
         circularLine_vehicles: 0,
         circularLine_routes: 0,
-        pointDefense_vehicles: 0,
         kh1_fuel_lit: 0,
         hpk_boxes: 0,
         tpk_cans: 0,

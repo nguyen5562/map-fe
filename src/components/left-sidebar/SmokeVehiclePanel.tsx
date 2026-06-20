@@ -9,58 +9,10 @@ export type VehicleConfig = {
   r: number; // smoke width
   t: number; // smoke release time
   materials: string; // spec sheet consumables
+  unit: string; // unit of consumption
 };
 
-export const DEFAULT_VEHICLE_CONFIGS: Record<string, VehicleConfig> = {
-  "HPK-2.5": {
-    id: "HPK-2.5",
-    name: "HPK-2.5",
-    desc: "Hộp phát khói",
-    l: 120,
-    r: 10,
-    t: 3,
-    materials: "Hộp thuốc khói HPK-2.5",
-  },
-  TPK: {
-    id: "TPK",
-    name: "TPK",
-    desc: "Thùng thả khói",
-    l: 300,
-    r: 30,
-    t: 9,
-    materials: "Thùng thuốc khói TPK",
-  },
-  "KH-1": {
-    id: "KH-1",
-    name: "KH-1",
-    desc: "Xe thả khói",
-    l: 1000,
-    r: 150,
-    t: 90,
-    materials:
-      "Hỗn hợp DO/FO (1400 L/h), Dầu DO đầu đốt (37.5 L/h), Xăng máy phát (1.4 L/h)",
-  },
-  "TDA-M": {
-    id: "TDA-M",
-    name: "TĐA-M",
-    desc: "Xe thả khói",
-    l: 1000,
-    r: 150,
-    t: 90,
-    materials:
-      "Dầu tạo khói (550 L/h), Xăng phụ trợ (6% thể tích dầu tạo khói)",
-  },
-  KHOI_UNG_DUNG: {
-    id: "KHOI_UNG_DUNG",
-    name: "KHÓI ỨNG DỤNG",
-    desc: "Khói ứng dụng",
-    l: 50,
-    r: 5,
-    t: 15,
-    materials:
-      "Chất cháy (lá khô/củi khô), chất tạo khói (lá tươi/rơm bùn ẩm), dầu mồi (mazut/DO)",
-  },
-};
+
 
 const PREFERRED_ORDER = ["HPK-2.5", "TPK", "KH-1", "TDA-M", "KHOI_UNG_DUNG"];
 
@@ -71,6 +23,7 @@ export const SmokeVehiclePanel = () => {
   const selectedVehicles = useSimulation((s) => s.selectedVehicles);
   const setSelectedVehicles = useSimulation((s) => s.setSelectedVehicles);
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
+  const originalVehicleConfigs = useSimulation((s) => s.originalVehicleConfigs);
   const setVehicleConfigs = useSimulation((s) => s.setVehicleConfigs);
   const [showPanel, setShowPanel] = useState(true);
 
@@ -93,7 +46,7 @@ export const SmokeVehiclePanel = () => {
 
   const selectedId = selectedVehicles[0];
   const config = selectedId ? vehicleConfigs[selectedId] : null;
-  const defaultConfig = selectedId ? DEFAULT_VEHICLE_CONFIGS[selectedId] : null;
+  const defaultConfig = selectedId ? originalVehicleConfigs[selectedId] : null;
 
   const isCustomized =
     config &&

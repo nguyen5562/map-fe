@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,23 +13,6 @@ import {
   Container,
   TriangleAlert,
 } from "lucide-react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-export type CalculationResults = {
-  // Bố trí trận địa khói
-  straightLine_vehicles?: number;
-  straightLine_routes?: number;
-  circularLine_vehicles?: number;
-  circularLine_routes?: number;
-  pointDefense_vehicles?: number;
-  // Tổng số PTPK
-  kh1_fuel_lit?: number;
-  hpk_boxes?: number;
-  tpk_cans?: number;
-  // Thời gian
-  coverTime_min?: number;
-};
-
 import { useSimulation } from "../../context/SimulationContext";
 
 // ─── Helper: một hàng kết quả ─────────────────────────────────────────────────
@@ -76,12 +60,82 @@ const GroupLabel = ({ children }: { children: React.ReactNode }) => (
   </p>
 );
 
+// Helper for dynamic vehicle icons
+const getVehicleIcon = (vehicleId: string) => {
+  if (vehicleId === "KH-1" || vehicleId === "TDA-M") return <Car size={14} />;
+  if (vehicleId === "TPK") return <Container size={14} />;
+  return <Box size={14} />;
+};
+
+// Helper to determine the singular count unit from DB unit string
+const getCountUnit = (config: any) => {
+  if (!config) return "cái";
+  const unit = (config.unit || "").toLowerCase();
+  if (unit.includes("lít") || unit.includes("lit")) {
+    return "xe";
+  }
+  return config.unit || "cái";
+};
+
 export const RightSidebar = () => {
   const isOpen = useSimulation((s) => s.isRightSidebarOpen);
   const setIsOpen = useSimulation((s) => s.setIsRightSidebarOpen);
+  const pointsList = useSimulation((s) => s.pointsList);
+  const selectedPointId = useSimulation((s) => s.selectedPointId);
   const rawResults = useSimulation((s) => s.results);
-  const results = rawResults || {};
+  const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
+
+  const [activeTab, setActiveTab] = useState<"detail" | "summary">("detail");
+
+  useEffect(() => {
+    if (pointsList.length < 2) {
+      setActiveTab("detail");
+    }
+  }, [pointsList.length]);
+
   const hasResults = rawResults ? Object.values(rawResults).some((v) => v !== undefined) : false;
+
+  // Selected Point details
+  const selectedPoint = pointsList.find((p) => p.id === selectedPointId) || pointsList[pointsList.length - 1];
+
+  // Helper to extract vehicle consumption value
+  const getPointVehicleValue = (point: any) => {
+    const vehicleId = point.selectedVehicles?.[0] || "HPK-2.5";
+    if (vehicleId === "KH-1" || vehicleId === "TDA-M") {
+      return point.results?.kh1_fuel_lit ?? 0;
+    } else if (vehicleId === "TPK") {
+      return point.results?.tpk_cans ?? 0;
+    } else {
+      return point.results?.hpk_boxes ?? 0;
+    }
+  };
+
+  // Determine Count Unit for layouts
+  const selectedVehicleId = selectedPoint?.selectedVehicles?.[0] || "HPK-2.5";
+  const selectedConfig = selectedPoint?.vehicleConfigs?.[selectedVehicleId] || vehicleConfigs[selectedVehicleId];
+  const countUnit = getCountUnit(selectedConfig);
+
+  // Grouped vehicles for summary
+  const getSummaryVehicles = () => {
+    const summary: Record<string, { name: string; value: number; unit: string; vehicleId: string }> = {};
+    pointsList.forEach((p) => {
+      const vehicleId = p.selectedVehicles?.[0] || "HPK-2.5";
+      const config = p.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
+      const name = config?.name || vehicleId;
+      const unit = config?.unit || "cái";
+      const val = getPointVehicleValue(p);
+
+      if (val > 0) {
+        if (!summary[vehicleId]) {
+          summary[vehicleId] = { name, value: 0, unit, vehicleId };
+        }
+        summary[vehicleId].value += val;
+      }
+    });
+    return Object.values(summary);
+  };
+
+  const summaryVehicles = getSummaryVehicles();
 
   return (
     <div
@@ -103,6 +157,32 @@ export const RightSidebar = () => {
           </h2>
         </div>
 
+        {/* Tab Selector (only shows if there are 2 or more points) */}
+        {hasResults && pointsList.length >= 2 && (
+          <div className="flex border-b border-slate-200 bg-slate-50/50 p-1 gap-1 flex-shrink-0">
+            <button
+              onClick={() => setActiveTab("detail")}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                activeTab === "detail"
+                  ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/50"
+              }`}
+            >
+              Chi tiết
+            </button>
+            <button
+              onClick={() => setActiveTab("summary")}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                activeTab === "summary"
+                  ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/50"
+              }`}
+            >
+              Tổng hợp ({pointsList.length})
+            </button>
+          </div>
+        )}
+
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
 
@@ -119,98 +199,219 @@ export const RightSidebar = () => {
             </div>
           )}
 
-          {/* ── 1. BỐ TRÍ TRẬN ĐỊA KHÓI ── */}
-          <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm space-y-1">
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-1">
-              <Layers size={15} className="text-blue-600" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                Bố trí trận địa khói
-              </h3>
-            </div>
+          {/* ── Tab: CHI TIẾT ── */}
+          {hasResults && activeTab === "detail" && selectedPoint && (
+            <>
+              {/* Point Indicator Title */}
+              <div className="px-1 text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1">
+                <span>📍 Đang xem:</span>
+                <span className="underline">{selectedPoint.name}</span>
+              </div>
 
-            <GroupLabel>Tuyến thẳng</GroupLabel>
-            <ResultRow
-              label="Số phương tiện bố trí trên một tuyến"
-              value={results.straightLine_vehicles}
-              unit="xe/hộp"
-            />
-            <ResultRow
-              label="Số tuyến cần bố trí"
-              value={results.straightLine_routes}
-              unit="tuyến"
-            />
+              {/* 1. BỐ TRÍ TRẬN ĐỊA KHÓI */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm space-y-1">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-1">
+                  <Layers size={15} className="text-blue-600" />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                    Bố trí trận địa khói
+                  </h3>
+                </div>
 
-            <GroupLabel>Tuyến hình vòng</GroupLabel>
-            <ResultRow
-              label="Số PTPK bố trí trên 1 tuyến hình vòng"
-              value={results.circularLine_vehicles}
-              unit="xe/hộp"
-            />
-            <ResultRow
-              label="Số tuyến hình vòng cần bố trí"
-              value={results.circularLine_routes}
-              unit="tuyến"
-            />
+                {selectedPoint.results.straightLine_vehicles > 0 && (
+                  <>
+                    <GroupLabel>Tuyến thẳng</GroupLabel>
+                    <ResultRow
+                      label="Số phương tiện bố trí trên một tuyến"
+                      value={selectedPoint.results.straightLine_vehicles}
+                      unit={countUnit}
+                    />
+                    <ResultRow
+                      label="Số tuyến cần bố trí"
+                      value={selectedPoint.results.straightLine_routes}
+                      unit="tuyến"
+                    />
+                  </>
+                )}
 
-            <GroupLabel>Theo điểm (khu vực)</GroupLabel>
-            <ResultRow
-              label="Số PTPK bố trí trên 1 điểm"
-              value={results.pointDefense_vehicles}
-              unit="xe/hộp"
-            />
+                {selectedPoint.results.circularLine_vehicles > 0 && (
+                  <>
+                    <GroupLabel>Tuyến hình vòng</GroupLabel>
+                    <ResultRow
+                      label="Số PTPK bố trí trên 1 tuyến hình vòng"
+                      value={selectedPoint.results.circularLine_vehicles}
+                      unit={countUnit}
+                    />
+                    <ResultRow
+                      label="Số tuyến hình vòng cần bố trí"
+                      value={selectedPoint.results.circularLine_routes}
+                      unit="tuyến"
+                    />
+                  </>
+                )}
 
-            <div className="flex items-center justify-center pt-2">
-              <span className="text-slate-300 font-bold tracking-widest text-sm">
-                ✦ ✦ ✦
-              </span>
-            </div>
-          </div>
 
-          {/* ── 2. TỔNG SỐ PTPK CẦN SỬ DỤNG ── */}
-          <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-sm space-y-1">
-            <div className="flex items-center gap-2 border-b border-amber-200 pb-2 mb-1">
-              <Target size={15} className="text-amber-600" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                Tổng số PTPK cần sử dụng
-              </h3>
-            </div>
 
-            <ResultRow
-              label="Xe thả khói KH-1"
-              value={results.kh1_fuel_lit}
-              unit="lít (DO/FO)"
-              icon={<Car size={14} />}
-            />
-            <ResultRow
-              label="Hộp phát khói"
-              value={results.hpk_boxes}
-              unit="Hộp"
-              icon={<Box size={14} />}
-            />
-            <ResultRow
-              label="Thùng phát khói"
-              value={results.tpk_cans}
-              unit="Thùng"
-              icon={<Container size={14} />}
-            />
-          </div>
+                <div className="flex items-center justify-center pt-2">
+                  <span className="text-slate-300 font-bold tracking-widest text-sm">
+                    ✦ ✦ ✦
+                  </span>
+                </div>
+              </div>
 
-          {/* ── 3. THỜI GIAN PHỦ MÀN KHÓI ── */}
-          <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm space-y-1">
-            <div className="flex items-center gap-2 border-b border-emerald-200 pb-2 mb-1">
-              <Clock size={15} className="text-emerald-600" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                Thời gian phủ màn khói
-              </h3>
-            </div>
+              {/* 2. TỔNG SỐ PTPK CẦN SỬ DỤNG */}
+              {(() => {
+                const vehicleId = selectedPoint.selectedVehicles?.[0] || "HPK-2.5";
+                const config = selectedPoint.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
+                const value = getPointVehicleValue(selectedPoint);
 
-            <ResultRow
-              label="Thời gian cần thiết để màn khói phủ kín mục tiêu"
-              value={results.coverTime_min}
-              unit="phút"
-              highlight
-            />
-          </div>
+                return (
+                  <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-sm space-y-1">
+                    <div className="flex items-center gap-2 border-b border-amber-200 pb-2 mb-1">
+                      <Target size={15} className="text-amber-600" />
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                        Tổng số PTPK cần sử dụng
+                      </h3>
+                    </div>
+
+                    <ResultRow
+                      label={config?.name || vehicleId}
+                      value={value}
+                      unit={config?.unit || "cái"}
+                      icon={getVehicleIcon(vehicleId)}
+                    />
+                  </div>
+                );
+              })()}
+
+              {/* 3. THỜI GIAN PHỦ MÀN KHÓI */}
+              <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm space-y-1">
+                <div className="flex items-center gap-2 border-b border-emerald-200 pb-2 mb-1">
+                  <Clock size={15} className="text-emerald-600" />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                    Thời gian phủ màn khói
+                  </h3>
+                </div>
+
+                <ResultRow
+                  label="Thời gian cần thiết để màn khói phủ kín mục tiêu"
+                  value={selectedPoint.results.coverTime_min}
+                  unit="phút"
+                  highlight
+                />
+              </div>
+            </>
+          )}
+
+          {/* ── Tab: TỔNG HỢP ── */}
+          {hasResults && activeTab === "summary" && pointsList.length >= 2 && (
+            <>
+              {/* Summary Indicator Title */}
+              <div className="px-1 text-[11px] font-bold text-indigo-650 uppercase tracking-wide flex items-center gap-1">
+                <span>📊 Đang xem:</span>
+                <span className="underline">Tổng hợp toàn bộ các trận địa</span>
+              </div>
+
+              {/* 1. TỔNG SỐ PTPK CẦN SỬ DỤNG TOÀN BẢN ĐỒ */}
+              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-sm space-y-1">
+                <div className="flex items-center gap-2 border-b border-amber-200 pb-2 mb-1">
+                  <Target size={15} className="text-amber-600" />
+                  <h3 className="text-sm font-bold uppercase tracking-tighter text-slate-700">
+                    Tổng vật tư tiêu hao toàn bản đồ
+                  </h3>
+                </div>
+
+                {summaryVehicles.map((v) => (
+                  <ResultRow
+                    key={v.vehicleId}
+                    label={v.name}
+                    value={v.value}
+                    unit={v.unit}
+                    icon={getVehicleIcon(v.vehicleId)}
+                  />
+                ))}
+              </div>
+
+              {/* 2. PHÂN RÃ CHI TIẾT TỪNG TRẬN ĐỊA */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 px-1">
+                  Chi tiết từng trận địa
+                </h3>
+
+                {pointsList.map((p) => {
+                  const vehicleId = p.selectedVehicles?.[0] || "HPK-2.5";
+                  const config = p.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
+                  const vehicleName = config?.name || vehicleId;
+                  const consumeUnit = config?.unit || "cái";
+                  const consumeVal = getPointVehicleValue(p);
+                  const pCountUnit = getCountUnit(config);
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5 text-[11px] shadow-sm hover:border-blue-300 transition-colors"
+                    >
+                      <div className="flex justify-between items-center border-b border-slate-200/60 pb-1">
+                        <span className="font-bold text-slate-800">{p.name}</span>
+                        <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
+                          {vehicleName}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-1 text-slate-650">
+                        {p.results?.straightLine_vehicles > 0 && (
+                          <>
+                            <div className="flex justify-between">
+                              <span>Số phương tiện/tuyến (thẳng):</span>
+                              <span className="font-medium text-slate-700">
+                                {p.results.straightLine_vehicles} {pCountUnit}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Số tuyến thẳng:</span>
+                              <span className="font-medium text-slate-700">
+                                {p.results.straightLine_routes} tuyến
+                              </span>
+                            </div>
+                          </>
+                        )}
+                        {p.results?.circularLine_vehicles > 0 && (
+                          <>
+                            <div className="flex justify-between">
+                              <span>Số phương tiện/tuyến (vòng):</span>
+                              <span className="font-medium text-slate-700">
+                                {p.results.circularLine_vehicles} {pCountUnit}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Số tuyến hình vòng:</span>
+                              <span className="font-medium text-slate-700">
+                                {p.results.circularLine_routes} tuyến
+                              </span>
+                            </div>
+                          </>
+                        )}
+
+                        
+                        <div className="flex justify-between border-t border-slate-200/60 pt-1 mt-1">
+                          <span className="font-medium">Tiêu hao:</span>
+                          <span className="font-bold text-amber-700">
+                            {consumeVal} {consumeUnit}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Thời gian phủ:</span>
+                          <span className="font-bold text-emerald-700">
+                            {p.results?.coverTime_min} phút
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
         </div>
 
         {/* ── EXPORT BUTTONS ── */}

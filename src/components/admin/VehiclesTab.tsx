@@ -24,6 +24,7 @@ export const VehiclesTab = () => {
     r: "",
     t: "",
     materials: "",
+    unit: "",
   });
 
   // Delete modal state
@@ -59,6 +60,7 @@ export const VehiclesTab = () => {
         r: veh.r.toString(),
         t: veh.t.toString(),
         materials: veh.materials || "",
+        unit: veh.unit || "",
       });
     } else {
       setEditingVehicle(null);
@@ -70,6 +72,7 @@ export const VehiclesTab = () => {
         r: "",
         t: "",
         materials: "",
+        unit: "",
       });
     }
     setVehicleModalOpen(true);
@@ -82,7 +85,8 @@ export const VehiclesTab = () => {
       !vehicleForm.name ||
       !vehicleForm.l ||
       !vehicleForm.r ||
-      !vehicleForm.t
+      !vehicleForm.t ||
+      !vehicleForm.unit
     ) {
       toast.error("Vui lòng điền đầy đủ các thông số.");
       return;
@@ -161,6 +165,7 @@ export const VehiclesTab = () => {
                 <th className="p-4 text-center">Độ dài L (m)</th>
                 <th className="p-4 text-center">Độ rộng R (m)</th>
                 <th className="p-4 text-center">Thời gian (phút)</th>
+                <th className="p-4 text-center">Đơn vị tính</th>
                 <th className="p-4 text-right">Thao tác</th>
               </tr>
             </thead>
@@ -208,6 +213,7 @@ export const VehiclesTab = () => {
                   <td className="p-4 text-center font-mono">{v.l}</td>
                   <td className="p-4 text-center font-mono">{v.r}</td>
                   <td className="p-4 text-center font-mono">{v.t}</td>
+                  <td className="p-4 text-center">{v.unit || "cái"}</td>
                   <td className="p-4 text-right flex justify-end gap-2">
                     <button
                       onClick={() => handleOpenVehicleModal(v)}
@@ -290,6 +296,20 @@ export const VehiclesTab = () => {
                     setVehicleForm({ ...vehicleForm, desc: e.target.value })
                   }
                   placeholder="Mô tả công dụng hoặc kích cỡ..."
+                  className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
+                />
+              </div>
+              <div>
+                <label className="text-slate-650 font-semibold mb-1 block">
+                  Đơn vị tính
+                </label>
+                <Input
+                  type="text"
+                  value={vehicleForm.unit}
+                  onChange={(e: any) =>
+                    setVehicleForm({ ...vehicleForm, unit: e.target.value })
+                  }
+                  placeholder="Hộp, Thùng, lít (DO/FO)..."
                   className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
