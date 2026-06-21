@@ -1,4 +1,3 @@
-import type { VehicleConfig } from "../components/left-sidebar/SmokeVehiclePanel";
 import type { SmokeTimeRange } from "../components/left-sidebar/SmokeTimePanel";
 import type { BattlefieldData } from "../components/left-sidebar/BattlefieldPanel";
 import type {
