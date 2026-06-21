@@ -99,6 +99,7 @@ function SimulationInner() {
   const weatherData = useSimulation((s) => s.weatherData);
   const pointsList = useSimulation((s) => s.pointsList);
   const smokeLineLength = useSimulation((s) => s.smokeLineLength);
+  const smokeMethodData = useSimulation((s) => s.smokeMethodData);
   const editingPointId = useSimulation((s) => s.editingPointId);
   const confirmModal = useSimulation((s) => s.confirmModal);
   const closeConfirmModal = useSimulation((s) => s.closeConfirmModal);
@@ -215,6 +216,7 @@ function SimulationInner() {
                   angle={smokeAngleComputed}
                   scaleX={scale.x}
                   smokeLineLength={smokeLineLength}
+                  lineType={smokeMethodData.lineType}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
@@ -246,6 +248,7 @@ function SimulationInner() {
                   angle={compSmokeAngle}
                   scaleX={scale.x}
                   smokeLineLength={p.smokeLineLength ?? 700}
+                  lineType={p.smokeMethodData?.lineType ?? "Thẳng"}
                 />
               ) : (
                 <Marker key={p.id} position={p.coords}>
