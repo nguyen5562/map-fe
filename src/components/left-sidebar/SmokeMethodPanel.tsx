@@ -23,7 +23,7 @@ export const SmokeMethodPanel = () => {
         <div className="flex items-center gap-2">
           <Route size={18} className="text-teal-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            6. Phương pháp phát khói
+            2. Phương pháp phát khói
           </h2>
         </div>
         <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
@@ -83,7 +83,7 @@ export const SmokeMethodPanel = () => {
                       computed.toLocaleString("vi-VN")
                     ) : (
                       <span className="text-slate-400 font-normal">
-                        Chưa có dữ liệu mục 2
+                        Chưa có dữ liệu mục 3
                       </span>
                     )}
                   </div>

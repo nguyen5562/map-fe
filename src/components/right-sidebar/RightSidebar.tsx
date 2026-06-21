@@ -8,9 +8,7 @@ import {
   Layers,
   Target,
   Clock,
-  Car,
-  Box,
-  Container,
+  Crosshair,
   TriangleAlert,
 } from "lucide-react";
 import { useSimulation } from "../../context/SimulationContext";
@@ -60,13 +58,6 @@ const GroupLabel = ({ children }: { children: React.ReactNode }) => (
   </p>
 );
 
-// Helper for dynamic vehicle icons
-const getVehicleIcon = (vehicleId: string) => {
-  if (vehicleId === "KH-1" || vehicleId === "TDA-M") return <Car size={14} />;
-  if (vehicleId === "TPK") return <Container size={14} />;
-  return <Box size={14} />;
-};
-
 // Helper to determine the singular count unit from DB unit string
 const getCountUnit = (config: any) => {
   if (!config) return "cái";
@@ -98,44 +89,10 @@ export const RightSidebar = () => {
   // Selected Point details
   const selectedPoint = pointsList.find((p) => p.id === selectedPointId) || pointsList[pointsList.length - 1];
 
-  // Helper to extract vehicle consumption value
-  const getPointVehicleValue = (point: any) => {
-    const vehicleId = point.selectedVehicles?.[0] || "HPK-2.5";
-    if (vehicleId === "KH-1" || vehicleId === "TDA-M") {
-      return point.results?.kh1_fuel_lit ?? 0;
-    } else if (vehicleId === "TPK") {
-      return point.results?.tpk_cans ?? 0;
-    } else {
-      return point.results?.hpk_boxes ?? 0;
-    }
-  };
-
-  // Determine Count Unit for layouts
+  // Selected vehicle info
   const selectedVehicleId = selectedPoint?.selectedVehicles?.[0] || "HPK-2.5";
   const selectedConfig = selectedPoint?.vehicleConfigs?.[selectedVehicleId] || vehicleConfigs[selectedVehicleId];
   const countUnit = getCountUnit(selectedConfig);
-
-  // Grouped vehicles for summary
-  const getSummaryVehicles = () => {
-    const summary: Record<string, { name: string; value: number; unit: string; vehicleId: string }> = {};
-    pointsList.forEach((p) => {
-      const vehicleId = p.selectedVehicles?.[0] || "HPK-2.5";
-      const config = p.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
-      const name = config?.name || vehicleId;
-      const unit = config?.unit || "cái";
-      const val = getPointVehicleValue(p);
-
-      if (val > 0) {
-        if (!summary[vehicleId]) {
-          summary[vehicleId] = { name, value: 0, unit, vehicleId };
-        }
-        summary[vehicleId].value += val;
-      }
-    });
-    return Object.values(summary);
-  };
-
-  const summaryVehicles = getSummaryVehicles();
 
   return (
     <div
@@ -221,14 +178,14 @@ export const RightSidebar = () => {
                   <>
                     <GroupLabel>Tuyến thẳng</GroupLabel>
                     <ResultRow
-                      label="Số phương tiện bố trí trên một tuyến"
-                      value={selectedPoint.results.straightLine_vehicles}
-                      unit={countUnit}
-                    />
-                    <ResultRow
-                      label="Số tuyến cần bố trí"
+                      label="Số tuyến khói cần bố trí (N)"
                       value={selectedPoint.results.straightLine_routes}
                       unit="tuyến"
+                    />
+                    <ResultRow
+                      label="Số PT bố trí trên 1 tuyến (A)"
+                      value={selectedPoint.results.straightLine_vehicles}
+                      unit={countUnit}
                     />
                   </>
                 )}
@@ -237,19 +194,25 @@ export const RightSidebar = () => {
                   <>
                     <GroupLabel>Tuyến hình vòng</GroupLabel>
                     <ResultRow
-                      label="Số PTPK bố trí trên 1 tuyến hình vòng"
-                      value={selectedPoint.results.circularLine_vehicles}
-                      unit={countUnit}
-                    />
-                    <ResultRow
-                      label="Số tuyến hình vòng cần bố trí"
+                      label="Số tuyến khói cần bố trí (N)"
                       value={selectedPoint.results.circularLine_routes}
                       unit="tuyến"
+                    />
+                    <ResultRow
+                      label="Số PT bố trí trên 1 tuyến (A)"
+                      value={selectedPoint.results.circularLine_vehicles}
+                      unit={countUnit}
                     />
                   </>
                 )}
 
-
+                {/* Số PT trên 1 điểm */}
+                <ResultRow
+                  label="Số PT phát khối trên 1 điểm (a = T/t)"
+                  value={selectedPoint.results.pointVehicles}
+                  unit={countUnit}
+                  icon={<Crosshair size={14} />}
+                />
 
                 <div className="flex items-center justify-center pt-2">
                   <span className="text-slate-300 font-bold tracking-widest text-sm">
@@ -259,29 +222,24 @@ export const RightSidebar = () => {
               </div>
 
               {/* 2. TỔNG SỐ PTPK CẦN SỬ DỤNG */}
-              {(() => {
-                const vehicleId = selectedPoint.selectedVehicles?.[0] || "HPK-2.5";
-                const config = selectedPoint.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
-                const value = getPointVehicleValue(selectedPoint);
+              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-sm space-y-1">
+                <div className="flex items-center gap-2 border-b border-amber-200 pb-2 mb-1">
+                  <Target size={15} className="text-amber-600" />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                    Tổng số PTPK cần sử dụng
+                  </h3>
+                </div>
 
-                return (
-                  <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-sm space-y-1">
-                    <div className="flex items-center gap-2 border-b border-amber-200 pb-2 mb-1">
-                      <Target size={15} className="text-amber-600" />
-                      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                        Tổng số PTPK cần sử dụng
-                      </h3>
-                    </div>
-
-                    <ResultRow
-                      label={config?.name || vehicleId}
-                      value={value}
-                      unit={config?.unit || "cái"}
-                      icon={getVehicleIcon(vehicleId)}
-                    />
-                  </div>
-                );
-              })()}
+                <ResultRow
+                  label={selectedConfig?.name || selectedVehicleId}
+                  value={selectedPoint.results.totalVehicles}
+                  unit={countUnit}
+                  highlight
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  = A × N × hệ số dự phòng
+                </p>
+              </div>
 
               {/* 3. THỜI GIAN PHỦ MÀN KHÓI */}
               <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm space-y-1">
@@ -316,19 +274,16 @@ export const RightSidebar = () => {
                 <div className="flex items-center gap-2 border-b border-amber-200 pb-2 mb-1">
                   <Target size={15} className="text-amber-600" />
                   <h3 className="text-sm font-bold uppercase tracking-tighter text-slate-700">
-                    Tổng vật tư tiêu hao toàn bản đồ
+                    Tổng số PTPK toàn bản đồ
                   </h3>
                 </div>
 
-                {summaryVehicles.map((v) => (
-                  <ResultRow
-                    key={v.vehicleId}
-                    label={v.name}
-                    value={v.value}
-                    unit={v.unit}
-                    icon={getVehicleIcon(v.vehicleId)}
-                  />
-                ))}
+                <ResultRow
+                  label="Tổng số phương tiện"
+                  value={rawResults?.totalVehicles}
+                  unit="phương tiện"
+                  highlight
+                />
               </div>
 
               {/* 2. PHÂN RÃ CHI TIẾT TỪNG TRẬN ĐỊA */}
@@ -341,8 +296,6 @@ export const RightSidebar = () => {
                   const vehicleId = p.selectedVehicles?.[0] || "HPK-2.5";
                   const config = p.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
                   const vehicleName = config?.name || vehicleId;
-                  const consumeUnit = config?.unit || "cái";
-                  const consumeVal = getPointVehicleValue(p);
                   const pCountUnit = getCountUnit(config);
 
                   return (
@@ -361,15 +314,15 @@ export const RightSidebar = () => {
                         {p.results?.straightLine_vehicles > 0 && (
                           <>
                             <div className="flex justify-between">
-                              <span>Số phương tiện/tuyến (thẳng):</span>
+                              <span>Số tuyến thẳng (N):</span>
                               <span className="font-medium text-slate-700">
-                                {p.results.straightLine_vehicles} {pCountUnit}
+                                {p.results.straightLine_routes} tuyến
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Số tuyến thẳng:</span>
+                              <span>Số PT/tuyến (A):</span>
                               <span className="font-medium text-slate-700">
-                                {p.results.straightLine_routes} tuyến
+                                {p.results.straightLine_vehicles} {pCountUnit}
                               </span>
                             </div>
                           </>
@@ -377,25 +330,31 @@ export const RightSidebar = () => {
                         {p.results?.circularLine_vehicles > 0 && (
                           <>
                             <div className="flex justify-between">
-                              <span>Số phương tiện/tuyến (vòng):</span>
+                              <span>Số tuyến vòng (N):</span>
                               <span className="font-medium text-slate-700">
-                                {p.results.circularLine_vehicles} {pCountUnit}
+                                {p.results.circularLine_routes} tuyến
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Số tuyến hình vòng:</span>
+                              <span>Số PT/tuyến (A):</span>
                               <span className="font-medium text-slate-700">
-                                {p.results.circularLine_routes} tuyến
+                                {p.results.circularLine_vehicles} {pCountUnit}
                               </span>
                             </div>
                           </>
                         )}
 
+                        <div className="flex justify-between">
+                          <span>Số PT/điểm (a):</span>
+                          <span className="font-medium text-slate-700">
+                            {p.results?.pointVehicles} {pCountUnit}
+                          </span>
+                        </div>
                         
                         <div className="flex justify-between border-t border-slate-200/60 pt-1 mt-1">
-                          <span className="font-medium">Tiêu hao:</span>
+                          <span className="font-medium">Tổng PT cần dùng:</span>
                           <span className="font-bold text-amber-700">
-                            {consumeVal} {consumeUnit}
+                            {p.results?.totalVehicles} {pCountUnit}
                           </span>
                         </div>
                         <div className="flex justify-between">

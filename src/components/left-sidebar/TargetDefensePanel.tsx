@@ -20,6 +20,7 @@ export const TargetDefensePanel = () => {
   const isCalibrated = useSimulation((s) => s.isCalibrated);
   const targetDefenseData = useSimulation((s) => s.targetDefenseData);
   const setTargetDefenseData = useSimulation((s) => s.setTargetDefenseData);
+  const smokeMethodData = useSimulation((s) => s.smokeMethodData);
   const [showPanel, setShowPanel] = useState(true);
   const [comboOpen, setComboOpen] = useState(false);
   const [comboInput, setComboInput] = useState(targetDefenseData.targetType);
@@ -69,7 +70,7 @@ export const TargetDefensePanel = () => {
         <div className="flex items-center gap-2">
           <Shield size={18} className="text-amber-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            2. Mục tiêu bảo vệ
+            3. Mục tiêu bảo vệ
           </h2>
         </div>
         <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
@@ -121,61 +122,89 @@ export const TargetDefensePanel = () => {
             </div>
           </div>
 
-          {/* Chiều dài & Chiều rộng */}
-          <div className="space-y-3">
+          {/* Chiều dài & Chiều rộng (Thẳng) hoặc Đường kính (Vòng) */}
+          {smokeMethodData.lineType === "Vòng" ? (
             <div>
               <label className="text-xs font-semibold text-slate-500">
-                Chính diện hướng gió (m)
+                Đường kính tuyến vòng — D (m)
               </label>
               <Input
                 type="number"
                 min={0}
-                value={targetDefenseData.width}
+                value={targetDefenseData.diameter}
                 onChange={(e: any) => {
                   const val = e.target.value;
                   if (val === "" || parseFloat(val) >= 0) {
-                    const lVal = parseFloat(targetDefenseData.length);
-                    const wVal = parseFloat(val);
-                    const calculatedArea = (val && targetDefenseData.length)
-                      ? Number(((lVal * wVal) / 10000).toFixed(4)).toString()
+                    const dVal = parseFloat(val);
+                    const calculatedArea = val
+                      ? Number((Math.PI * Math.pow(dVal / 2, 2) / 10000).toFixed(4)).toString()
                       : "";
                     setTargetDefenseData({
                       ...targetDefenseData,
-                      width: val,
+                      diameter: val,
                       area: calculatedArea,
                     });
                   }
                 }}
-                placeholder="Nhập số"
+                placeholder="Nhập đường kính"
               />
             </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500">
-                Dọc theo hướng gió (m)
-              </label>
-              <Input
-                type="number"
-                min={0}
-                value={targetDefenseData.length}
-                onChange={(e: any) => {
-                  const val = e.target.value;
-                  if (val === "" || parseFloat(val) >= 0) {
-                    const wVal = parseFloat(targetDefenseData.width);
-                    const lVal = parseFloat(val);
-                    const calculatedArea = (targetDefenseData.width && val)
-                      ? Number(((wVal * lVal) / 10000).toFixed(4)).toString()
-                      : "";
-                    setTargetDefenseData({
-                      ...targetDefenseData,
-                      length: val,
-                      area: calculatedArea,
-                    });
-                  }
-                }}
-                placeholder="Nhập số"
-              />
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-500">
+                  Chính diện hướng gió — R (m)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={targetDefenseData.width}
+                  onChange={(e: any) => {
+                    const val = e.target.value;
+                    if (val === "" || parseFloat(val) >= 0) {
+                      const lVal = parseFloat(targetDefenseData.length);
+                      const wVal = parseFloat(val);
+                      const calculatedArea = (val && targetDefenseData.length)
+                        ? Number(((lVal * wVal) / 10000).toFixed(4)).toString()
+                        : "";
+                      setTargetDefenseData({
+                        ...targetDefenseData,
+                        width: val,
+                        area: calculatedArea,
+                      });
+                    }
+                  }}
+                  placeholder="Nhập số"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500">
+                  Dọc theo hướng gió — L (m)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={targetDefenseData.length}
+                  onChange={(e: any) => {
+                    const val = e.target.value;
+                    if (val === "" || parseFloat(val) >= 0) {
+                      const wVal = parseFloat(targetDefenseData.width);
+                      const lVal = parseFloat(val);
+                      const calculatedArea = (targetDefenseData.width && val)
+                        ? Number(((wVal * lVal) / 10000).toFixed(4)).toString()
+                        : "";
+                      setTargetDefenseData({
+                        ...targetDefenseData,
+                        length: val,
+                        area: calculatedArea,
+                      });
+                    }
+                  }}
+                  placeholder="Nhập số"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Diện tích mục tiêu */}
           <div>

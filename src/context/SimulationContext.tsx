@@ -17,6 +17,7 @@ export interface TargetDefenseData {
   targetType: string;
   length: string;
   width: string;
+  diameter: string;
   area: string;
   coverageMultiplier: string;
 }

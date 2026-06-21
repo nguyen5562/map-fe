@@ -250,20 +250,20 @@ export const LeftSidebar = () => {
             {/* STEP 1: CALIBRATION */}
             <CalibrationPanel />
 
-            {/* STEP 2: TARGET DEFENSE */}
+            {/* STEP 2: SMOKE METHOD */}
+            <SmokeMethodPanel />
+
+            {/* STEP 3: TARGET DEFENSE */}
             <TargetDefensePanel />
 
-            {/* STEP 3: FIND & CHECK COORDS (chuyển lên từ mục 8) */}
+            {/* STEP 4: FIND & CHECK COORDS */}
             <TargetPanel />
 
-            {/* STEP 4: WEATHER */}
+            {/* STEP 5: WEATHER */}
             <WeatherPanel />
 
-            {/* STEP 5: SMOKE TIME */}
+            {/* STEP 6: SMOKE TIME */}
             <SmokeTimePanel />
-
-            {/* STEP 6: SMOKE METHOD */}
-            <SmokeMethodPanel />
 
             {/* STEP 7: SMOKE VEHICLE */}
             <SmokeVehiclePanel />

@@ -48,7 +48,7 @@ export const WeatherPanel = () => {
         <div className="flex items-center gap-2">
           <Wind size={18} className="text-blue-600" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            4. Khí tượng
+            5. Khí tượng
           </h2>
         </div>
         <div className="flex items-center gap-2">

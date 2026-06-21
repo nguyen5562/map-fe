@@ -1,231 +1,9 @@
 import { create } from "zustand";
-import L from "leaflet";
 import { mapService } from "../services/map.service";
-import type { VehicleConfig } from "../components/left-sidebar/SmokeVehiclePanel";
-import type { SmokeTimeRange } from "../components/left-sidebar/SmokeTimePanel";
-import type { BattlefieldData } from "../components/left-sidebar/BattlefieldPanel";
-import type {
-  CalibrationPoint,
-  TargetDefenseData,
-  SmokeMethodData,
-  WeatherData,
-} from "../context/SimulationContext";
-
-export interface SimulationStoreState {
-  // Toast reference
-  toast: any | null;
-  initToast: (toast: any) => void;
-
-  // States
-  maps: any[];
-  currentMap: any | null;
-  isUploading: boolean;
-  uploadProgress: number;
-
-  clickedRaw: L.LatLng | null;
-  currentRealCoords: { x: number; y: number } | null;
-  isCalibrated: boolean;
-  showCalibration: boolean;
-  showWeather: boolean;
-  isSelectingFor: "p1" | "p2" | null;
-
-  p1: CalibrationPoint;
-  p2: CalibrationPoint;
-  scale: { x: number; y: number };
-
-  searchX: string;
-  searchY: string;
-  isSidebarOpen: boolean;
-  isRightSidebarOpen: boolean;
-
-  pointsList: any[];
-  results: any | null;
-  selectedPointId: string | null;
-  editingPointId: string | null;
-  drafts: Record<string, any>;
-  confirmModal: {
-    isOpen: boolean;
-    title: string;
-    message: string;
-    pendingAction: "edit_other" | "new_point" | null;
-    targetId?: string;
-    targetCoords?: L.LatLng | null;
-  };
-  mapFlyCenter: L.LatLng | null;
-
-  targetDefenseData: TargetDefenseData;
-  smokeTime: SmokeTimeRange;
-  smokeMethodData: SmokeMethodData;
-  selectedVehicles: string[];
-  vehicleConfigs: Record<string, VehicleConfig>;
-  originalVehicleConfigs: Record<string, VehicleConfig>;
-  battlefieldData: BattlefieldData;
-  weatherActive: boolean;
-  weatherData: WeatherData;
-  smokeLineLength: number;
-
-  // Setters (with functional updates support)
-  setCurrentMap: (val: any | null | ((prev: any | null) => any | null)) => void;
-  setIsCalibrated: (val: boolean | ((prev: boolean) => boolean)) => void;
-  setShowCalibration: (val: boolean | ((prev: boolean) => boolean)) => void;
-  setShowWeather: (val: boolean | ((prev: boolean) => boolean)) => void;
-  setIsSelectingFor: (
-    val:
-      | "p1"
-      | "p2"
-      | null
-      | ((prev: "p1" | "p2" | null) => "p1" | "p2" | null),
-  ) => void;
-  setP1: (
-    val: CalibrationPoint | ((prev: CalibrationPoint) => CalibrationPoint),
-  ) => void;
-  setP2: (
-    val: CalibrationPoint | ((prev: CalibrationPoint) => CalibrationPoint),
-  ) => void;
-  setScale: (
-    val:
-      | { x: number; y: number }
-      | ((prev: { x: number; y: number }) => { x: number; y: number }),
-  ) => void;
-  setClickedRaw: (
-    val: L.LatLng | null | ((prev: L.LatLng | null) => L.LatLng | null),
-  ) => void;
-  setSearchX: (val: string | ((prev: string) => string)) => void;
-  setSearchY: (val: string | ((prev: string) => string)) => void;
-  setMapFlyCenter: (
-    val: L.LatLng | null | ((prev: L.LatLng | null) => L.LatLng | null),
-  ) => void;
-  setIsSidebarOpen: (val: boolean | ((prev: boolean) => boolean)) => void;
-  setIsRightSidebarOpen: (val: boolean | ((prev: boolean) => boolean)) => void;
-  setTargetDefenseData: (
-    val: TargetDefenseData | ((prev: TargetDefenseData) => TargetDefenseData),
-  ) => void;
-  setSmokeTime: (
-    val: SmokeTimeRange | ((prev: SmokeTimeRange) => SmokeTimeRange),
-  ) => void;
-  setSmokeMethodData: (
-    val: SmokeMethodData | ((prev: SmokeMethodData) => SmokeMethodData),
-  ) => void;
-  setSelectedVehicles: (val: string[] | ((prev: string[]) => string[])) => void;
-  setVehicleConfigs: (
-    val:
-      | Record<string, VehicleConfig>
-      | ((
-          prev: Record<string, VehicleConfig>,
-        ) => Record<string, VehicleConfig>),
-  ) => void;
-  setBattlefieldData: (
-    val: BattlefieldData | ((prev: BattlefieldData) => BattlefieldData),
-  ) => void;
-  setWeatherActive: (val: boolean | ((prev: boolean) => boolean)) => void;
-  setWeatherData: (
-    val: WeatherData | ((prev: WeatherData) => WeatherData),
-  ) => void;
-  setSmokeLineLength: (val: number | ((prev: number) => number)) => void;
-
-  // Actions
-  fetchMaps: () => Promise<void>;
-  handleUploadFile: (file: File) => Promise<void>;
-  handleRenameMap: (mapId: string, newName: string) => Promise<void>;
-  calculateCalibration: () => Promise<void>;
-  handleSearch: () => void;
-  onAddPoint: () => void;
-  onDeletePoint: (id: string) => void;
-  onRenamePoint: (id: string, name: string) => void;
-  onSelectPoint: (id: string) => void;
-  onStartEditPoint: (id: string) => void;
-  onCancelEditPoint: () => void;
-  onSelectUnsavedPoint: () => void;
-  onClearUnsavedPoint: () => void;
-  onCalculate: () => void;
-  closeConfirmModal: () => void;
-  handleConfirmModalSave: () => void;
-  handleConfirmModalDiscard: () => void;
-  rawToReal: (rx: number, ry: number) => { x: number; y: number };
-  realToRaw: (realX: number, realY: number) => L.LatLng | null;
-  syncCalibration: () => void;
-}
-
-const performCalculation = (inputs: {
-  targetDefenseData: TargetDefenseData;
-  smokeMethodData: SmokeMethodData;
-  selectedVehicles: string[];
-  battlefieldData: BattlefieldData;
-  weatherData: WeatherData;
-  smokeTime: SmokeTimeRange;
-  vehicleConfigs: Record<string, VehicleConfig>;
-}) => {
-  const areaInHa = parseFloat(inputs.targetDefenseData.area);
-  const area = (!isNaN(areaInHa) ? areaInHa : 0.1) * 10000;
-  const coverage =
-    parseFloat(inputs.targetDefenseData.coverageMultiplier) || 1.2;
-  const targetArea = area * coverage;
-
-  const windSpeed = parseFloat(inputs.weatherData.speed.toString()) || 5;
-  const routesCount = 1;
-  const lineType = inputs.smokeMethodData.lineType;
-  const vehicle = inputs.selectedVehicles[0] || "HPK-2.5";
-
-  const configs = inputs.vehicleConfigs || {};
-  const config = configs[vehicle] || {
-    id: vehicle,
-    name: vehicle,
-    desc: "",
-    l: 120,
-    r: 10,
-    t: 3,
-    materials: "",
-    unit: "cái",
-  };
-
-  let straightLine_vehicles = 0;
-  let straightLine_routes = 0;
-  let circularLine_vehicles = 0;
-  let circularLine_routes = 0;
-
-  const vehicleCoverArea = config.l * config.r || 1200;
-  let baseVehicles =
-    Math.ceil(targetArea / vehicleCoverArea) * (windSpeed > 5 ? 2 : 1);
-  if (baseVehicles < 1) baseVehicles = 1;
-
-  if (lineType === "Thẳng") {
-    straightLine_vehicles = baseVehicles;
-    straightLine_routes = routesCount;
-  } else {
-    circularLine_vehicles = baseVehicles;
-    circularLine_routes = routesCount;
-  }
-
-  const totalPoints =
-    straightLine_vehicles * routesCount +
-    circularLine_vehicles * routesCount;
-
-  let kh1_fuel_lit = 0;
-  let hpk_boxes = 0;
-  let tpk_cans = 0;
-
-  if (vehicle === "KH-1" || vehicle === "TDA-M") {
-    kh1_fuel_lit = totalPoints * 120;
-  } else if (vehicle === "HPK-2.5" || vehicle === "KHOI_UNG_DUNG") {
-    hpk_boxes = totalPoints * 5;
-  } else if (vehicle === "TPK") {
-    tpk_cans = totalPoints * 2;
-  }
-
-  const coverTime_min =
-    windSpeed > 0 ? Math.max(1, Math.round(config.l / (60 * windSpeed))) : 1;
-
-  return {
-    straightLine_vehicles,
-    straightLine_routes,
-    circularLine_vehicles,
-    circularLine_routes,
-    kh1_fuel_lit,
-    hpk_boxes,
-    tpk_cans,
-    coverTime_min,
-  };
-};
+import { performCalculation, aggregateResults } from "../utils/simulationMath";
+import { validateInputs } from "../utils/simulationValidation";
+import type { SimulationStoreState } from "../types/simulation";
+import { convertRawToReal, convertRealToRaw } from "../utils/calibrationMath";
 
 const captureCurrentStateAsDraft = (state: any) => {
   return {
@@ -238,6 +16,7 @@ const captureCurrentStateAsDraft = (state: any) => {
     smokeTime: { ...state.smokeTime },
     vehicleConfigs: { ...state.vehicleConfigs },
     smokeLineLength: state.smokeLineLength,
+    reserveCoefficient: state.reserveCoefficient,
   };
 };
 
@@ -280,6 +59,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     targetType: "Trận địa hỏa lực",
     length: "",
     width: "",
+    diameter: "",
     area: "",
     coverageMultiplier: "1",
   },
@@ -289,9 +69,9 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   vehicleConfigs: {},
   originalVehicleConfigs: {},
   battlefieldData: {
-    firePoints: { distance: "", direction: "Bắc" },
-    commandPost: { distance: "", direction: "Bắc" },
-    reserveUnit: { distance: "", direction: "Bắc" },
+    firePoints: { distance: "100", direction: "Bắc" },
+    commandPost: { distance: "300", direction: "Bắc" },
+    reserveUnit: { distance: "200", direction: "Bắc" },
   },
   weatherActive: false,
   weatherData: {
@@ -312,6 +92,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     humidity: 70,
   },
   smokeLineLength: 700,
+  reserveCoefficient: 1.2,
 
   // Setters
   setCurrentMap: (val) =>
@@ -370,6 +151,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeTime: { ...draft.smokeTime },
             vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
             smokeLineLength: draft.smokeLineLength ?? 700,
+            reserveCoefficient: draft.reserveCoefficient ?? 1.2,
           });
         } else {
           set({
@@ -445,6 +227,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     set((state) => ({
       smokeLineLength: typeof val === "function" ? val(state.smokeLineLength) : val,
     })),
+  setReserveCoefficient: (val) =>
+    set((state) => ({
+      reserveCoefficient: typeof val === "function" ? val(state.reserveCoefficient) : val,
+    })),
 
   // Actions
   fetchMaps: async () => {
@@ -488,18 +274,12 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   rawToReal: (rx, ry) => {
     const { isCalibrated, p1, scale } = get();
-    if (!isCalibrated) return { x: rx, y: ry };
-    const realX = parseFloat(p1.realX) + (rx - p1.rawX!) * scale.x;
-    const realY = parseFloat(p1.realY) + (ry - p1.rawY!) * scale.y;
-    return { x: realX, y: realY };
+    return convertRawToReal(rx, ry, isCalibrated, p1, scale);
   },
 
   realToRaw: (realX, realY) => {
     const { isCalibrated, p1, scale } = get();
-    if (!isCalibrated) return null;
-    const rawX = p1.rawX! + (realX - parseFloat(p1.realX)) / scale.x;
-    const rawY = p1.rawY! + (realY - parseFloat(p1.realY)) / scale.y;
-    return L.latLng(rawY, rawX);
+    return convertRealToRaw(realX, realY, isCalibrated, p1, scale);
   },
 
   handleSearch: () => {
@@ -613,6 +393,17 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     } = get();
     if (!isCalibrated) return toast?.error("Bạn cần hiệu chuẩn bản đồ trước!");
 
+    if (!validateInputs({
+      targetDefenseData,
+      smokeMethodData,
+      selectedVehicles,
+      battlefieldData,
+      smokeTime,
+      weatherData,
+    }, toast)) {
+      return;
+    }
+
     const currentResults = performCalculation({
       targetDefenseData,
       smokeMethodData,
@@ -621,6 +412,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       weatherData,
       smokeTime,
       vehicleConfigs,
+      reserveCoefficient: get().reserveCoefficient,
     });
 
     let updatedDrafts = { ...drafts };
@@ -645,44 +437,14 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeTime: { ...smokeTime },
             vehicleConfigs: { ...vehicleConfigs },
             smokeLineLength: get().smokeLineLength,
+            reserveCoefficient: get().reserveCoefficient,
             results: currentResults,
           };
         }
         return p;
       });
 
-      const aggregatedResults = updatedPointsList.reduce(
-        (acc, p) => {
-          const r = p.results;
-          return {
-            straightLine_vehicles:
-              (acc.straightLine_vehicles || 0) + (r.straightLine_vehicles || 0),
-            straightLine_routes:
-              (acc.straightLine_routes || 0) + (r.straightLine_routes || 0),
-            circularLine_vehicles:
-              (acc.circularLine_vehicles || 0) + (r.circularLine_vehicles || 0),
-            circularLine_routes:
-              (acc.circularLine_routes || 0) + (r.circularLine_routes || 0),
-            pointDefense_vehicles:
-              (acc.pointDefense_vehicles || 0) + (r.pointDefense_vehicles || 0),
-            kh1_fuel_lit: (acc.kh1_fuel_lit || 0) + (r.kh1_fuel_lit || 0),
-            hpk_boxes: (acc.hpk_boxes || 0) + (r.hpk_boxes || 0),
-            tpk_cans: (acc.tpk_cans || 0) + (r.tpk_cans || 0),
-            coverTime_min: Math.max(acc.coverTime_min || 0, r.coverTime_min || 0),
-          };
-        },
-        {
-          straightLine_vehicles: 0,
-          straightLine_routes: 0,
-          circularLine_vehicles: 0,
-          circularLine_routes: 0,
-          pointDefense_vehicles: 0,
-          kh1_fuel_lit: 0,
-          hpk_boxes: 0,
-          tpk_cans: 0,
-          coverTime_min: 0,
-        },
-      );
+      const aggregatedResults = aggregateResults(updatedPointsList);
 
       delete updatedDrafts[editingPointId];
 
@@ -715,43 +477,13 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...smokeTime },
         vehicleConfigs: { ...vehicleConfigs },
         smokeLineLength: get().smokeLineLength,
+        reserveCoefficient: get().reserveCoefficient,
         results: currentResults,
       };
 
       const updatedPointsList = [...pointsList, newPoint];
 
-      const aggregatedResults = updatedPointsList.reduce(
-        (acc, p) => {
-          const r = p.results;
-          return {
-            straightLine_vehicles:
-              (acc.straightLine_vehicles || 0) + (r.straightLine_vehicles || 0),
-            straightLine_routes:
-              (acc.straightLine_routes || 0) + (r.straightLine_routes || 0),
-            circularLine_vehicles:
-              (acc.circularLine_vehicles || 0) + (r.circularLine_vehicles || 0),
-            circularLine_routes:
-              (acc.circularLine_routes || 0) + (r.circularLine_routes || 0),
-            pointDefense_vehicles:
-              (acc.pointDefense_vehicles || 0) + (r.pointDefense_vehicles || 0),
-            kh1_fuel_lit: (acc.kh1_fuel_lit || 0) + (r.kh1_fuel_lit || 0),
-            hpk_boxes: (acc.hpk_boxes || 0) + (r.hpk_boxes || 0),
-            tpk_cans: (acc.tpk_cans || 0) + (r.tpk_cans || 0),
-            coverTime_min: Math.max(acc.coverTime_min || 0, r.coverTime_min || 0),
-          };
-        },
-        {
-          straightLine_vehicles: 0,
-          straightLine_routes: 0,
-          circularLine_vehicles: 0,
-          circularLine_routes: 0,
-          pointDefense_vehicles: 0,
-          kh1_fuel_lit: 0,
-          hpk_boxes: 0,
-          tpk_cans: 0,
-          coverTime_min: 0,
-        },
-      );
+      const aggregatedResults = aggregateResults(updatedPointsList);
 
       delete updatedDrafts["new"];
 
@@ -819,6 +551,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...point.smokeTime },
         vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
+        reserveCoefficient: point.reserveCoefficient ?? 1.2,
         clickedRaw: null,
         currentRealCoords: null,
       });
@@ -867,6 +600,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...draft.smokeTime },
         vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
+        reserveCoefficient: draft.reserveCoefficient ?? 1.2,
         clickedRaw: rawCoords,
         currentRealCoords: rawCoords ? get().rawToReal(rawCoords.lng, rawCoords.lat) : null,
       });
@@ -894,6 +628,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...point.smokeTime },
         vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
+        reserveCoefficient: point.reserveCoefficient ?? 1.2,
         clickedRaw: null,
         currentRealCoords: null,
       });
@@ -933,6 +668,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...draft.smokeTime },
         vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
+        reserveCoefficient: draft.reserveCoefficient ?? 1.2,
         clickedRaw: rawCoords,
         currentRealCoords: rawCoords ? get().rawToReal(rawCoords.lng, rawCoords.lat) : null,
       });
@@ -1012,6 +748,19 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     let newEditingPointId = editingPointId;
     let updatedDrafts = { ...drafts };
 
+    if (editingPointId || clickedRaw) {
+      if (!validateInputs({
+        targetDefenseData,
+        smokeMethodData,
+        selectedVehicles,
+        battlefieldData,
+        smokeTime,
+        weatherData,
+      }, toast)) {
+        return;
+      }
+    }
+
     const currentResults = performCalculation({
       targetDefenseData,
       smokeMethodData,
@@ -1020,6 +769,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       weatherData,
       smokeTime,
       vehicleConfigs,
+      reserveCoefficient: get().reserveCoefficient,
     });
 
     if (editingPointId) {
@@ -1042,6 +792,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeTime: { ...smokeTime },
             vehicleConfigs: { ...vehicleConfigs },
             smokeLineLength: get().smokeLineLength,
+            reserveCoefficient: get().reserveCoefficient,
             results: currentResults,
           };
         }
@@ -1067,6 +818,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...smokeTime },
         vehicleConfigs: { ...vehicleConfigs },
         smokeLineLength: get().smokeLineLength,
+        reserveCoefficient: get().reserveCoefficient,
         results: currentResults,
       };
 
@@ -1082,35 +834,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       );
     }
 
-    const aggregatedResults = listToCalculate.reduce(
-      (acc, p) => {
-        const r = p.results;
-        return {
-          straightLine_vehicles:
-            (acc.straightLine_vehicles || 0) + (r.straightLine_vehicles || 0),
-          straightLine_routes:
-            (acc.straightLine_routes || 0) + (r.straightLine_routes || 0),
-          circularLine_vehicles:
-            (acc.circularLine_vehicles || 0) + (r.circularLine_vehicles || 0),
-          circularLine_routes:
-            (acc.circularLine_routes || 0) + (r.circularLine_routes || 0),
-          kh1_fuel_lit: (acc.kh1_fuel_lit || 0) + (r.kh1_fuel_lit || 0),
-          hpk_boxes: (acc.hpk_boxes || 0) + (r.hpk_boxes || 0),
-          tpk_cans: (acc.tpk_cans || 0) + (r.tpk_cans || 0),
-          coverTime_min: Math.max(acc.coverTime_min || 0, r.coverTime_min || 0),
-        };
-      },
-      {
-        straightLine_vehicles: 0,
-        straightLine_routes: 0,
-        circularLine_vehicles: 0,
-        circularLine_routes: 0,
-        kh1_fuel_lit: 0,
-        hpk_boxes: 0,
-        tpk_cans: 0,
-        coverTime_min: 0,
-      },
-    );
+    const aggregatedResults = aggregateResults(listToCalculate);
 
     set({
       pointsList: updatedPointsList,

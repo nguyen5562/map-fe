@@ -25,6 +25,8 @@ export const SmokeVehiclePanel = () => {
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
   const originalVehicleConfigs = useSimulation((s) => s.originalVehicleConfigs);
   const setVehicleConfigs = useSimulation((s) => s.setVehicleConfigs);
+  const reserveCoefficient = useSimulation((s) => s.reserveCoefficient);
+  const setReserveCoefficient = useSimulation((s) => s.setReserveCoefficient);
   const [showPanel, setShowPanel] = useState(true);
 
   const sortedVehicles = Object.values(vehicleConfigs).sort((a, b) => {
@@ -202,12 +204,27 @@ export const SmokeVehiclePanel = () => {
               </div>
 
               <div className="pt-2 border-t border-slate-200/80">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-0.5">
-                  Vật tư tiêu hao đặc thù
-                </span>
-                <span className="text-[10px] text-slate-650 font-semibold leading-relaxed block">
-                  {config.materials}
-                </span>
+                <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-1">
+                  Hệ số dự phòng
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step={0.1}
+                    min={1}
+                    value={reserveCoefficient}
+                    onChange={(e) =>
+                      setReserveCoefficient(parseFloat(e.target.value) || 1.2)
+                    }
+                    className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                    lần
+                  </span>
+                </div>
+                <p className="text-[9px] text-slate-400 mt-0.5">
+                  Mặc định 1.2 (dự phòng 20%)
+                </p>
               </div>
             </div>
           )}
