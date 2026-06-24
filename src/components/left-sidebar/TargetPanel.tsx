@@ -71,17 +71,14 @@ export const TargetPanel = () => {
           </div>
           <Input
             type="number"
-            min={100}
             value={smokeLineLength}
             onChange={(e: any) => {
               const val = e.target.value;
               if (val === "") {
-                setSmokeLineLength(700);
-                return;
+                setSmokeLineLength("");
+              } else {
+                setSmokeLineLength(Number(val));
               }
-              let num = Number(val);
-              if (num < 100) num = 100;
-              setSmokeLineLength(num);
             }}
             placeholder="700"
           />

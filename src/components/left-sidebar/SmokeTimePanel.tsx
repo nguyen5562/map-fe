@@ -48,7 +48,7 @@ export const SmokeTimePanel = () => {
       }`}
     >
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
@@ -100,22 +100,28 @@ export const SmokeTimePanel = () => {
           </div>
 
           {/* Hiển thị tổng thời gian */}
-          {smokeTime.fromH !== "" && smokeTime.toH !== "" && (() => {
-            const from = Number(smokeTime.fromH) * 60 + Number(smokeTime.fromM || 0);
-            const to = Number(smokeTime.toH) * 60 + Number(smokeTime.toM || 0);
-            const diff = to - from;
-            if (diff > 0)
-              return (
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Tổng:{" "}
-                  <span className="font-semibold text-violet-650 tabular-nums">
-                    {Math.floor(diff / 60) > 0 ? `${Math.floor(diff / 60)} giờ ` : ""}
-                    {diff % 60} phút
-                  </span>
-                </p>
-              );
-            return null;
-          })()}
+          {smokeTime.fromH !== "" &&
+            smokeTime.toH !== "" &&
+            (() => {
+              const from =
+                Number(smokeTime.fromH) * 60 + Number(smokeTime.fromM || 0);
+              const to =
+                Number(smokeTime.toH) * 60 + Number(smokeTime.toM || 0);
+              const diff = to - from;
+              if (diff > 0)
+                return (
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Tổng:{" "}
+                    <span className="font-semibold text-violet-650 tabular-nums">
+                      {Math.floor(diff / 60) > 0
+                        ? `${Math.floor(diff / 60)} giờ `
+                        : ""}
+                      {diff % 60} phút
+                    </span>
+                  </p>
+                );
+              return null;
+            })()}
         </div>
       )}
     </div>

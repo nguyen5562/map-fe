@@ -46,10 +46,15 @@ interface FeedbackModalProps {
   initialFeedbackId?: string | null;
 }
 
-export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackModalProps) {
+export default function FeedbackModal({
+  onClose,
+  initialFeedbackId,
+}: FeedbackModalProps) {
   const toast = useToast();
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
-  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(
+    null,
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
 
@@ -72,7 +77,9 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
       setFeedbacks(data);
       if (data.length > 0) {
         if (initialFeedbackId) {
-          const matched = data.find((item: any) => item.id === initialFeedbackId);
+          const matched = data.find(
+            (item: any) => item.id === initialFeedbackId,
+          );
           if (matched) {
             setSelectedFeedback(matched);
             setIsCreating(false);
@@ -102,7 +109,9 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
         .then((data) => {
           setFeedbacks(data);
           if (selectedFeedback) {
-            const updated = data.find((item: any) => item.id === selectedFeedback.id);
+            const updated = data.find(
+              (item: any) => item.id === selectedFeedback.id,
+            );
             if (updated) {
               setSelectedFeedback(updated);
             }
@@ -126,8 +135,10 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
           selectedFeedback.userRead = true;
           setFeedbacks((prev) =>
             prev.map((item) =>
-              item.id === selectedFeedback.id ? { ...item, userRead: true } : item
-            )
+              item.id === selectedFeedback.id
+                ? { ...item, userRead: true }
+                : item,
+            ),
           );
           // Reload navbar notifications
           window.dispatchEvent(new Event("reloadNotifications"));
@@ -150,9 +161,13 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
 
     setSubmittingFeedback(true);
     try {
-      const newFeedback = await feedbackService.createFeedback({ type, title, content });
+      const newFeedback = await feedbackService.createFeedback({
+        type,
+        title,
+        content,
+      });
       toast.success("Gửi phản hồi thành công!");
-      
+
       // Reset form
       setTitle("");
       setContent("");
@@ -179,15 +194,22 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
 
     setSubmittingReply(true);
     try {
-      const newReply = await feedbackService.addReply(selectedFeedback.id, replyText);
-      
+      const newReply = await feedbackService.addReply(
+        selectedFeedback.id,
+        replyText,
+      );
+
       // Update selected feedback UI state immediately
       const updatedReplies = [...(selectedFeedback.replies || []), newReply];
       const updatedFeedback = { ...selectedFeedback, replies: updatedReplies };
       setSelectedFeedback(updatedFeedback);
-      
+
       // Update in main list
-      setFeedbacks(prev => prev.map(item => item.id === selectedFeedback.id ? updatedFeedback : item));
+      setFeedbacks((prev) =>
+        prev.map((item) =>
+          item.id === selectedFeedback.id ? updatedFeedback : item,
+        ),
+      );
       setReplyText("");
     } catch (err: any) {
       console.error(err);
@@ -200,11 +222,20 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
   const getTypeLabel = (t: string) => {
     switch (t) {
       case "BUG":
-        return { label: "Báo lỗi", color: "bg-red-50 text-red-650 border-red-100" };
+        return {
+          label: "Báo lỗi",
+          color: "bg-red-50 text-red-650 border-red-100",
+        };
       case "SUGGESTION":
-        return { label: "Góp ý", color: "bg-amber-50 text-amber-650 border-amber-100" };
+        return {
+          label: "Góp ý",
+          color: "bg-amber-50 text-amber-650 border-amber-100",
+        };
       default:
-        return { label: "Khác", color: "bg-slate-100 text-slate-650 border-slate-200" };
+        return {
+          label: "Khác",
+          color: "bg-slate-100 text-slate-650 border-slate-200",
+        };
     }
   };
 
@@ -231,7 +262,9 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
           {/* Left panel: Feedback List */}
           <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50/50 shrink-0">
             <div className="p-3 border-b border-slate-100 flex justify-between items-center shrink-0">
-              <span className="font-bold text-slate-700 text-xs uppercase">Danh sách yêu cầu</span>
+              <span className="font-bold text-slate-700 text-xs uppercase">
+                Danh sách yêu cầu
+              </span>
               <button
                 onClick={() => {
                   setIsCreating(true);
@@ -271,21 +304,30 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${typeInfo.color}`}>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${typeInfo.color}`}
+                        >
                           {typeInfo.label}
                         </span>
-                        <span className={`text-[9px] font-bold ${
-                          item.status === "RESOLVED"
-                            ? "text-emerald-600"
-                            : "text-amber-600 animate-pulse"
-                        }`}>
-                          {item.status === "RESOLVED" ? "Đã giải quyết" : "Đang chờ"}
+                        <span
+                          className={`text-[9px] font-bold ${
+                            item.status === "RESOLVED"
+                              ? "text-emerald-600"
+                              : "text-amber-600 animate-pulse"
+                          }`}
+                        >
+                          {item.status === "RESOLVED"
+                            ? "Đã giải quyết"
+                            : "Đang chờ"}
                         </span>
                       </div>
                       <h5 className="font-bold text-slate-800 text-xs truncate max-w-full flex items-center gap-1.5">
                         {item.title}
                         {!item.userRead && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" title="Tin nhắn mới" />
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"
+                            title="Tin nhắn mới"
+                          />
                         )}
                       </h5>
                       <p className="text-[10px] text-slate-450 mt-1 flex items-center gap-1">
@@ -306,7 +348,10 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
           <div className="flex-1 flex flex-col bg-white overflow-hidden">
             {isCreating ? (
               /* CREATE FEEDBACK FORM */
-              <form onSubmit={handleSubmitFeedback} className="flex-1 p-6 flex flex-col gap-4 overflow-y-auto">
+              <form
+                onSubmit={handleSubmitFeedback}
+                className="flex-1 p-6 flex flex-col gap-4 overflow-y-auto"
+              >
                 <h4 className="text-slate-800 font-bold text-xs uppercase tracking-wider border-b border-slate-100 pb-2">
                   Gửi phản hồi / Báo lỗi mới
                 </h4>
@@ -317,9 +362,21 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
                   </label>
                   <div className="flex gap-4">
                     {[
-                      { id: "BUG", label: "Báo lỗi phần mềm", desc: "Sự cố, tính toán sai, lỗi hiển thị" },
-                      { id: "SUGGESTION", label: "Đóng góp ý kiến", desc: "Đề xuất tính năng mới, giao diện" },
-                      { id: "OTHER", label: "Yêu cầu khác", desc: "Câu hỏi hoặc ý kiến khác" }
+                      {
+                        id: "BUG",
+                        label: "Báo lỗi phần mềm",
+                        desc: "Sự cố, tính toán sai, lỗi hiển thị",
+                      },
+                      {
+                        id: "SUGGESTION",
+                        label: "Đóng góp ý kiến",
+                        desc: "Đề xuất tính năng mới, giao diện",
+                      },
+                      {
+                        id: "OTHER",
+                        label: "Yêu cầu khác",
+                        desc: "Câu hỏi hoặc ý kiến khác",
+                      },
                     ].map((opt) => (
                       <label
                         key={opt.id}
@@ -338,7 +395,9 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
                           className="sr-only"
                         />
                         <div className="text-xs">{opt.label}</div>
-                        <div className="text-[10px] text-slate-450 font-normal mt-0.5 leading-tight">{opt.desc}</div>
+                        <div className="text-[10px] text-slate-450 font-normal mt-0.5 leading-tight">
+                          {opt.desc}
+                        </div>
                       </label>
                     ))}
                   </div>
@@ -404,16 +463,23 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
                       {selectedFeedback.title}
                     </h4>
                     <p className="text-[10px] text-slate-450 mt-0.5">
-                      Gửi bởi bạn lúc {new Date(selectedFeedback.createdAt).toLocaleString("vi-VN")}
+                      Gửi bởi bạn lúc{" "}
+                      {new Date(selectedFeedback.createdAt).toLocaleString(
+                        "vi-VN",
+                      )}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                      selectedFeedback.status === "RESOLVED"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
-                    }`}>
-                      {selectedFeedback.status === "RESOLVED" ? "Đã giải quyết" : "Đang chờ giải quyết"}
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                        selectedFeedback.status === "RESOLVED"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      }`}
+                    >
+                      {selectedFeedback.status === "RESOLVED"
+                        ? "Đã giải quyết"
+                        : "Đang chờ giải quyết"}
                     </span>
                   </div>
                 </div>
@@ -426,12 +492,16 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
                       <User size={13} />
                     </div>
                     <div className="bg-white border border-slate-150 rounded-2xl rounded-tl-none p-3 shadow-xs">
-                      <div className="font-semibold text-slate-700 text-[10px]">Bạn (Người gửi)</div>
+                      <div className="font-semibold text-slate-700 text-[10px]">
+                        Bạn (Người gửi)
+                      </div>
                       <p className="text-slate-800 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
                         {selectedFeedback.content}
                       </p>
                       <div className="text-[9px] text-slate-450 text-right mt-1.5">
-                        {new Date(selectedFeedback.createdAt).toLocaleTimeString("vi-VN", {
+                        {new Date(
+                          selectedFeedback.createdAt,
+                        ).toLocaleTimeString("vi-VN", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
@@ -440,50 +510,62 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
                   </div>
 
                   {/* Replies */}
-                  {selectedFeedback.replies && selectedFeedback.replies.map((reply) => {
-                    const isSelf = reply.user.role !== "admin";
-                    return (
-                      <div
-                        key={reply.id}
-                        className={`flex items-start gap-3 max-w-[85%] ${
-                          isSelf ? "" : "ml-auto flex-row-reverse"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-xs border ${
-                          isSelf
-                            ? "bg-slate-200 text-slate-600 border-slate-100"
-                            : "bg-emerald-600 text-white border-emerald-500"
-                        }`}>
-                          {isSelf ? <User size={13} /> : <Shield size={13} />}
-                        </div>
-                        <div className={`p-3 rounded-2xl shadow-xs border ${
-                          isSelf
-                            ? "bg-white border-slate-150 rounded-tl-none"
-                            : "bg-emerald-50/50 border-emerald-100 rounded-tr-none"
-                        }`}>
-                          <div className="flex items-center gap-1.5 justify-between">
-                            <span className={`font-bold text-[10px] ${isSelf ? "text-slate-700" : "text-emerald-800"}`}>
-                              {isSelf ? "Bạn" : `${reply.user.name || "Ban quản trị"}`}
-                            </span>
-                            {!isSelf && (
-                              <span className="bg-emerald-600 text-white text-[8px] font-black uppercase px-1 rounded shrink-0">
-                                Admin
+                  {selectedFeedback.replies &&
+                    selectedFeedback.replies.map((reply) => {
+                      const isSelf = reply.user.role !== "admin";
+                      return (
+                        <div
+                          key={reply.id}
+                          className={`flex items-start gap-3 max-w-[85%] ${
+                            isSelf ? "" : "ml-auto flex-row-reverse"
+                          }`}
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-xs border ${
+                              isSelf
+                                ? "bg-slate-200 text-slate-600 border-slate-100"
+                                : "bg-emerald-600 text-white border-emerald-500"
+                            }`}
+                          >
+                            {isSelf ? <User size={13} /> : <Shield size={13} />}
+                          </div>
+                          <div
+                            className={`p-3 rounded-2xl shadow-xs border ${
+                              isSelf
+                                ? "bg-white border-slate-150 rounded-tl-none"
+                                : "bg-emerald-50/50 border-emerald-100 rounded-tr-none"
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5 justify-between">
+                              <span
+                                className={`font-bold text-[10px] ${isSelf ? "text-slate-700" : "text-emerald-800"}`}
+                              >
+                                {isSelf
+                                  ? "Bạn"
+                                  : `${reply.user.name || "Ban quản trị"}`}
                               </span>
-                            )}
-                          </div>
-                          <p className="text-slate-800 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
-                            {reply.content}
-                          </p>
-                          <div className="text-[9px] text-slate-450 text-right mt-1.5">
-                            {new Date(reply.createdAt).toLocaleTimeString("vi-VN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                              {!isSelf && (
+                                <span className="bg-emerald-600 text-white text-[8px] font-black uppercase px-1 rounded shrink-0">
+                                  Admin
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-slate-800 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
+                              {reply.content}
+                            </p>
+                            <div className="text-[9px] text-slate-450 text-right mt-1.5">
+                              {new Date(reply.createdAt).toLocaleTimeString(
+                                "vi-VN",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                   <div ref={replyEndRef} />
                 </div>
 
@@ -516,7 +598,9 @@ export default function FeedbackModal({ onClose, initialFeedbackId }: FeedbackMo
               /* EMPTY STATE */
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-450">
                 <MessageSquare size={36} className="text-slate-300 mb-3" />
-                <p className="text-xs">Vui lòng chọn phản hồi ở cột bên trái hoặc gửi phản hồi mới.</p>
+                <p className="text-xs">
+                  Vui lòng chọn phản hồi ở cột bên trái hoặc gửi phản hồi mới.
+                </p>
               </div>
             )}
           </div>

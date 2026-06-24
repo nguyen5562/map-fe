@@ -1,34 +1,38 @@
-import { useRef } from 'react';
-import { CalendarDays } from 'lucide-react';
+import { useRef } from "react";
+import { CalendarDays } from "lucide-react";
 
 /**
  * Converts "DD.MM.YY" → "YYYY-MM-DD" (for native date input value)
  */
 function displayToNative(display: string): string {
-  const parts = display.split('.');
-  if (parts.length !== 3) return '';
+  const parts = display.split(".");
+  if (parts.length !== 3) return "";
   const [d, m, y] = parts;
   const fullYear = parseInt(y, 10) < 50 ? `20${y}` : `19${y}`;
-  return `${fullYear}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  return `${fullYear}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
 }
 
 /**
  * Converts "YYYY-MM-DD" → "DD.MM.YY"
  */
 function nativeToDisplay(native: string): string {
-  const parts = native.split('-');
-  if (parts.length !== 3) return '';
+  const parts = native.split("-");
+  if (parts.length !== 3) return "";
   const [y, m, d] = parts;
   return `${d}.${m}.${y.slice(2)}`;
 }
 
 interface DatePickerInputProps {
-  value: string;           // DD.MM.YY format
+  value: string; // DD.MM.YY format
   onChange: (val: string) => void;
   placeholder?: string;
 }
 
-export const DatePickerInput = ({ value, onChange, placeholder = 'DD.MM.YY' }: DatePickerInputProps) => {
+export const DatePickerInput = ({
+  value,
+  onChange,
+  placeholder = "DD.MM.YY",
+}: DatePickerInputProps) => {
   const hiddenRef = useRef<HTMLInputElement>(null);
 
   const handleIconClick = () => {

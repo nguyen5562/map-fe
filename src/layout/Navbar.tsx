@@ -38,7 +38,9 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [initialFeedbackId, setInitialFeedbackId] = useState<string | null>(null);
+  const [initialFeedbackId, setInitialFeedbackId] = useState<string | null>(
+    null,
+  );
   const [notifications, setNotifications] = useState<any[]>([]);
   const [bellDropdownOpen, setBellDropdownOpen] = useState(false);
 
@@ -64,9 +66,9 @@ export default function Navbar() {
     if (user) {
       const token = getAccessToken();
       const sseUrl = `${API_URL}${API_ROUTES.FEEDBACK}/sse?token=${token}`;
-      
+
       eventSource = new EventSource(sseUrl);
-      
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -100,14 +102,17 @@ export default function Navbar() {
       const date = new Date(dateStr);
       const diffMs = new Date().getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
-      
+
       if (diffMins < 1) return "Vừa xong";
       if (diffMins < 60) return `${diffMins} phút trước`;
-      
+
       const diffHrs = Math.floor(diffMins / 60);
       if (diffHrs < 24) return `${diffHrs} giờ trước`;
-      
-      return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+
+      return date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+      });
     } catch {
       return "";
     }
@@ -123,11 +128,13 @@ export default function Navbar() {
     }
 
     if (userRole === "admin") {
-      navigate("/admin", { state: { activeTab: "feedback", feedbackId: notification.id } });
+      navigate("/admin", {
+        state: { activeTab: "feedback", feedbackId: notification.id },
+      });
       window.dispatchEvent(
         new CustomEvent("selectFeedbackAdmin", {
           detail: { feedbackId: notification.id },
-        })
+        }),
       );
     } else {
       setInitialFeedbackId(notification.id);
@@ -147,13 +154,13 @@ export default function Navbar() {
   const [loading, setLoading] = useState(false);
 
   const navItems = [
-    { path: "/simulation", label: "Tính toán", icon: Map },
-    { path: "/videos", label: "Mô phỏng", icon: Film },
-    { path: "/docs", label: "Tài liệu", icon: BookOpen },
+    { path: "/simulation", label: "TÍNH TOÁN", icon: Map },
+    { path: "/videos", label: "MÔ PHỎNG", icon: Film },
+    { path: "/docs", label: "TÀI LIỆU", icon: BookOpen },
   ];
 
   if (userRole === "admin") {
-    navItems.push({ path: "/admin", label: "Quản trị", icon: Shield });
+    navItems.push({ path: "/admin", label: "QUẢN TRỊ", icon: Shield });
   }
 
   const handleLogout = async () => {
@@ -265,7 +272,11 @@ export default function Navbar() {
                   <button
                     onClick={async () => {
                       try {
-                        await Promise.all(notifications.map(n => feedbackService.markAsRead(n.id)));
+                        await Promise.all(
+                          notifications.map((n) =>
+                            feedbackService.markAsRead(n.id),
+                          ),
+                        );
                         loadNotifications();
                       } catch (err) {
                         console.error(err);

@@ -1,13 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  MessageSquare,
-  Send,
-  User,
-  Shield,
-  Clock,
-  Inbox,
-} from "lucide-react";
+import { MessageSquare, Send, User, Shield, Clock, Inbox } from "lucide-react";
 import { feedbackService } from "../../services/feedback.service";
 import { useToast } from "../../context/ToastContext";
 
@@ -46,7 +39,9 @@ export function FeedbackTab() {
   const location = useLocation();
   const navigate = useNavigate();
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
-  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
@@ -60,10 +55,10 @@ export function FeedbackTab() {
     try {
       const data = await feedbackService.getAllFeedbacks();
       setFeedbacks(data);
-      
+
       const state = location.state as { feedbackId?: string } | null;
       const targetFeedbackId = state?.feedbackId;
-      
+
       if (targetFeedbackId) {
         const matched = data.find((item: any) => item.id === targetFeedbackId);
         if (matched) {
@@ -73,9 +68,11 @@ export function FeedbackTab() {
           return;
         }
       }
-      
+
       if (selectedFeedback) {
-        const updated = data.find((item: any) => item.id === selectedFeedback.id);
+        const updated = data.find(
+          (item: any) => item.id === selectedFeedback.id,
+        );
         if (updated) setSelectedFeedback(updated);
       } else if (data.length > 0) {
         setSelectedFeedback(data[0]);
@@ -118,13 +115,17 @@ export function FeedbackTab() {
           selectedFeedback.adminRead = true;
           setFeedbacks((prev) =>
             prev.map((item) =>
-              item.id === selectedFeedback.id ? { ...item, adminRead: true } : item
-            )
+              item.id === selectedFeedback.id
+                ? { ...item, adminRead: true }
+                : item,
+            ),
           );
           // Dispatch event to reload notification count in Navbar
           window.dispatchEvent(new Event("reloadNotifications"));
         })
-        .catch((err) => console.error("Error marking feedback as read for admin:", err));
+        .catch((err) =>
+          console.error("Error marking feedback as read for admin:", err),
+        );
     }
   }, [selectedFeedback?.id]);
 
@@ -160,13 +161,17 @@ export function FeedbackTab() {
         .then((data) => {
           setFeedbacks(data);
           if (selectedFeedback) {
-            const updated = data.find((item: any) => item.id === selectedFeedback.id);
+            const updated = data.find(
+              (item: any) => item.id === selectedFeedback.id,
+            );
             if (updated) {
               setSelectedFeedback(updated);
             }
           }
         })
-        .catch((err) => console.error("Error reloading admin feedbacks list:", err));
+        .catch((err) =>
+          console.error("Error reloading admin feedbacks list:", err),
+        );
     };
 
     window.addEventListener("reloadFeedbacksList", handleReload);
@@ -181,15 +186,22 @@ export function FeedbackTab() {
 
     setSubmittingReply(true);
     try {
-      const newReply = await feedbackService.addReply(selectedFeedback.id, replyText);
-      
+      const newReply = await feedbackService.addReply(
+        selectedFeedback.id,
+        replyText,
+      );
+
       // If currently pending, we can automatically mark status as RESOLVED or leave it
       // Let's just update the local replies state
       const updatedReplies = [...(selectedFeedback.replies || []), newReply];
       const updatedFeedback = { ...selectedFeedback, replies: updatedReplies };
       setSelectedFeedback(updatedFeedback);
-      
-      setFeedbacks(prev => prev.map(item => item.id === selectedFeedback.id ? updatedFeedback : item));
+
+      setFeedbacks((prev) =>
+        prev.map((item) =>
+          item.id === selectedFeedback.id ? updatedFeedback : item,
+        ),
+      );
       setReplyText("");
     } catch (err: any) {
       console.error(err);
@@ -203,18 +215,20 @@ export function FeedbackTab() {
     try {
       await feedbackService.updateStatus(id, newStatus);
       toast.success("Cập nhật trạng thái thành công!");
-      
+
       // Update locally
-      setFeedbacks(prev => prev.map(item => {
-        if (item.id === id) {
-          const updated = { ...item, status: newStatus };
-          if (selectedFeedback?.id === id) {
-            setSelectedFeedback(updated);
+      setFeedbacks((prev) =>
+        prev.map((item) => {
+          if (item.id === id) {
+            const updated = { ...item, status: newStatus };
+            if (selectedFeedback?.id === id) {
+              setSelectedFeedback(updated);
+            }
+            return updated;
           }
-          return updated;
-        }
-        return item;
-      }));
+          return item;
+        }),
+      );
     } catch (err: any) {
       console.error(err);
       toast.error("Cập nhật trạng thái thất bại.");
@@ -224,11 +238,20 @@ export function FeedbackTab() {
   const getTypeLabel = (t: string) => {
     switch (t) {
       case "BUG":
-        return { label: "Báo lỗi", color: "bg-red-50 text-red-650 border-red-100" };
+        return {
+          label: "Báo lỗi",
+          color: "bg-red-50 text-red-650 border-red-100",
+        };
       case "SUGGESTION":
-        return { label: "Góp ý", color: "bg-amber-50 text-amber-650 border-amber-100" };
+        return {
+          label: "Góp ý",
+          color: "bg-amber-50 text-amber-650 border-amber-100",
+        };
       default:
-        return { label: "Khác", color: "bg-slate-100 text-slate-650 border-slate-200" };
+        return {
+          label: "Khác",
+          color: "bg-slate-100 text-slate-650 border-slate-200",
+        };
     }
   };
 
@@ -243,7 +266,9 @@ export function FeedbackTab() {
       <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50/50 shrink-0">
         {/* Filter */}
         <div className="p-3 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <span className="font-bold text-slate-700 text-xs uppercase">Yêu cầu hỗ trợ</span>
+          <span className="font-bold text-slate-700 text-xs uppercase">
+            Yêu cầu hỗ trợ
+          </span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -282,21 +307,30 @@ export function FeedbackTab() {
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${typeInfo.color}`}>
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${typeInfo.color}`}
+                    >
                       {typeInfo.label}
                     </span>
-                    <span className={`text-[9px] font-bold ${
-                      item.status === "RESOLVED"
-                        ? "text-emerald-650"
-                        : "text-amber-600 animate-pulse"
-                    }`}>
-                      {item.status === "RESOLVED" ? "Đã giải quyết" : "Chờ xử lý"}
+                    <span
+                      className={`text-[9px] font-bold ${
+                        item.status === "RESOLVED"
+                          ? "text-emerald-650"
+                          : "text-amber-600 animate-pulse"
+                      }`}
+                    >
+                      {item.status === "RESOLVED"
+                        ? "Đã giải quyết"
+                        : "Chờ xử lý"}
                     </span>
                   </div>
                   <h5 className="font-bold text-slate-800 text-xs truncate max-w-full flex items-center gap-1.5">
                     {item.title}
                     {!item.adminRead && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" title="Phản hồi mới" />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"
+                        title="Phản hồi mới"
+                      />
                     )}
                   </h5>
                   <div className="flex items-center justify-between text-[10px] text-slate-450 mt-1.5">
@@ -326,16 +360,32 @@ export function FeedbackTab() {
                   {selectedFeedback.title}
                 </h4>
                 <p className="text-[10px] text-slate-450 mt-0.5 flex items-center gap-1.5">
-                  <span>Người gửi: <span className="font-bold text-slate-600">@{selectedFeedback.user.name || selectedFeedback.user.username}</span></span>
+                  <span>
+                    Người gửi:{" "}
+                    <span className="font-bold text-slate-600">
+                      @
+                      {selectedFeedback.user.name ||
+                        selectedFeedback.user.username}
+                    </span>
+                  </span>
                   <span>•</span>
-                  <span>Gửi lúc: {new Date(selectedFeedback.createdAt).toLocaleString("vi-VN")}</span>
+                  <span>
+                    Gửi lúc:{" "}
+                    {new Date(selectedFeedback.createdAt).toLocaleString(
+                      "vi-VN",
+                    )}
+                  </span>
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-slate-500 font-semibold">Trạng thái:</span>
+                <span className="text-[11px] text-slate-500 font-semibold">
+                  Trạng thái:
+                </span>
                 <select
                   value={selectedFeedback.status}
-                  onChange={(e) => handleStatusChange(selectedFeedback.id, e.target.value)}
+                  onChange={(e) =>
+                    handleStatusChange(selectedFeedback.id, e.target.value)
+                  }
                   className={`h-7 px-2 border rounded text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 ${
                     selectedFeedback.status === "RESOLVED"
                       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -356,64 +406,83 @@ export function FeedbackTab() {
                   <User size={13} />
                 </div>
                 <div className="bg-white border border-slate-150 rounded-2xl rounded-tl-none p-3 shadow-xs">
-                  <div className="font-semibold text-slate-700 text-[10px]">@{selectedFeedback.user.name || selectedFeedback.user.username}</div>
+                  <div className="font-semibold text-slate-700 text-[10px]">
+                    @
+                    {selectedFeedback.user.name ||
+                      selectedFeedback.user.username}
+                  </div>
                   <p className="text-slate-800 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
                     {selectedFeedback.content}
                   </p>
                   <div className="text-[9px] text-slate-450 text-right mt-1.5">
-                    {new Date(selectedFeedback.createdAt).toLocaleTimeString("vi-VN", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {new Date(selectedFeedback.createdAt).toLocaleTimeString(
+                      "vi-VN",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Replies */}
-              {selectedFeedback.replies && selectedFeedback.replies.map((reply) => {
-                const isSelf = reply.user.role === "admin";
-                return (
-                  <div
-                    key={reply.id}
-                    className={`flex items-start gap-3 max-w-[85%] ${
-                      isSelf ? "ml-auto flex-row-reverse" : ""
-                    }`}
-                  >
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border shadow-xs ${
-                      isSelf
-                        ? "bg-emerald-600 text-white border-emerald-500"
-                        : "bg-slate-200 text-slate-650 border-slate-150"
-                    }`}>
-                      {isSelf ? <Shield size={13} /> : <User size={13} />}
-                    </div>
-                    <div className={`p-3 rounded-2xl border shadow-xs ${
-                      isSelf
-                        ? "bg-emerald-50/50 border-emerald-100 rounded-tr-none"
-                        : "bg-white border-slate-150 rounded-tl-none"
-                    }`}>
-                      <div className="flex items-center gap-1.5 justify-between">
-                        <span className={`font-bold text-[10px] ${isSelf ? "text-emerald-800" : "text-slate-700"}`}>
-                          {isSelf ? `${reply.user.name || "Ban quản trị (Bạn)"}` : `@${reply.user.name || reply.user.username}`}
-                        </span>
-                        {isSelf && (
-                          <span className="bg-emerald-600 text-white text-[8px] font-black uppercase px-1 rounded shrink-0">
-                            Admin
+              {selectedFeedback.replies &&
+                selectedFeedback.replies.map((reply) => {
+                  const isSelf = reply.user.role === "admin";
+                  return (
+                    <div
+                      key={reply.id}
+                      className={`flex items-start gap-3 max-w-[85%] ${
+                        isSelf ? "ml-auto flex-row-reverse" : ""
+                      }`}
+                    >
+                      <div
+                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border shadow-xs ${
+                          isSelf
+                            ? "bg-emerald-600 text-white border-emerald-500"
+                            : "bg-slate-200 text-slate-650 border-slate-150"
+                        }`}
+                      >
+                        {isSelf ? <Shield size={13} /> : <User size={13} />}
+                      </div>
+                      <div
+                        className={`p-3 rounded-2xl border shadow-xs ${
+                          isSelf
+                            ? "bg-emerald-50/50 border-emerald-100 rounded-tr-none"
+                            : "bg-white border-slate-150 rounded-tl-none"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 justify-between">
+                          <span
+                            className={`font-bold text-[10px] ${isSelf ? "text-emerald-800" : "text-slate-700"}`}
+                          >
+                            {isSelf
+                              ? `${reply.user.name || "Ban quản trị (Bạn)"}`
+                              : `@${reply.user.name || reply.user.username}`}
                           </span>
-                        )}
-                      </div>
-                      <p className="text-slate-800 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
-                        {reply.content}
-                      </p>
-                      <div className="text-[9px] text-slate-450 text-right mt-1.5">
-                        {new Date(reply.createdAt).toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                          {isSelf && (
+                            <span className="bg-emerald-600 text-white text-[8px] font-black uppercase px-1 rounded shrink-0">
+                              Admin
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-slate-800 text-xs mt-1 whitespace-pre-wrap leading-relaxed">
+                          {reply.content}
+                        </p>
+                        <div className="text-[9px] text-slate-450 text-right mt-1.5">
+                          {new Date(reply.createdAt).toLocaleTimeString(
+                            "vi-VN",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
               <div ref={replyEndRef} />
             </div>
 
@@ -445,7 +514,9 @@ export function FeedbackTab() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-450">
             <MessageSquare size={36} className="text-slate-300 mb-3" />
-            <p className="text-xs">Vui lòng chọn phản hồi bên cột trái để xem chi tiết.</p>
+            <p className="text-xs">
+              Vui lòng chọn phản hồi bên cột trái để xem chi tiết.
+            </p>
           </div>
         )}
       </div>

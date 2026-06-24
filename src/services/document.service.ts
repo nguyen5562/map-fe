@@ -13,7 +13,10 @@ export const documentService = {
     return response.data;
   },
   updateSection: async (id: string, data: any) => {
-    const response = await api.put(`${API_ROUTES.DOCUMENTS}/sections/${id}`, data);
+    const response = await api.put(
+      `${API_ROUTES.DOCUMENTS}/sections/${id}`,
+      data,
+    );
     return response.data;
   },
   deleteSection: async (id: string) => {
@@ -23,12 +26,16 @@ export const documentService = {
   uploadFile: async (file: File, onProgress?: (progressEvent: any) => void) => {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await api.post(`${API_ROUTES.DOCUMENTS}/upload`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
+    const response = await api.post(
+      `${API_ROUTES.DOCUMENTS}/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: onProgress,
       },
-      onUploadProgress: onProgress,
-    });
+    );
     return response.data;
   },
   createDocument: async (data: any) => {

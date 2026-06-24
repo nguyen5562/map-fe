@@ -6,7 +6,7 @@ export const convertRawToReal = (
   ry: number,
   isCalibrated: boolean,
   p1: CalibrationPoint,
-  scale: { x: number; y: number }
+  scale: { x: number; y: number },
 ): { x: number; y: number } => {
   if (!isCalibrated) return { x: rx, y: ry };
   const realX = parseFloat(p1.realX) + (rx - p1.rawX!) * scale.x;
@@ -19,7 +19,7 @@ export const convertRealToRaw = (
   realY: number,
   isCalibrated: boolean,
   p1: CalibrationPoint,
-  scale: { x: number; y: number }
+  scale: { x: number; y: number },
 ): L.LatLng | null => {
   if (!isCalibrated) return null;
   const rawX = p1.rawX! + (realX - parseFloat(p1.realX)) / scale.x;

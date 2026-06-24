@@ -60,8 +60,9 @@ export interface SimulationStoreState {
   battlefieldData: BattlefieldData;
   weatherActive: boolean;
   weatherData: WeatherData;
-  smokeLineLength: number;
-  reserveCoefficient: number;
+  smokeLineLength: number | "";
+  reserveCoefficient: number | "";
+  vehicleWeights: Record<string, number | "">;
 
   // Setters (with functional updates support)
   setCurrentMap: (val: any | null | ((prev: any | null) => any | null)) => void;
@@ -120,8 +121,17 @@ export interface SimulationStoreState {
   setWeatherData: (
     val: WeatherData | ((prev: WeatherData) => WeatherData),
   ) => void;
-  setSmokeLineLength: (val: number | ((prev: number) => number)) => void;
-  setReserveCoefficient: (val: number | ((prev: number) => number)) => void;
+  setSmokeLineLength: (
+    val: number | "" | ((prev: number | "") => number | ""),
+  ) => void;
+  setReserveCoefficient: (
+    val: number | "" | ((prev: number | "") => number | ""),
+  ) => void;
+  setVehicleWeights: (
+    val:
+      | Record<string, number | "">
+      | ((prev: Record<string, number | "">) => Record<string, number | "">),
+  ) => void;
 
   // Actions
   fetchMaps: () => Promise<void>;

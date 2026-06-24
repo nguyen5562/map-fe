@@ -16,7 +16,7 @@ export const PointsListPanel = () => {
   const onClearUnsavedPoint = useSimulation((s) => s.onClearUnsavedPoint);
   const clickedRaw = useSimulation((s) => s.clickedRaw);
   const drafts = useSimulation((s) => s.drafts);
-  
+
   const [showPanel, setShowPanel] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempName, setTempName] = useState<string>("");
@@ -36,7 +36,7 @@ export const PointsListPanel = () => {
   return (
     <div className="space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm">
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer select-none"
+        className={`flex items-center justify-between cursor-pointer select-none ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-1 min-w-0">
@@ -45,7 +45,9 @@ export const PointsListPanel = () => {
             Danh sách trận địa khói ({pointsList.length})
           </h2>
         </div>
-        <span className="text-slate-400 text-xs shrink-0 ml-1">{showPanel ? "▼" : "▲"}</span>
+        <span className="text-slate-400 text-xs shrink-0 ml-1">
+          {showPanel ? "▼" : "▲"}
+        </span>
       </div>
 
       {showPanel && (
@@ -72,7 +74,10 @@ export const PointsListPanel = () => {
                 >
                   <div className="flex-1 min-w-0 pr-2">
                     {editingId === p.id ? (
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <input
                           type="text"
                           value={tempName}
@@ -108,11 +113,15 @@ export const PointsListPanel = () => {
                     )}
                     {p.realCoords && (
                       <p className="text-[10px] text-slate-500 font-mono tabular-nums truncate mt-0.5">
-                        X: {p.realCoords.x.toFixed(2)}, Y: {p.realCoords.y.toFixed(2)}
+                        X: {p.realCoords.x.toFixed(2)}, Y:{" "}
+                        {p.realCoords.y.toFixed(2)}
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="flex items-center gap-1 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -127,9 +136,17 @@ export const PointsListPanel = () => {
                           ? "text-red-650 bg-red-50 hover:bg-red-100"
                           : "text-slate-400 hover:text-blue-605 hover:bg-blue-50"
                       }`}
-                      title={editingPointId === p.id ? "Hủy chỉnh sửa" : "Chỉnh sửa thông số"}
+                      title={
+                        editingPointId === p.id
+                          ? "Hủy chỉnh sửa"
+                          : "Chỉnh sửa thông số"
+                      }
                     >
-                      {editingPointId === p.id ? <X size={14} /> : <Edit size={14} />}
+                      {editingPointId === p.id ? (
+                        <X size={14} />
+                      ) : (
+                        <Edit size={14} />
+                      )}
                     </button>
                     <button
                       onClick={(e) => {
@@ -165,7 +182,10 @@ export const PointsListPanel = () => {
                   Nhấp để quay lại nhập liệu & lưu
                 </p>
               </div>
-              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex items-center gap-1 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

@@ -104,7 +104,9 @@ function SimulationInner() {
   const confirmModal = useSimulation((s) => s.confirmModal);
   const closeConfirmModal = useSimulation((s) => s.closeConfirmModal);
   const handleConfirmModalSave = useSimulation((s) => s.handleConfirmModalSave);
-  const handleConfirmModalDiscard = useSimulation((s) => s.handleConfirmModalDiscard);
+  const handleConfirmModalDiscard = useSimulation(
+    (s) => s.handleConfirmModalDiscard,
+  );
 
   const handleMapClick = (e: L.LeafletMouseEvent) => {
     const rawX = e.latlng.lng;
@@ -122,10 +124,11 @@ function SimulationInner() {
 
   const baseDirectionAngle =
     weatherData.windAngle ?? DIRECTION_ANGLES[weatherData.windDirection] ?? 0;
+  const alphaVal = weatherData.alpha === "" ? 90 : Number(weatherData.alpha);
+  const betaVal = weatherData.beta === "" ? 0 : Number(weatherData.beta);
   const smokeOffset =
-    (90 - weatherData.alpha) *
-    (weatherData.alphaDirection === "right" ? 1 : -1);
-  const windAngleComputed = baseDirectionAngle - 180 + weatherData.beta;
+    (90 - alphaVal) * (weatherData.alphaDirection === "right" ? 1 : -1);
+  const windAngleComputed = baseDirectionAngle - 180 + betaVal;
   const smokeAngleComputed = windAngleComputed + smokeOffset;
 
   const baseSecondaryDirectionAngle =
@@ -217,6 +220,7 @@ function SimulationInner() {
                   scaleX={scale.x}
                   smokeLineLength={smokeLineLength}
                   lineType={smokeMethodData.lineType}
+                  lineRole={smokeMethodData.lineRole}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
@@ -226,36 +230,42 @@ function SimulationInner() {
             {pointsList
               .filter((p) => p.id !== editingPointId)
               .map((p, idx) => {
-              const baseDirAngle =
-                p.weatherData.windAngle ??
-                DIRECTION_ANGLES[p.weatherData.windDirection] ??
-                0;
-              const pSmokeOffset =
-                (90 - (p.weatherData.alpha ?? 90)) *
-                ((p.weatherData.alphaDirection ?? "right") === "right"
-                  ? 1
-                  : -1);
-              const compWindAngle =
-                baseDirAngle -
-                180 +
-                (p.weatherData.beta ?? p.weatherData.alpha ?? 0);
-              const compSmokeAngle = compWindAngle + pSmokeOffset;
+                const baseDirAngle =
+                  p.weatherData.windAngle ??
+                  DIRECTION_ANGLES[p.weatherData.windDirection] ??
+                  0;
+                const pAlphaVal =
+                  p.weatherData.alpha === ""
+                    ? 90
+                    : Number(p.weatherData.alpha ?? 90);
+                const pBetaVal =
+                  p.weatherData.beta === ""
+                    ? 0
+                    : Number(p.weatherData.beta ?? 0);
+                const pSmokeOffset =
+                  (90 - pAlphaVal) *
+                  ((p.weatherData.alphaDirection ?? "right") === "right"
+                    ? 1
+                    : -1);
+                const compWindAngle = baseDirAngle - 180 + pBetaVal;
+                const compSmokeAngle = compWindAngle + pSmokeOffset;
 
-              return weatherActive ? (
-                <GasMarker
-                  key={p.id}
-                  center={p.coords}
-                  angle={compSmokeAngle}
-                  scaleX={scale.x}
-                  smokeLineLength={p.smokeLineLength ?? 700}
-                  lineType={p.smokeMethodData?.lineType ?? "Thẳng"}
-                />
-              ) : (
-                <Marker key={p.id} position={p.coords}>
-                  <Tooltip>{p.name || `Điểm ${idx + 1}`}</Tooltip>
-                </Marker>
-              );
-            })}
+                return weatherActive ? (
+                  <GasMarker
+                    key={p.id}
+                    center={p.coords}
+                    angle={compSmokeAngle}
+                    scaleX={scale.x}
+                    smokeLineLength={p.smokeLineLength ?? 700}
+                    lineType={p.smokeMethodData?.lineType ?? "Thẳng"}
+                    lineRole={p.smokeMethodData?.lineRole ?? "Chính"}
+                  />
+                ) : (
+                  <Marker key={p.id} position={p.coords}>
+                    <Tooltip>{p.name || `Điểm ${idx + 1}`}</Tooltip>
+                  </Marker>
+                );
+              })}
           </MapContainer>
         ) : currentMap?.status === "processing" ||
           currentMap?.status === "resizing" ||

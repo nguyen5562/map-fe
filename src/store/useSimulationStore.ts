@@ -17,6 +17,7 @@ const captureCurrentStateAsDraft = (state: any) => {
     vehicleConfigs: { ...state.vehicleConfigs },
     smokeLineLength: state.smokeLineLength,
     reserveCoefficient: state.reserveCoefficient,
+    vehicleWeights: { ...state.vehicleWeights },
   };
 };
 
@@ -57,14 +58,14 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   targetDefenseData: {
     targetType: "Trận địa hỏa lực",
-    length: "",
-    width: "",
-    diameter: "",
-    area: "",
-    coverageMultiplier: "1",
+    length: "500",
+    width: "300",
+    diameter: "500",
+    area: "15",
+    coverageMultiplier: "10",
   },
   smokeTime: { fromH: "", fromM: "", toH: "", toM: "" },
-  smokeMethodData: { lineType: "Thẳng" },
+  smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
   selectedVehicles: [],
   vehicleConfigs: {},
   originalVehicleConfigs: {},
@@ -93,6 +94,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   },
   smokeLineLength: 700,
   reserveCoefficient: 1.2,
+  vehicleWeights: {},
 
   // Setters
   setCurrentMap: (val) =>
@@ -132,7 +134,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       : null;
 
     const { selectedPointId, editingPointId, drafts } = get();
-    
+
     if (editingPointId !== null) {
       set({ clickedRaw, currentRealCoords });
     } else {
@@ -141,7 +143,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         if (draft) {
           set({
             clickedRaw: clickedRaw || draft.coords,
-            currentRealCoords: clickedRaw ? get().rawToReal(clickedRaw.lng, clickedRaw.lat) : (draft.coords ? get().rawToReal(draft.coords.lng, draft.coords.lat) : null),
+            currentRealCoords: clickedRaw
+              ? get().rawToReal(clickedRaw.lng, clickedRaw.lat)
+              : draft.coords
+                ? get().rawToReal(draft.coords.lng, draft.coords.lat)
+                : null,
             selectedPointId: null,
             targetDefenseData: { ...draft.targetDefenseData },
             smokeMethodData: { ...draft.smokeMethodData },
@@ -149,9 +155,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             battlefieldData: { ...draft.battlefieldData },
             weatherData: { ...draft.weatherData },
             smokeTime: { ...draft.smokeTime },
-            vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
+            vehicleConfigs:
+              draft.vehicleConfigs || get().originalVehicleConfigs,
             smokeLineLength: draft.smokeLineLength ?? 700,
             reserveCoefficient: draft.reserveCoefficient ?? 1.2,
+            vehicleWeights: draft.vehicleWeights || {},
           });
         } else {
           set({
@@ -225,11 +233,18 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     })),
   setSmokeLineLength: (val) =>
     set((state) => ({
-      smokeLineLength: typeof val === "function" ? val(state.smokeLineLength) : val,
+      smokeLineLength:
+        typeof val === "function" ? val(state.smokeLineLength) : val,
     })),
   setReserveCoefficient: (val) =>
     set((state) => ({
-      reserveCoefficient: typeof val === "function" ? val(state.reserveCoefficient) : val,
+      reserveCoefficient:
+        typeof val === "function" ? val(state.reserveCoefficient) : val,
+    })),
+  setVehicleWeights: (val) =>
+    set((state) => ({
+      vehicleWeights:
+        typeof val === "function" ? val(state.vehicleWeights) : val,
     })),
 
   // Actions
@@ -393,14 +408,23 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     } = get();
     if (!isCalibrated) return toast?.error("Bạn cần hiệu chuẩn bản đồ trước!");
 
-    if (!validateInputs({
-      targetDefenseData,
-      smokeMethodData,
-      selectedVehicles,
-      battlefieldData,
-      smokeTime,
-      weatherData,
-    }, toast)) {
+    if (
+      !validateInputs(
+        {
+          targetDefenseData,
+          smokeMethodData,
+          selectedVehicles,
+          battlefieldData,
+          smokeTime,
+          weatherData,
+          smokeLineLength: get().smokeLineLength,
+          reserveCoefficient: get().reserveCoefficient,
+          vehicleConfigs,
+          vehicleWeights: get().vehicleWeights,
+        },
+        toast,
+      )
+    ) {
       return;
     }
 
@@ -413,6 +437,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       smokeTime,
       vehicleConfigs,
       reserveCoefficient: get().reserveCoefficient,
+      vehicleWeights: get().vehicleWeights,
     });
 
     let updatedDrafts = { ...drafts };
@@ -438,6 +463,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             vehicleConfigs: { ...vehicleConfigs },
             smokeLineLength: get().smokeLineLength,
             reserveCoefficient: get().reserveCoefficient,
+            vehicleWeights: { ...get().vehicleWeights },
             results: currentResults,
           };
         }
@@ -457,16 +483,22 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         drafts: updatedDrafts,
       });
 
-      const pointName = pointsList.find((p) => p.id === editingPointId)?.name || "";
+      const pointName =
+        pointsList.find((p) => p.id === editingPointId)?.name || "";
       toast?.success(`Đã cập nhật thay đổi cho ${pointName}`);
     } else {
       // Creating new point
       if (!clickedRaw)
         return toast?.error("Vui lòng chọn một vị trí trên bản đồ!");
 
+      const baseName = targetDefenseData.targetType || "Mục tiêu";
+      const sameTypeCount = pointsList.filter(
+        (p) => p.targetDefenseData?.targetType === baseName,
+      ).length;
+
       const newPoint = {
         id: Math.random().toString(36).substring(2, 9),
-        name: `Điểm ${pointsList.length + 1}`,
+        name: `${baseName} ${sameTypeCount + 1}`,
         coords: clickedRaw,
         realCoords: rawToReal(clickedRaw.lng, clickedRaw.lat),
         targetDefenseData: { ...targetDefenseData },
@@ -478,6 +510,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleConfigs: { ...vehicleConfigs },
         smokeLineLength: get().smokeLineLength,
         reserveCoefficient: get().reserveCoefficient,
+        vehicleWeights: { ...get().vehicleWeights },
         results: currentResults,
       };
 
@@ -509,7 +542,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     const updatedDrafts = { ...get().drafts };
     delete updatedDrafts[id];
 
-    set({ pointsList: updated, editingPointId: nextEditingPointId, drafts: updatedDrafts });
+    set({
+      pointsList: updated,
+      editingPointId: nextEditingPointId,
+      drafts: updatedDrafts,
+    });
 
     if (updated.length === 0) {
       set({ results: null, selectedPointId: null, editingPointId: null });
@@ -528,7 +565,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   onSelectPoint: (id) => {
     const { clickedRaw, editingPointId, drafts, pointsList } = get();
-    
+
     const currentOwnerKey = editingPointId || (clickedRaw ? "new" : null);
     let updatedDrafts = { ...drafts };
     if (currentOwnerKey) {
@@ -552,6 +589,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
         reserveCoefficient: point.reserveCoefficient ?? 1.2,
+        vehicleWeights: point.vehicleWeights || {},
         clickedRaw: null,
         currentRealCoords: null,
       });
@@ -560,10 +598,13 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   onStartEditPoint: (id) => {
     const { clickedRaw, editingPointId, drafts, pointsList } = get();
-    
+
     if (editingPointId && editingPointId !== id) {
-      const activeEditingPoint = pointsList.find((p) => p.id === editingPointId);
-      const targetPointName = pointsList.find((p) => p.id === id)?.name || "mục tiêu khác";
+      const activeEditingPoint = pointsList.find(
+        (p) => p.id === editingPointId,
+      );
+      const targetPointName =
+        pointsList.find((p) => p.id === id)?.name || "mục tiêu khác";
       set({
         confirmModal: {
           isOpen: true,
@@ -601,8 +642,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
         reserveCoefficient: draft.reserveCoefficient ?? 1.2,
+        vehicleWeights: draft.vehicleWeights || {},
         clickedRaw: rawCoords,
-        currentRealCoords: rawCoords ? get().rawToReal(rawCoords.lng, rawCoords.lat) : null,
+        currentRealCoords: rawCoords
+          ? get().rawToReal(rawCoords.lng, rawCoords.lat)
+          : null,
       });
     }
   },
@@ -629,6 +673,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
         reserveCoefficient: point.reserveCoefficient ?? 1.2,
+        vehicleWeights: point.vehicleWeights || {},
         clickedRaw: null,
         currentRealCoords: null,
       });
@@ -637,9 +682,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   onSelectUnsavedPoint: () => {
     const { editingPointId, drafts, pointsList } = get();
-    
+
     if (editingPointId) {
-      const activeEditingPoint = pointsList.find((p) => p.id === editingPointId);
+      const activeEditingPoint = pointsList.find(
+        (p) => p.id === editingPointId,
+      );
       set({
         confirmModal: {
           isOpen: true,
@@ -669,8 +716,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
         reserveCoefficient: draft.reserveCoefficient ?? 1.2,
+        vehicleWeights: draft.vehicleWeights || {},
         clickedRaw: rawCoords,
-        currentRealCoords: rawCoords ? get().rawToReal(rawCoords.lng, rawCoords.lat) : null,
+        currentRealCoords: rawCoords
+          ? get().rawToReal(rawCoords.lng, rawCoords.lat)
+          : null,
       });
     }
   },
@@ -689,12 +739,17 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   closeConfirmModal: () => {
     set((state) => ({
-      confirmModal: { ...state.confirmModal, isOpen: false, pendingAction: null },
+      confirmModal: {
+        ...state.confirmModal,
+        isOpen: false,
+        pendingAction: null,
+      },
     }));
   },
 
   handleConfirmModalSave: () => {
-    const { confirmModal, onAddPoint, onStartEditPoint, onSelectUnsavedPoint } = get();
+    const { confirmModal, onAddPoint, onStartEditPoint, onSelectUnsavedPoint } =
+      get();
     onAddPoint();
 
     const { pendingAction, targetId } = confirmModal;
@@ -705,12 +760,21 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     }
 
     set((state) => ({
-      confirmModal: { ...state.confirmModal, isOpen: false, pendingAction: null },
+      confirmModal: {
+        ...state.confirmModal,
+        isOpen: false,
+        pendingAction: null,
+      },
     }));
   },
 
   handleConfirmModalDiscard: () => {
-    const { confirmModal, onCancelEditPoint, onStartEditPoint, onSelectUnsavedPoint } = get();
+    const {
+      confirmModal,
+      onCancelEditPoint,
+      onStartEditPoint,
+      onSelectUnsavedPoint,
+    } = get();
     onCancelEditPoint();
 
     const { pendingAction, targetId } = confirmModal;
@@ -721,7 +785,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     }
 
     set((state) => ({
-      confirmModal: { ...state.confirmModal, isOpen: false, pendingAction: null },
+      confirmModal: {
+        ...state.confirmModal,
+        isOpen: false,
+        pendingAction: null,
+      },
     }));
   },
 
@@ -749,14 +817,23 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     let updatedDrafts = { ...drafts };
 
     if (editingPointId || clickedRaw) {
-      if (!validateInputs({
-        targetDefenseData,
-        smokeMethodData,
-        selectedVehicles,
-        battlefieldData,
-        smokeTime,
-        weatherData,
-      }, toast)) {
+      if (
+        !validateInputs(
+          {
+            targetDefenseData,
+            smokeMethodData,
+            selectedVehicles,
+            battlefieldData,
+            smokeTime,
+            weatherData,
+            smokeLineLength: get().smokeLineLength,
+            reserveCoefficient: get().reserveCoefficient,
+            vehicleConfigs,
+            vehicleWeights: get().vehicleWeights,
+          },
+          toast,
+        )
+      ) {
         return;
       }
     }
@@ -770,6 +847,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       smokeTime,
       vehicleConfigs,
       reserveCoefficient: get().reserveCoefficient,
+      vehicleWeights: get().vehicleWeights,
     });
 
     if (editingPointId) {
@@ -793,6 +871,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             vehicleConfigs: { ...vehicleConfigs },
             smokeLineLength: get().smokeLineLength,
             reserveCoefficient: get().reserveCoefficient,
+            vehicleWeights: { ...get().vehicleWeights },
             results: currentResults,
           };
         }
@@ -803,7 +882,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       newEditingPointId = null;
     } else if (clickedRaw) {
       // Creating new point
-      if (!isCalibrated) return toast?.error("Bạn cần hiệu chuẩn bản đồ trước!");
+      if (!isCalibrated)
+        return toast?.error("Bạn cần hiệu chuẩn bản đồ trước!");
 
       const newPoint = {
         id: Math.random().toString(36).substring(2, 9),
@@ -819,6 +899,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleConfigs: { ...vehicleConfigs },
         smokeLineLength: get().smokeLineLength,
         reserveCoefficient: get().reserveCoefficient,
+        vehicleWeights: { ...get().vehicleWeights },
         results: currentResults,
       };
 

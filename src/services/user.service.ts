@@ -19,7 +19,10 @@ export const userService = {
     return response.data;
   },
   changePassword: async (id: string, data: any) => {
-    const response = await api.put(`${API_ROUTES.USERS}/${id}/change-password`, data);
+    const response = await api.put(
+      `${API_ROUTES.USERS}/${id}/change-password`,
+      data,
+    );
     return response.data;
   },
 };

@@ -7,10 +7,16 @@ let _accessToken = "";
 let _onUnauthorized: (() => void) | null = null;
 let _refreshPromise: Promise<string> | null = null;
 
-export const setAccessToken = (token: string) => { _accessToken = token; };
+export const setAccessToken = (token: string) => {
+  _accessToken = token;
+};
 export const getAccessToken = () => _accessToken;
-export const clearAccessToken = () => { _accessToken = ""; };
-export const setUnauthorizedHandler = (handler: () => void) => { _onUnauthorized = handler; };
+export const clearAccessToken = () => {
+  _accessToken = "";
+};
+export const setUnauthorizedHandler = (handler: () => void) => {
+  _onUnauthorized = handler;
+};
 
 // ─── Axios instance ───────────────────────────────────────────────────────────
 export const api = axios.create({
@@ -45,9 +51,15 @@ api.interceptors.response.use(
         // Dùng chung 1 refresh request nếu nhiều request 401 cùng lúc
         if (!_refreshPromise) {
           _refreshPromise = axios
-            .post(`${API_URL}${API_ROUTES.AUTH}/refresh`, {}, { withCredentials: true })
+            .post(
+              `${API_URL}${API_ROUTES.AUTH}/refresh`,
+              {},
+              { withCredentials: true },
+            )
             .then((res) => res.data.access_token)
-            .finally(() => { _refreshPromise = null; });
+            .finally(() => {
+              _refreshPromise = null;
+            });
         }
 
         const newToken = await _refreshPromise;
@@ -63,5 +75,5 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );

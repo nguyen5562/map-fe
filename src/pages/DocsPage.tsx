@@ -119,9 +119,12 @@ function AboutModal({ onClose }: { onClose: () => void }) {
             />
             <div>
               <h2 className="text-white font-bold text-base tracking-tight">
-                Tổ hợp Chương trình tính toán, mô phỏng Khí tài phát khói trong huấn luyện và thực hiện nhiệm vụ của Bộ đội Hóa học
+                Tổ hợp Chương trình tính toán, mô phỏng Khí tài phát khói trong
+                huấn luyện và thực hiện nhiệm vụ của Bộ đội Hóa học
               </h2>
-              <p className="text-slate-400 text-xs pt-2">Phiên bản 1.0.0 - 2026</p>
+              <p className="text-slate-400 text-xs pt-2">
+                Phiên bản 1.0.0 - 2026
+              </p>
             </div>
           </div>
           <button

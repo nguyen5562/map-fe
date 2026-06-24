@@ -1,6 +1,16 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { authService } from "../services/auth.service";
-import { setAccessToken, clearAccessToken, setUnauthorizedHandler } from "../services/api";
+import {
+  setAccessToken,
+  clearAccessToken,
+  setUnauthorizedHandler,
+} from "../services/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AuthUser {
@@ -57,11 +67,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     restoreSession();
   }, []);
 
-  const login = useCallback(async (credentials: { username: string; password: string }) => {
-    const data = await authService.login(credentials);
-    setAccessToken(data.access_token);
-    setUser(data.user);
-  }, []);
+  const login = useCallback(
+    async (credentials: { username: string; password: string }) => {
+      const data = await authService.login(credentials);
+      setAccessToken(data.access_token);
+      setUser(data.user);
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -74,7 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clearAuth]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated: !!user, isLoading, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

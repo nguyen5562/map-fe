@@ -24,6 +24,7 @@ export interface TargetDefenseData {
 
 export interface SmokeMethodData {
   lineType: "Thẳng" | "Vòng";
+  lineRole?: "Chính" | "Dự bị";
 }
 
 export interface WeatherData {
@@ -32,15 +33,15 @@ export interface WeatherData {
   windAngle: number;
   secondaryWindDirection: string | null;
   secondaryWindAngle: number | null;
-  beta: number;
-  alpha: number;
+  beta: number | "";
+  alpha: number | "";
   alphaDirection: "left" | "right";
-  speed: number;
+  speed: number | "";
   rainfall: number | string;
-  tkkMin: number;
-  tkkMax: number;
-  tmdMin: number;
-  tmdMax: number;
+  tkkMin: number | "";
+  tkkMax: number | "";
+  tmdMin: number | "";
+  tmdMax: number | "";
   humidity: number | string;
 }
 

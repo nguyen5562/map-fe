@@ -17,7 +17,7 @@ export const SmokeMethodPanel = () => {
       }`}
     >
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
@@ -64,6 +64,39 @@ export const SmokeMethodPanel = () => {
             </div>
           </div>
 
+          {/* Vai trò tuyến */}
+          <div>
+            <label className="text-xs font-semibold text-slate-500 mb-2 block">
+              Vai trò tuyến
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() =>
+                  setSmokeMethodData({ ...smokeMethodData, lineRole: "Chính" })
+                }
+                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
+                  (smokeMethodData.lineRole || "Chính") === "Chính"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
+                    : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
+                }`}
+              >
+                Tuyến chính
+              </button>
+              <button
+                onClick={() =>
+                  setSmokeMethodData({ ...smokeMethodData, lineRole: "Dự bị" })
+                }
+                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
+                  smokeMethodData.lineRole === "Dự bị"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
+                    : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
+                }`}
+              >
+                Tuyến dự kiến
+              </button>
+            </div>
+          </div>
+
           {/* Diện tích */}
           <div>
             {(() => {
@@ -71,8 +104,7 @@ export const SmokeMethodPanel = () => {
               const mult = parseFloat(
                 targetDefenseData?.coverageMultiplier || "1",
               );
-              const computed =
-                isNaN(base) || isNaN(mult) ? null : base * mult;
+              const computed = isNaN(base) || isNaN(mult) ? null : base * mult;
               return (
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-slate-500 whitespace-nowrap">

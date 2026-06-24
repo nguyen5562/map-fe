@@ -246,7 +246,9 @@ export const LeftSidebar = () => {
           {/* LIST OF SAVED POINTS */}
           <PointsListPanel />
 
-          <div className={`space-y-6 ${selectedPointId !== null && editingPointId === null ? "pointer-events-none opacity-80 select-none" : ""}`}>
+          <div
+            className={`space-y-6 ${selectedPointId !== null && editingPointId === null ? "pointer-events-none opacity-80 select-none" : ""}`}
+          >
             {/* STEP 1: CALIBRATION */}
             <CalibrationPanel />
 

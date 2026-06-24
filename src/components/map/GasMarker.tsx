@@ -7,16 +7,19 @@ export function GasMarker({
   scaleX,
   smokeLineLength = 700,
   lineType = "Thẳng",
+  lineRole = "Chính",
 }: {
   center: L.LatLng;
   angle: number;
   scaleX: number;
-  smokeLineLength?: number;
+  smokeLineLength?: number | "";
   lineType?: string;
+  lineRole?: string;
 }) {
   // Tính chiều rộng overlay dựa trên độ dài tuyến khói (mét).
   // SVG viewBox 250, line từ 25→225 (200px = 80%), nên overlay = length / 0.8
-  const rawWidth = (smokeLineLength * 1.25) / Math.abs(scaleX);
+  const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
+  const rawWidth = (actualLength * 1.25) / Math.abs(scaleX);
   const rawHeight = rawWidth; // Hình vuông để tránh bị clip khi xoay
 
   const bounds: L.LatLngBoundsExpression = [
@@ -26,7 +29,7 @@ export function GasMarker({
 
   return (
     <SVGOverlay
-      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${lineType}`}
+      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${lineType}-${lineRole}`}
       bounds={bounds}
       attributes={{ viewBox: "0 0 250 250" }}
     >
@@ -49,6 +52,7 @@ export function GasMarker({
               stroke="#000000"
               strokeWidth="4"
               vectorEffect="non-scaling-stroke"
+              strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
             />
 
             {/* ^ trái — apex cạnh trên (y=88), chân xuống (y=108) */}
@@ -106,6 +110,7 @@ export function GasMarker({
               strokeWidth="4"
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
+              strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
             />
 
             {/* Đầu chặn trái */}

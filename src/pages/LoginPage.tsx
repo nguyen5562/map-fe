@@ -27,7 +27,8 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error(err);
       toast.error(
-        err.response?.data?.message || "Tên đăng nhập hoặc mật khẩu không đúng."
+        err.response?.data?.message ||
+          "Tên đăng nhập hoặc mật khẩu không đúng.",
       );
     } finally {
       setLoading(false);
@@ -194,8 +195,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-
-
             {/* Submit */}
             <button
               type="submit"
@@ -242,4 +241,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

@@ -5,14 +5,12 @@ export type VehicleConfig = {
   id: string;
   name: string;
   desc: string;
-  l: number; // smoke length
-  r: number; // smoke width
-  t: number; // smoke release time
+  l: number | ""; // smoke length
+  r: number | ""; // smoke width
+  t: number | ""; // smoke release time
   materials: string; // spec sheet consumables
   unit: string; // unit of consumption
 };
-
-
 
 const PREFERRED_ORDER = ["HPK-2.5", "TPK", "KH-1", "TDA-M", "KHOI_UNG_DUNG"];
 
@@ -27,6 +25,8 @@ export const SmokeVehiclePanel = () => {
   const setVehicleConfigs = useSimulation((s) => s.setVehicleConfigs);
   const reserveCoefficient = useSimulation((s) => s.reserveCoefficient);
   const setReserveCoefficient = useSimulation((s) => s.setReserveCoefficient);
+  const vehicleWeights = useSimulation((s) => s.vehicleWeights);
+  const setVehicleWeights = useSimulation((s) => s.setVehicleWeights);
   const [showPanel, setShowPanel] = useState(true);
 
   const sortedVehicles = Object.values(vehicleConfigs).sort((a, b) => {
@@ -40,39 +40,41 @@ export const SmokeVehiclePanel = () => {
 
   const toggleVehicle = (id: string) => {
     if (selectedVehicles.includes(id)) {
-      setSelectedVehicles([]);
+      setSelectedVehicles(selectedVehicles.filter((x) => x !== id));
+      setVehicleWeights((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
     } else {
-      setSelectedVehicles([id]);
+      setSelectedVehicles([...selectedVehicles, id]);
+      setVehicleWeights((prev) => ({
+        ...prev,
+        [id]: "",
+      }));
     }
   };
 
-  const selectedId = selectedVehicles[0];
-  const config = selectedId ? vehicleConfigs[selectedId] : null;
-  const defaultConfig = selectedId ? originalVehicleConfigs[selectedId] : null;
-
-  const isCustomized =
-    config &&
-    defaultConfig &&
-    (config.l !== defaultConfig.l ||
-      config.r !== defaultConfig.r ||
-      config.t !== defaultConfig.t);
-
-  const handleConfigChange = (field: keyof VehicleConfig, val: any) => {
-    if (!selectedId) return;
+  const handleConfigChange = (
+    vehicleId: string,
+    field: keyof VehicleConfig,
+    val: any,
+  ) => {
     setVehicleConfigs((prev) => ({
       ...prev,
-      [selectedId]: {
-        ...prev[selectedId],
+      [vehicleId]: {
+        ...prev[vehicleId],
         [field]: val,
       },
     }));
   };
 
-  const handleReset = () => {
-    if (!selectedId || !defaultConfig) return;
+  const handleReset = (vehicleId: string) => {
+    const defaultConfig = originalVehicleConfigs[vehicleId];
+    if (!defaultConfig) return;
     setVehicleConfigs((prev) => ({
       ...prev,
-      [selectedId]: {
+      [vehicleId]: {
         ...defaultConfig,
       },
     }));
@@ -85,7 +87,7 @@ export const SmokeVehiclePanel = () => {
       }`}
     >
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
@@ -119,113 +121,217 @@ export const SmokeVehiclePanel = () => {
             })}
           </div>
 
-          {selectedId && config && (
-            <div className="mt-3 p-3 bg-slate-50 border border-slate-250 rounded-lg space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Thông số màn khói
-                  </span>
-                  {isCustomized && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-0.5 animate-pulse">
-                      <AlertTriangle size={10} className="shrink-0" />
-                      Đã chỉnh sửa
+          {selectedVehicles.map((vehicleId) => {
+            const config = vehicleConfigs[vehicleId];
+            const defaultConfig = originalVehicleConfigs[vehicleId];
+            if (!config || !defaultConfig) return null;
+
+            const isCustomized =
+              config.l !== defaultConfig.l ||
+              config.r !== defaultConfig.r ||
+              config.t !== defaultConfig.t;
+
+            return (
+              <div
+                key={vehicleId}
+                className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3"
+              >
+                <div className="flex flex-col gap-1 border-b border-slate-200/80 pb-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+                      Thông số màn khói: {config.name}
                     </span>
+                    {isCustomized && (
+                      <button
+                        onClick={() => handleReset(vehicleId)}
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-all active:scale-95"
+                      >
+                        <RotateCcw size={10} />
+                        Đặt lại
+                      </button>
+                    )}
+                  </div>
+                  {isCustomized && (
+                    <div className="flex">
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-0.5 animate-pulse">
+                        <AlertTriangle size={10} className="shrink-0" />
+                        Đã chỉnh sửa
+                      </span>
+                    </div>
                   )}
                 </div>
-                {isCustomized && (
-                  <button
-                    onClick={handleReset}
-                    className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-all active:scale-95"
-                  >
-                    <RotateCcw size={10} />
-                    Đặt lại
-                  </button>
-                )}
-              </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">
-                    Chiều dài (l)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={config.l}
-                      onChange={(e) =>
-                        handleConfigChange("l", parseFloat(e.target.value) || 0)
-                      }
-                      className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
-                      m
-                    </span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 block">
+                      Chiều dài (l)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={config.l}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleConfigChange(
+                            vehicleId,
+                            "l",
+                            val === "" ? "" : parseFloat(val),
+                          );
+                        }}
+                        className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                        m
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 block">
+                      Chiều rộng (r)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={config.r}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleConfigChange(
+                            vehicleId,
+                            "r",
+                            val === "" ? "" : parseFloat(val),
+                          );
+                        }}
+                        className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                        m
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 block">
+                      Thời gian (t)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={config.t}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleConfigChange(
+                            vehicleId,
+                            "t",
+                            val === "" ? "" : parseFloat(val),
+                          );
+                        }}
+                        className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                        phút
+                      </span>
+                    </div>
                   </div>
                 </div>
+              </div>
+            );
+          })}
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">
-                    Chiều rộng (r)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={config.r}
-                      onChange={(e) =>
-                        handleConfigChange("r", parseFloat(e.target.value) || 0)
-                      }
-                      className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
-                      m
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">
-                    Thời gian (t)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={config.t}
-                      onChange={(e) =>
-                        handleConfigChange("t", parseFloat(e.target.value) || 0)
-                      }
-                      className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
-                      phút
-                    </span>
-                  </div>
-                </div>
+          {/* Tỷ lệ sử dụng khí tài (%) - chỉ khi chọn từ 2 khí tài trở lên */}
+          {selectedVehicles.length > 1 && (
+            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider border-b border-slate-200 pb-1">
+                Tỷ lệ sử dụng khí tài (%)
+              </label>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {selectedVehicles.map((vehicleId) => {
+                  const name = vehicleConfigs[vehicleId]?.name || vehicleId;
+                  const weightVal = vehicleWeights[vehicleId] ?? "";
+                  return (
+                    <div key={vehicleId} className="space-y-1">
+                      <label
+                        className="text-[10px] font-bold text-slate-500 block truncate"
+                        title={name}
+                      >
+                        {name}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={weightVal}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setVehicleWeights((prev) => ({
+                              ...prev,
+                              [vehicleId]: val === "" ? "" : parseFloat(val),
+                            }));
+                          }}
+                          placeholder="e.g. 50"
+                          className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="pt-2 border-t border-slate-200/80">
-                <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-1">
-                  Hệ số dự phòng
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step={0.1}
-                    min={1}
-                    value={reserveCoefficient}
-                    onChange={(e) =>
-                      setReserveCoefficient(parseFloat(e.target.value) || 1.2)
-                    }
-                    className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
-                    lần
-                  </span>
-                </div>
-                <p className="text-[9px] text-slate-400 mt-0.5">
-                  Mặc định 1.2 (dự phòng 20%)
-                </p>
+              {(() => {
+                const total = selectedVehicles.reduce(
+                  (sum, vid) => sum + (Number(vehicleWeights[vid]) || 0),
+                  0,
+                );
+                const isCorrect = total === 100;
+                return (
+                  <div className="flex justify-between items-center text-[10px] pt-1">
+                    <span className="text-slate-400 font-medium">
+                      Tổng tỷ lệ đóng góp:
+                    </span>
+                    <span
+                      className={`font-bold ${
+                        isCorrect
+                          ? "text-emerald-600"
+                          : "text-rose-600 animate-pulse"
+                      }`}
+                    >
+                      {total}% / 100%
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Hệ số dự phòng (Tách ra riêng biệt) */}
+          {selectedVehicles.length > 0 && (
+            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-450 block uppercase tracking-wider">
+                Hệ số phương tiện, khí tài bổ trợ, dự bị
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step={0.1}
+                  min={1}
+                  value={reserveCoefficient}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setReserveCoefficient(val === "" ? "" : parseFloat(val));
+                  }}
+                  className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                  lần
+                </span>
               </div>
+              <p className="text-[9px] text-slate-400">
+                Mặc định 1.2 (dự phòng 20%)
+              </p>
             </div>
           )}
         </div>

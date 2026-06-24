@@ -42,7 +42,7 @@ export const WeatherPanel = () => {
       className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${!isCalibrated ? "opacity-30 pointer-events-none" : ""}`}
     >
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showWeather ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowWeather(!showWeather)}
       >
         <div className="flex items-center gap-2">
@@ -275,7 +275,9 @@ export const WeatherPanel = () => {
                           });
                         } else {
                           if (dir.name === weatherData.windDirection) {
-                            toast.error("Hướng gió phụ không được trùng hướng gió chính!");
+                            toast.error(
+                              "Hướng gió phụ không được trùng hướng gió chính!",
+                            );
                             return;
                           }
                           setWeatherData({
@@ -332,12 +334,13 @@ export const WeatherPanel = () => {
                       <Input
                         type="number"
                         value={weatherData.beta}
-                        onChange={(e: any) =>
+                        onChange={(e: any) => {
+                          const val = e.target.value;
                           setWeatherData({
                             ...weatherData,
-                            beta: Number(e.target.value),
-                          })
-                        }
+                            beta: val === "" ? "" : Number(val),
+                          });
+                        }}
                         placeholder="0"
                       />
                       <p className="text-[10px] text-slate-400 mt-1">
@@ -364,16 +367,23 @@ export const WeatherPanel = () => {
             <div className="flex items-center gap-2 mt-1">
               <Input
                 type="number"
-                min={0}
                 max={90}
                 value={weatherData.alpha}
                 onChange={(e: any) => {
-                  let val = Number(e.target.value);
-                  if (val < 0) val = 0;
-                  if (val > 90) val = 90;
+                  const val = e.target.value;
+                  if (val === "") {
+                    setWeatherData({
+                      ...weatherData,
+                      alpha: "",
+                    });
+                    return;
+                  }
+                  let num = Number(val);
+                  if (num < 0) num = 0;
+                  if (num > 90) num = 90;
                   setWeatherData({
                     ...weatherData,
-                    alpha: val,
+                    alpha: num,
                   });
                 }}
                 placeholder="90"
@@ -427,12 +437,13 @@ export const WeatherPanel = () => {
             <Input
               type="number"
               value={weatherData.speed}
-              onChange={(e: any) =>
+              onChange={(e: any) => {
+                const val = e.target.value;
                 setWeatherData({
                   ...weatherData,
-                  speed: Number(e.target.value),
-                })
-              }
+                  speed: val === "" ? "" : Number(val),
+                });
+              }}
               placeholder="m/s"
             />
           </div>
@@ -471,24 +482,26 @@ export const WeatherPanel = () => {
               <Input
                 type="number"
                 value={weatherData.tkkMin}
-                onChange={(e: any) =>
+                onChange={(e: any) => {
+                  const val = e.target.value;
                   setWeatherData({
                     ...weatherData,
-                    tkkMin: Number(e.target.value),
-                  })
-                }
+                    tkkMin: val === "" ? "" : Number(val),
+                  });
+                }}
                 placeholder="Từ"
               />
               <span className="text-slate-400 font-bold">-</span>
               <Input
                 type="number"
                 value={weatherData.tkkMax}
-                onChange={(e: any) =>
+                onChange={(e: any) => {
+                  const val = e.target.value;
                   setWeatherData({
                     ...weatherData,
-                    tkkMax: Number(e.target.value),
-                  })
-                }
+                    tkkMax: val === "" ? "" : Number(val),
+                  });
+                }}
                 placeholder="Đến"
               />
             </div>
@@ -502,24 +515,26 @@ export const WeatherPanel = () => {
               <Input
                 type="number"
                 value={weatherData.tmdMin}
-                onChange={(e: any) =>
+                onChange={(e: any) => {
+                  const val = e.target.value;
                   setWeatherData({
                     ...weatherData,
-                    tmdMin: Number(e.target.value),
-                  })
-                }
+                    tmdMin: val === "" ? "" : Number(val),
+                  });
+                }}
                 placeholder="Từ"
               />
               <span className="text-slate-400 font-bold">-</span>
               <Input
                 type="number"
                 value={weatherData.tmdMax}
-                onChange={(e: any) =>
+                onChange={(e: any) => {
+                  const val = e.target.value;
                   setWeatherData({
                     ...weatherData,
-                    tmdMax: Number(e.target.value),
-                  })
-                }
+                    tmdMax: val === "" ? "" : Number(val),
+                  });
+                }}
                 placeholder="Đến"
               />
             </div>

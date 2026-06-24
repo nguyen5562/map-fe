@@ -84,14 +84,20 @@ export const RightSidebar = () => {
     }
   }, [pointsList.length]);
 
-  const hasResults = rawResults ? Object.values(rawResults).some((v) => v !== undefined) : false;
+  const hasResults = rawResults
+    ? Object.values(rawResults).some((v) => v !== undefined)
+    : false;
 
   // Selected Point details
-  const selectedPoint = pointsList.find((p) => p.id === selectedPointId) || pointsList[pointsList.length - 1];
+  const selectedPoint =
+    pointsList.find((p) => p.id === selectedPointId) ||
+    pointsList[pointsList.length - 1];
 
   // Selected vehicle info
   const selectedVehicleId = selectedPoint?.selectedVehicles?.[0] || "HPK-2.5";
-  const selectedConfig = selectedPoint?.vehicleConfigs?.[selectedVehicleId] || vehicleConfigs[selectedVehicleId];
+  const selectedConfig =
+    selectedPoint?.vehicleConfigs?.[selectedVehicleId] ||
+    vehicleConfigs[selectedVehicleId];
   const countUnit = getCountUnit(selectedConfig);
 
   return (
@@ -142,7 +148,6 @@ export const RightSidebar = () => {
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
-
           {/* Empty state */}
           {!hasResults && (
             <div className="flex flex-col items-center justify-center py-10 text-slate-300">
@@ -174,45 +179,100 @@ export const RightSidebar = () => {
                   </h3>
                 </div>
 
-                {selectedPoint.results.straightLine_vehicles > 0 && (
+                {selectedPoint.results.vehicleBreakdown ? (
+                  Object.entries(selectedPoint.results.vehicleBreakdown).map(
+                    ([vid, vres]: [string, any]) => {
+                      const vConfig =
+                        selectedPoint.vehicleConfigs?.[vid] ||
+                        vehicleConfigs[vid];
+                      const vUnit = getCountUnit(vConfig);
+                      return (
+                        <div
+                          key={vid}
+                          className="border-t border-slate-100 pt-2 mt-2 first:border-0 first:pt-0 first:mt-0"
+                        >
+                          <div className="text-[11.5px] font-bold text-slate-650 mb-1">
+                            • {vConfig?.name || vid} ({vres.weight}%)
+                          </div>
+                          {vres.straightLine_vehicles > 0 && (
+                            <>
+                              <ResultRow
+                                label="Số tuyến khói cần bố trí (N)"
+                                value={vres.straightLine_routes}
+                                unit="tuyến"
+                              />
+                              <ResultRow
+                                label="Số PT bố trí trên 1 tuyến (A)"
+                                value={vres.straightLine_vehicles}
+                                unit={vUnit}
+                              />
+                            </>
+                          )}
+                          {vres.circularLine_vehicles > 0 && (
+                            <>
+                              <ResultRow
+                                label="Số tuyến khói cần bố trí (N)"
+                                value={vres.circularLine_routes}
+                                unit="tuyến"
+                              />
+                              <ResultRow
+                                label="Số PT bố trí trên 1 tuyến (A)"
+                                value={vres.circularLine_vehicles}
+                                unit={vUnit}
+                              />
+                            </>
+                          )}
+                          <ResultRow
+                            label="Số PT phát khối trên 1 điểm (a = T/t)"
+                            value={vres.pointVehicles}
+                            unit={vUnit}
+                          />
+                        </div>
+                      );
+                    },
+                  )
+                ) : (
                   <>
-                    <GroupLabel>Tuyến thẳng</GroupLabel>
+                    {selectedPoint.results.straightLine_vehicles > 0 && (
+                      <>
+                        <GroupLabel>Tuyến thẳng</GroupLabel>
+                        <ResultRow
+                          label="Số tuyến khói cần bố trí (N)"
+                          value={selectedPoint.results.straightLine_routes}
+                          unit="tuyến"
+                        />
+                        <ResultRow
+                          label="Số PT bố trí trên 1 tuyến (A)"
+                          value={selectedPoint.results.straightLine_vehicles}
+                          unit={countUnit}
+                        />
+                      </>
+                    )}
+
+                    {selectedPoint.results.circularLine_vehicles > 0 && (
+                      <>
+                        <GroupLabel>Tuyến hình vòng</GroupLabel>
+                        <ResultRow
+                          label="Số tuyến khói cần bố trí (N)"
+                          value={selectedPoint.results.circularLine_routes}
+                          unit="tuyến"
+                        />
+                        <ResultRow
+                          label="Số PT bố trí trên 1 tuyến (A)"
+                          value={selectedPoint.results.circularLine_vehicles}
+                          unit={countUnit}
+                        />
+                      </>
+                    )}
+
                     <ResultRow
-                      label="Số tuyến khói cần bố trí (N)"
-                      value={selectedPoint.results.straightLine_routes}
-                      unit="tuyến"
-                    />
-                    <ResultRow
-                      label="Số PT bố trí trên 1 tuyến (A)"
-                      value={selectedPoint.results.straightLine_vehicles}
+                      label="Số PT phát khối trên 1 điểm (a = T/t)"
+                      value={selectedPoint.results.pointVehicles}
                       unit={countUnit}
+                      icon={<Crosshair size={14} />}
                     />
                   </>
                 )}
-
-                {selectedPoint.results.circularLine_vehicles > 0 && (
-                  <>
-                    <GroupLabel>Tuyến hình vòng</GroupLabel>
-                    <ResultRow
-                      label="Số tuyến khói cần bố trí (N)"
-                      value={selectedPoint.results.circularLine_routes}
-                      unit="tuyến"
-                    />
-                    <ResultRow
-                      label="Số PT bố trí trên 1 tuyến (A)"
-                      value={selectedPoint.results.circularLine_vehicles}
-                      unit={countUnit}
-                    />
-                  </>
-                )}
-
-                {/* Số PT trên 1 điểm */}
-                <ResultRow
-                  label="Số PT phát khối trên 1 điểm (a = T/t)"
-                  value={selectedPoint.results.pointVehicles}
-                  unit={countUnit}
-                  icon={<Crosshair size={14} />}
-                />
 
                 <div className="flex items-center justify-center pt-2">
                   <span className="text-slate-300 font-bold tracking-widest text-sm">
@@ -230,12 +290,47 @@ export const RightSidebar = () => {
                   </h3>
                 </div>
 
-                <ResultRow
-                  label={selectedConfig?.name || selectedVehicleId}
-                  value={selectedPoint.results.totalVehicles}
-                  unit={countUnit}
-                  highlight
-                />
+                {selectedPoint.results.vehicleBreakdown ? (
+                  <>
+                    <ResultRow
+                      label="Tổng số phương tiện (tất cả)"
+                      value={selectedPoint.results.totalVehicles}
+                      unit="phương tiện"
+                      highlight
+                    />
+                    <div className="mt-2 pl-2 border-l-2 border-amber-300 space-y-1">
+                      {Object.entries(
+                        selectedPoint.results.vehicleBreakdown,
+                      ).map(([vid, vres]: [string, any]) => {
+                        const vConfig =
+                          selectedPoint.vehicleConfigs?.[vid] ||
+                          vehicleConfigs[vid];
+                        const vUnit = getCountUnit(vConfig);
+                        return (
+                          <div
+                            key={vid}
+                            className="flex justify-between text-xs text-slate-650"
+                          >
+                            <span>
+                              {vConfig?.name || vid} ({vres.weight}%):
+                            </span>
+                            <span className="font-bold text-slate-750">
+                              {vres.totalVehicles} {vUnit}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <ResultRow
+                    label={selectedConfig?.name || selectedVehicleId}
+                    value={selectedPoint.results.totalVehicles}
+                    unit={countUnit}
+                    highlight
+                  />
+                )}
+
                 <p className="text-[10px] text-slate-400 mt-1">
                   = A × N × hệ số dự phòng
                 </p>
@@ -284,6 +379,28 @@ export const RightSidebar = () => {
                   unit="phương tiện"
                   highlight
                 />
+                {rawResults?.vehicleBreakdown &&
+                  Object.keys(rawResults.vehicleBreakdown).length > 0 && (
+                    <div className="mt-2 pl-2 border-l-2 border-amber-300 space-y-1">
+                      {Object.entries(rawResults.vehicleBreakdown).map(
+                        ([vid, vres]: [string, any]) => {
+                          const vConfig = vehicleConfigs[vid];
+                          const vUnit = getCountUnit(vConfig);
+                          return (
+                            <div
+                              key={vid}
+                              className="flex justify-between text-xs text-slate-650"
+                            >
+                              <span>{vConfig?.name || vid}:</span>
+                              <span className="font-bold text-slate-750">
+                                {vres.totalVehicles} {vUnit}
+                              </span>
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
               </div>
 
               {/* 2. PHÂN RÃ CHI TIẾT TỪNG TRẬN ĐỊA */}
@@ -293,72 +410,178 @@ export const RightSidebar = () => {
                 </h3>
 
                 {pointsList.map((p) => {
-                  const vehicleId = p.selectedVehicles?.[0] || "HPK-2.5";
-                  const config = p.vehicleConfigs?.[vehicleId] || vehicleConfigs[vehicleId];
-                  const vehicleName = config?.name || vehicleId;
-                  const pCountUnit = getCountUnit(config);
+                  const joinedVehiclesName =
+                    p.selectedVehicles?.length > 0
+                      ? p.selectedVehicles
+                          .map(
+                            (vid: string) =>
+                              (p.vehicleConfigs?.[vid] || vehicleConfigs[vid])
+                                ?.name || vid,
+                          )
+                          .join(" + ")
+                      : "HPK-2.5";
 
                   return (
                     <div
                       key={p.id}
                       className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5 text-[11px] shadow-sm hover:border-blue-300 transition-colors"
                     >
-                      <div className="flex justify-between items-center border-b border-slate-200/60 pb-1">
-                        <span className="font-bold text-slate-800">{p.name}</span>
-                        <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
-                          {vehicleName}
+                      <div className="flex justify-between items-center border-b border-slate-200/60 pb-1 gap-1">
+                        <span className="font-bold text-slate-800 shrink-0">
+                          {p.name}
+                        </span>
+                        <span
+                          className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] truncate max-w-[200px]"
+                          title={joinedVehiclesName}
+                        >
+                          {joinedVehiclesName}
                         </span>
                       </div>
-                      
-                      <div className="space-y-1 text-slate-650">
-                        {p.results?.straightLine_vehicles > 0 && (
+
+                      <div className="space-y-2 text-slate-650">
+                        {p.results?.vehicleBreakdown ? (
+                          Object.entries(p.results.vehicleBreakdown).map(
+                            ([vid, vres]: [string, any]) => {
+                              const vConfig =
+                                p.vehicleConfigs?.[vid] || vehicleConfigs[vid];
+                              const pCountUnit = getCountUnit(vConfig);
+                              return (
+                                <div
+                                  key={vid}
+                                  className="border-t border-slate-100/80 pt-1.5 first:border-0 first:pt-0"
+                                >
+                                  <div className="text-[10px] font-bold text-slate-500 mb-0.5">
+                                    {vConfig?.name || vid} ({vres.weight}%)
+                                  </div>
+                                  {vres.straightLine_vehicles > 0 && (
+                                    <>
+                                      <div className="flex justify-between pl-1">
+                                        <span>Số tuyến thẳng (N):</span>
+                                        <span className="font-medium text-slate-750">
+                                          {vres.straightLine_routes} tuyến
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between pl-1">
+                                        <span>Số PT/tuyến (A):</span>
+                                        <span className="font-medium text-slate-750">
+                                          {vres.straightLine_vehicles}{" "}
+                                          {pCountUnit}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                  {vres.circularLine_vehicles > 0 && (
+                                    <>
+                                      <div className="flex justify-between pl-1">
+                                        <span>Số tuyến vòng (N):</span>
+                                        <span className="font-medium text-slate-750">
+                                          {vres.circularLine_routes} tuyến
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between pl-1">
+                                        <span>Số PT/tuyến (A):</span>
+                                        <span className="font-medium text-slate-750">
+                                          {vres.circularLine_vehicles}{" "}
+                                          {pCountUnit}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                  <div className="flex justify-between pl-1">
+                                    <span>Số PT/điểm (a):</span>
+                                    <span className="font-medium text-slate-750">
+                                      {vres.pointVehicles} {pCountUnit}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between pl-1">
+                                    <span>Tổng PT:</span>
+                                    <span className="font-semibold text-amber-750">
+                                      {vres.totalVehicles} {pCountUnit}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            },
+                          )
+                        ) : (
+                          // Fallback to single vehicle layout
                           <>
+                            {p.results?.straightLine_vehicles > 0 && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>Số tuyến thẳng (N):</span>
+                                  <span className="font-medium text-slate-700">
+                                    {p.results.straightLine_routes} tuyến
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Số PT/tuyến (A):</span>
+                                  <span className="font-medium text-slate-700">
+                                    {p.results.straightLine_vehicles}{" "}
+                                    {getCountUnit(
+                                      p.vehicleConfigs?.[
+                                        p.selectedVehicles?.[0] || "HPK-2.5"
+                                      ] ||
+                                        vehicleConfigs[
+                                          p.selectedVehicles?.[0] || "HPK-2.5"
+                                        ],
+                                    )}
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                            {p.results?.circularLine_vehicles > 0 && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>Số tuyến vòng (N):</span>
+                                  <span className="font-medium text-slate-700">
+                                    {p.results.circularLine_routes} tuyến
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Số PT/tuyến (A):</span>
+                                  <span className="font-medium text-slate-700">
+                                    {p.results.circularLine_vehicles}{" "}
+                                    {getCountUnit(
+                                      p.vehicleConfigs?.[
+                                        p.selectedVehicles?.[0] || "HPK-2.5"
+                                      ] ||
+                                        vehicleConfigs[
+                                          p.selectedVehicles?.[0] || "HPK-2.5"
+                                        ],
+                                    )}
+                                  </span>
+                                </div>
+                              </>
+                            )}
+
                             <div className="flex justify-between">
-                              <span>Số tuyến thẳng (N):</span>
+                              <span>Số PT/điểm (a):</span>
                               <span className="font-medium text-slate-700">
-                                {p.results.straightLine_routes} tuyến
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Số PT/tuyến (A):</span>
-                              <span className="font-medium text-slate-700">
-                                {p.results.straightLine_vehicles} {pCountUnit}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                        {p.results?.circularLine_vehicles > 0 && (
-                          <>
-                            <div className="flex justify-between">
-                              <span>Số tuyến vòng (N):</span>
-                              <span className="font-medium text-slate-700">
-                                {p.results.circularLine_routes} tuyến
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Số PT/tuyến (A):</span>
-                              <span className="font-medium text-slate-700">
-                                {p.results.circularLine_vehicles} {pCountUnit}
+                                {p.results?.pointVehicles}{" "}
+                                {getCountUnit(
+                                  p.vehicleConfigs?.[
+                                    p.selectedVehicles?.[0] || "HPK-2.5"
+                                  ] ||
+                                    vehicleConfigs[
+                                      p.selectedVehicles?.[0] || "HPK-2.5"
+                                    ],
+                                )}
                               </span>
                             </div>
                           </>
                         )}
 
-                        <div className="flex justify-between">
-                          <span>Số PT/điểm (a):</span>
-                          <span className="font-medium text-slate-700">
-                            {p.results?.pointVehicles} {pCountUnit}
-                          </span>
-                        </div>
-                        
                         <div className="flex justify-between border-t border-slate-200/60 pt-1 mt-1">
-                          <span className="font-medium">Tổng PT cần dùng:</span>
+                          <span className="font-bold text-slate-755">
+                            Tổng cộng PT:
+                          </span>
                           <span className="font-bold text-amber-700">
-                            {p.results?.totalVehicles} {pCountUnit}
+                            {p.results?.totalVehicles} phương tiện
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Thời gian phủ:</span>
+                          <span>Thời gian phủ lớn nhất:</span>
                           <span className="font-bold text-emerald-700">
                             {p.results?.coverTime_min} phút
                           </span>
@@ -370,7 +593,6 @@ export const RightSidebar = () => {
               </div>
             </>
           )}
-
         </div>
 
         {/* ── EXPORT BUTTONS ── */}

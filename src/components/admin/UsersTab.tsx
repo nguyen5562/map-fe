@@ -113,7 +113,6 @@ export const UsersTab = () => {
 
   return (
     <div className="space-y-4">
-
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
           Danh sách tài khoản
@@ -132,11 +131,18 @@ export const UsersTab = () => {
           <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
             <AlertTriangle size={20} />
           </div>
-          <p className="text-slate-800 font-bold text-sm">Không thể tải danh sách tài khoản</p>
-          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
-            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+          <p className="text-slate-800 font-bold text-sm">
+            Không thể tải danh sách tài khoản
           </p>
-          <Button onClick={loadUsers} variant="secondary" className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50">
+          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm
+            tra lại kết nối mạng hoặc trạng thái máy chủ.
+          </p>
+          <Button
+            onClick={loadUsers}
+            variant="secondary"
+            className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50"
+          >
             Tải lại
           </Button>
         </div>
@@ -171,13 +177,19 @@ export const UsersTab = () => {
                 ))
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-slate-400">
+                  <td
+                    colSpan={4}
+                    className="px-4 py-10 text-center text-slate-400"
+                  >
                     Chưa có tài khoản nào
                   </td>
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                  <tr
+                    key={u.id}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
                     <td className="p-4 font-mono font-semibold text-slate-900">
                       {u.username}
                     </td>
@@ -307,7 +319,11 @@ export const UsersTab = () => {
                 >
                   Hủy
                 </Button>
-                <Button type="submit" variant="success" className="h-8 text-xs font-semibold">
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="h-8 text-xs font-semibold"
+                >
                   Lưu lại
                 </Button>
               </div>

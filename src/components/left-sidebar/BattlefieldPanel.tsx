@@ -2,7 +2,16 @@ import { useState } from "react";
 import { Layers } from "lucide-react";
 import { Input } from "../ui/Input";
 
-const DIRECTIONS = ["Bắc", "Đông Bắc", "Đông", "Đông Nam", "Nam", "Tây Nam", "Tây", "Tây Bắc"];
+const DIRECTIONS = [
+  "Bắc",
+  "Đông Bắc",
+  "Đông",
+  "Đông Nam",
+  "Nam",
+  "Tây Nam",
+  "Tây",
+  "Tây Bắc",
+];
 
 type PositionEntry = {
   distance: string;
@@ -50,7 +59,9 @@ const PositionInput = ({
           className="w-full h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all"
         >
           {DIRECTIONS.map((d) => (
-            <option key={d} value={d}>{d}</option>
+            <option key={d} value={d}>
+              {d}
+            </option>
           ))}
         </select>
       </div>
@@ -76,7 +87,7 @@ export const BattlefieldPanel = () => {
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
@@ -97,7 +108,9 @@ export const BattlefieldPanel = () => {
             </label>
             <PositionInput
               value={battlefieldData.firePoints}
-              onChange={(v) => setBattlefieldData({ ...battlefieldData, firePoints: v })}
+              onChange={(v) =>
+                setBattlefieldData({ ...battlefieldData, firePoints: v })
+              }
             />
           </div>
 
@@ -108,7 +121,9 @@ export const BattlefieldPanel = () => {
             </label>
             <PositionInput
               value={battlefieldData.commandPost}
-              onChange={(v) => setBattlefieldData({ ...battlefieldData, commandPost: v })}
+              onChange={(v) =>
+                setBattlefieldData({ ...battlefieldData, commandPost: v })
+              }
             />
           </div>
 
@@ -119,7 +134,9 @@ export const BattlefieldPanel = () => {
             </label>
             <PositionInput
               value={battlefieldData.reserveUnit}
-              onChange={(v) => setBattlefieldData({ ...battlefieldData, reserveUnit: v })}
+              onChange={(v) =>
+                setBattlefieldData({ ...battlefieldData, reserveUnit: v })
+              }
             />
           </div>
         </div>

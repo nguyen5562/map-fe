@@ -17,7 +17,9 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((type: ToastType, message: string) => {
@@ -47,11 +49,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const typeConfig = {
             success: {
               bg: "bg-emerald-50 border-emerald-250 text-emerald-900 shadow-emerald-500/5",
-              icon: <CheckCircle2 className="text-emerald-500 shrink-0" size={16} />,
+              icon: (
+                <CheckCircle2 className="text-emerald-500 shrink-0" size={16} />
+              ),
             },
             error: {
               bg: "bg-rose-50 border-rose-250 text-rose-900 shadow-rose-500/5",
-              icon: <AlertTriangle className="text-rose-500 shrink-0" size={16} />,
+              icon: (
+                <AlertTriangle className="text-rose-500 shrink-0" size={16} />
+              ),
             },
             info: {
               bg: "bg-blue-50 border-blue-250 text-blue-900 shadow-blue-500/5",

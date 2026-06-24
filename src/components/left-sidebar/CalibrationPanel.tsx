@@ -21,7 +21,7 @@ export const CalibrationPanel = () => {
       className={`space-y-4 p-4 rounded-xl border ${isCalibrated ? "bg-slate-50 border-slate-200 opacity-80" : "bg-blue-50/50 border-blue-200 shadow-sm"}`}
     >
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showCalibration ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowCalibration(!showCalibration)}
       >
         <div className="flex items-center gap-1 min-w-0">

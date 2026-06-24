@@ -109,7 +109,8 @@ export default function VideosPage() {
                 Thư viện Video mô phỏng
               </h1>
               <p className="text-slate-500 text-[11px] mt-0.5">
-                Các video mô phỏng cấu tạo, nguyên lý hoạt động, hướng dẫn thực hành và vận hành khí tài phát khói
+                Các video mô phỏng cấu tạo, nguyên lý hoạt động, hướng dẫn thực
+                hành và vận hành khí tài phát khói
               </p>
             </div>
           </div>

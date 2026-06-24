@@ -20,10 +20,7 @@ interface UploadProgressDialogProps {
   mapStatus?: string; // 'processing' | 'resizing' | 'tiling' | 'ready' | 'error'
 }
 
-function getPhase(
-  isUploading: boolean,
-  mapStatus?: string,
-): Phase {
+function getPhase(isUploading: boolean, mapStatus?: string): Phase {
   if (isUploading) return "uploading";
   if (mapStatus === "processing") return "resizing";
   if (mapStatus === "resizing") return "resizing";
@@ -90,7 +87,8 @@ export function UploadProgressDialog({
           borderRadius: "16px",
           width: "420px",
           maxWidth: "calc(100vw - 32px)",
-          boxShadow: "0 24px 56px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.10)",
+          boxShadow:
+            "0 24px 56px rgba(0,0,0,0.22), 0 6px 16px rgba(0,0,0,0.10)",
           animation: "slUp 0.22s ease",
           overflow: "hidden",
         }}
@@ -196,7 +194,9 @@ export function UploadProgressDialog({
         {/* Body */}
         <div style={{ padding: "24px 20px" }}>
           {/* Progress bar or Shimmer */}
-          {(phase === "uploading" || phase === "resizing" || phase === "tiling") && (
+          {(phase === "uploading" ||
+            phase === "resizing" ||
+            phase === "tiling") && (
             <div style={{ marginBottom: "20px" }}>
               <div
                 style={{
@@ -205,13 +205,25 @@ export function UploadProgressDialog({
                   marginBottom: "8px",
                 }}
               >
-                <span style={{ fontSize: "12px", color: "#475569", fontWeight: 600 }}>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#475569",
+                    fontWeight: 600,
+                  }}
+                >
                   {phase === "uploading" && "Đang tải file lên máy chủ"}
                   {phase === "resizing" && "Đang tối ưu hóa kích thước bản đồ"}
                   {phase === "tiling" && "Đang cắt mảnh bản đồ"}
                 </span>
                 {phase === "uploading" && (
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#059669" }}>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      color: "#059669",
+                    }}
+                  >
                     {uploadProgress}%
                   </span>
                 )}
@@ -239,7 +251,8 @@ export function UploadProgressDialog({
                     style={{
                       height: "100%",
                       width: "100%",
-                      background: "linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%)",
+                      background:
+                        "linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%)",
                       backgroundSize: "200% 100%",
                       borderRadius: "99px",
                       animation: "shimmer 1.5s infinite linear",
@@ -253,21 +266,56 @@ export function UploadProgressDialog({
 
           {/* Steps List */}
           {phase !== "error" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: phase === "done" ? "16px" : 0 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                marginBottom: phase === "done" ? "16px" : 0,
+              }}
+            >
               <Step
                 status={phase === "uploading" ? "active" : "done"}
                 label="Tải file lên máy chủ"
-                sub={phase === "uploading" ? `${uploadProgress}% hoàn thành` : "Hoàn tất"}
+                sub={
+                  phase === "uploading"
+                    ? `${uploadProgress}% hoàn thành`
+                    : "Hoàn tất"
+                }
               />
               <Step
-                status={phase === "resizing" ? "active" : (phase === "uploading" ? "pending" : "done")}
+                status={
+                  phase === "resizing"
+                    ? "active"
+                    : phase === "uploading"
+                      ? "pending"
+                      : "done"
+                }
                 label="Tối ưu kích thước bản đồ"
-                sub={phase === "resizing" ? "Đang co ảnh về kích thước an toàn..." : (phase === "uploading" ? "Chờ upload xong" : "Hoàn tất")}
+                sub={
+                  phase === "resizing"
+                    ? "Đang co ảnh về kích thước an toàn..."
+                    : phase === "uploading"
+                      ? "Chờ upload xong"
+                      : "Hoàn tất"
+                }
               />
               <Step
-                status={phase === "tiling" ? "active" : (phase === "done" ? "done" : "pending")}
+                status={
+                  phase === "tiling"
+                    ? "active"
+                    : phase === "done"
+                      ? "done"
+                      : "pending"
+                }
                 label="Xẻ mảnh bản đồ"
-                sub={phase === "tiling" ? "Đang cắt ảnh thành các tile 256×256px..." : (phase === "done" ? "Hoàn tất" : "Chờ tối ưu hóa xong")}
+                sub={
+                  phase === "tiling"
+                    ? "Đang cắt ảnh thành các tile 256×256px..."
+                    : phase === "done"
+                      ? "Hoàn tất"
+                      : "Chờ tối ưu hóa xong"
+                }
               />
               <Step
                 status={phase === "done" ? "done" : "pending"}
@@ -291,8 +339,17 @@ export function UploadProgressDialog({
               }}
             >
               <CheckCircle2 size={14} color="#16a34a" />
-              <p style={{ margin: 0, fontSize: "12px", color: "#15803d", fontWeight: 500 }}>
-                {autoClosing ? "Tự động đóng sau vài giây..." : "Bản đồ đã sẵn sàng sử dụng!"}
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "12px",
+                  color: "#15803d",
+                  fontWeight: 500,
+                }}
+              >
+                {autoClosing
+                  ? "Tự động đóng sau vài giây..."
+                  : "Bản đồ đã sẵn sàng sử dụng!"}
               </p>
             </div>
           )}
@@ -311,9 +368,21 @@ export function UploadProgressDialog({
                   gap: "8px",
                 }}
               >
-                <AlertCircle size={14} color="#dc2626" style={{ marginTop: "1px", flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: "12px", color: "#b91c1c", lineHeight: 1.6 }}>
-                  Quá trình xử lý bản đồ thất bại. Vui lòng thử lại với file khác hoặc kiểm tra định dạng PNG/JPEG.
+                <AlertCircle
+                  size={14}
+                  color="#dc2626"
+                  style={{ marginTop: "1px", flexShrink: 0 }}
+                />
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "12px",
+                    color: "#b91c1c",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Quá trình xử lý bản đồ thất bại. Vui lòng thử lại với file
+                  khác hoặc kiểm tra định dạng PNG/JPEG.
                 </p>
               </div>
             </div>
@@ -356,7 +425,7 @@ export function UploadProgressDialog({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 

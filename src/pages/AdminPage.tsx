@@ -1,17 +1,39 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Users, FileText, Truck, Shield, Film, MessageSquare } from "lucide-react";
+import {
+  Users,
+  FileText,
+  Truck,
+  Shield,
+  Film,
+  MessageSquare,
+} from "lucide-react";
 import { Map as MapIcon } from "lucide-react";
-import { UsersTab, DocumentsTab, VehiclesTab, MapsTab, FeedbackTab } from "../components/admin";
+import {
+  UsersTab,
+  DocumentsTab,
+  VehiclesTab,
+  MapsTab,
+  FeedbackTab,
+} from "../components/admin";
 
-type TabType = "users" | "documents" | "videos" | "vehicles" | "maps" | "feedback";
+type TabType =
+  | "users"
+  | "documents"
+  | "videos"
+  | "vehicles"
+  | "maps"
+  | "feedback";
 
 export default function AdminPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>("users");
 
   useEffect(() => {
-    const state = location.state as { activeTab?: TabType; feedbackId?: string } | null;
+    const state = location.state as {
+      activeTab?: TabType;
+      feedbackId?: string;
+    } | null;
     if (state?.activeTab) {
       setActiveTab(state.activeTab);
     }

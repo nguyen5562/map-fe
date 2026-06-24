@@ -63,7 +63,11 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   image: <ImageIcon size={10} />,
 };
 
-export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video" }) => {
+export const DocumentsTab = ({
+  mode = "document",
+}: {
+  mode?: "document" | "video";
+}) => {
   const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -118,23 +122,39 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+
     if (mode === "video") {
       const allowedVideoExtensions = ["mp4", "webm", "ogg"];
       if (!allowedVideoExtensions.includes(ext)) {
-        toast.error("Định dạng video không được hỗ trợ. Vui lòng chỉ chọn tệp .mp4, .webm, .ogg");
+        toast.error(
+          "Định dạng video không được hỗ trợ. Vui lòng chỉ chọn tệp .mp4, .webm, .ogg",
+        );
         e.target.value = "";
         return;
       }
     } else {
       const allowedDocExtensions = [
-        "doc", "docx", "xls", "xlsx", "pdf", "ppt", "pptx",
-        "png", "jpg", "jpeg", "webp", "svg",
-        "dwg", "dxf", "cdr"
+        "doc",
+        "docx",
+        "xls",
+        "xlsx",
+        "pdf",
+        "ppt",
+        "pptx",
+        "png",
+        "jpg",
+        "jpeg",
+        "webp",
+        "svg",
+        "dwg",
+        "dxf",
+        "cdr",
       ];
       if (!allowedDocExtensions.includes(ext)) {
-        toast.error("Định dạng tệp không hỗ trợ. Vui lòng chọn tài liệu văn phòng (PDF, Word, Excel, PowerPoint) hoặc bản vẽ sơ đồ (DWG, DXF, CDR, Hình ảnh)");
+        toast.error(
+          "Định dạng tệp không hỗ trợ. Vui lòng chọn tài liệu văn phòng (PDF, Word, Excel, PowerPoint) hoặc bản vẽ sơ đồ (DWG, DXF, CDR, Hình ảnh)",
+        );
         e.target.value = "";
         return;
       }
@@ -153,7 +173,7 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
           setUploadProgress(percent);
         }
       });
-      
+
       // Auto-determine document type/format based on file extension
       let detectedType = docForm.type;
       if (mode !== "video") {
@@ -174,8 +194,9 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
       }
 
       // Auto-populate Title if it's currently empty
-      const originalNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      
+      const originalNameWithoutExt =
+        file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+
       setDocForm((prev) => ({
         ...prev,
         title: prev.title ? prev.title : originalNameWithoutExt,
@@ -297,7 +318,12 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
     }
   };
 
-  const requestDelete = (type: "section" | "document", id: string, label: string, message: string) => {
+  const requestDelete = (
+    type: "section" | "document",
+    id: string,
+    label: string,
+    message: string,
+  ) => {
     setDeleteTarget({ type, id, label, message });
     setDeleteModalOpen(true);
   };
@@ -346,7 +372,7 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
         const [moved] = items.splice(dragIndex, 1);
         items.splice(dropIndex, 0, moved);
         return { ...sec, items };
-      })
+      }),
     );
 
     // Persist to backend
@@ -356,7 +382,10 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
       const items = [...section.items];
       const [moved] = items.splice(dragIndex, 1);
       items.splice(dropIndex, 0, moved);
-      await documentService.reorderDocuments(sectionId, items.map((i: any) => i.id));
+      await documentService.reorderDocuments(
+        sectionId,
+        items.map((i: any) => i.id),
+      );
     } catch (err) {
       console.error("Lỗi lưu thứ tự tài liệu:", err);
       loadDocuments(); // revert on error
@@ -366,7 +395,6 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
 
   return (
     <div className="space-y-6 text-xs">
-
       <div className="flex justify-between items-center pb-2 border-b border-slate-100">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
           {mode === "video" ? "Danh mục & Video" : "Danh mục & tài liệu"}
@@ -376,7 +404,8 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
           variant="success"
           className="h-8 text-xs font-bold gap-1 px-3"
         >
-          <Plus size={13} /> {mode === "video" ? "Thêm chuyên mục video" : "Thêm chuyên mục"}
+          <Plus size={13} />{" "}
+          {mode === "video" ? "Thêm chuyên mục video" : "Thêm chuyên mục"}
         </Button>
       </div>
 
@@ -385,18 +414,28 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
           <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
             <AlertTriangle size={20} />
           </div>
-          <p className="text-slate-800 font-bold text-sm">Không thể tải danh sách tài liệu</p>
-          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
-            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+          <p className="text-slate-800 font-bold text-sm">
+            Không thể tải danh sách tài liệu
           </p>
-          <Button onClick={loadDocuments} variant="secondary" className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50">
+          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm
+            tra lại kết nối mạng hoặc trạng thái máy chủ.
+          </p>
+          <Button
+            onClick={loadDocuments}
+            variant="secondary"
+            className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50"
+          >
             Tải lại
           </Button>
         </div>
       ) : loading && sections.length === 0 ? (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, secIdx) => (
-            <div key={secIdx} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
+            <div
+              key={secIdx}
+              className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white"
+            >
               <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -412,7 +451,10 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
               </div>
               <div className="p-4 space-y-3">
                 {Array.from({ length: 3 }).map((_, docIdx) => (
-                  <div key={docIdx} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                  <div
+                    key={docIdx}
+                    className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
+                  >
                     <div className="flex items-center gap-3 w-2/3">
                       <Skeleton className="h-4 w-4 rounded-full shrink-0" />
                       <Skeleton className="h-4 w-full rounded-full" />
@@ -459,7 +501,8 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                   onClick={() => handleOpenDocModal(section.id)}
                   className="text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-2 py-1 rounded-lg border border-emerald-200 transition-all flex items-center gap-1 shadow-xs"
                 >
-                  <Plus size={10} /> {mode === "video" ? "Thêm video" : "Thêm tài liệu"}
+                  <Plus size={10} />{" "}
+                  {mode === "video" ? "Thêm video" : "Thêm tài liệu"}
                 </button>
                 <button
                   onClick={() => handleOpenSectionModal(section)}
@@ -473,7 +516,7 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                       "section",
                       section.id,
                       section.title,
-                      "Bạn có chắc chắn muốn xóa chuyên mục này cùng toàn bộ tài liệu bên trong?"
+                      "Bạn có chắc chắn muốn xóa chuyên mục này cùng toàn bộ tài liệu bên trong?",
                     )
                   }
                   className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -540,7 +583,7 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                               "document",
                               item.id,
                               item.title,
-                              "Bạn có chắc chắn muốn xóa tài liệu này?"
+                              "Bạn có chắc chắn muốn xóa tài liệu này?",
                             )
                           }
                           className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -635,7 +678,11 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                 >
                   Hủy
                 </Button>
-                <Button type="submit" variant="success" className="h-8 text-xs font-semibold">
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="h-8 text-xs font-semibold"
+                >
                   Lưu lại
                 </Button>
               </div>
@@ -651,8 +698,12 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
             <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
               <h4 className="text-slate-800 font-bold text-sm">
                 {editingDoc
-                  ? (mode === "video" ? "SỬA VIDEO" : "SỬA TÀI LIỆU")
-                  : (mode === "video" ? "THÊM VIDEO MỚI" : "THÊM TÀI LIỆU MỚI")}
+                  ? mode === "video"
+                    ? "SỬA VIDEO"
+                    : "SỬA TÀI LIỆU"
+                  : mode === "video"
+                    ? "THÊM VIDEO MỚI"
+                    : "THÊM TÀI LIỆU MỚI"}
               </h4>
               <button
                 onClick={() => setDocModalOpen(false)}
@@ -672,7 +723,11 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                   onChange={(e: any) =>
                     setDocForm({ ...docForm, title: e.target.value })
                   }
-                  placeholder={mode === "video" ? "Tên video hiển thị..." : "Tên tài liệu hiển thị..."}
+                  placeholder={
+                    mode === "video"
+                      ? "Tên video hiển thị..."
+                      : "Tên tài liệu hiển thị..."
+                  }
                   className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
@@ -699,9 +754,15 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                     >
                       <option value="pdf">Tài liệu PDF (.pdf)</option>
                       <option value="word">Tài liệu Word (.doc, .docx)</option>
-                      <option value="excel">Tài liệu Excel (.xls, .xlsx)</option>
-                      <option value="powerpoint">Tài liệu PowerPoint (.ppt, .pptx)</option>
-                      <option value="image">Hình ảnh sơ đồ (.png, .jpg, .jpeg, .webp, .svg)</option>
+                      <option value="excel">
+                        Tài liệu Excel (.xls, .xlsx)
+                      </option>
+                      <option value="powerpoint">
+                        Tài liệu PowerPoint (.ppt, .pptx)
+                      </option>
+                      <option value="image">
+                        Hình ảnh sơ đồ (.png, .jpg, .jpeg, .webp, .svg)
+                      </option>
                       <option value="drawing">Bản vẽ (.dwg, .dxf, .cdr)</option>
                     </select>
                   )}
@@ -719,7 +780,9 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                       }
                       className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                     />
-                    <span>{mode === "video" ? "Video MẬT" : "Tài liệu MẬT"}</span>
+                    <span>
+                      {mode === "video" ? "Video MẬT" : "Tài liệu MẬT"}
+                    </span>
                   </label>
                 </div>
               </div>
@@ -733,24 +796,31 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                       type="button"
                       variant="outline"
                       className="h-8 text-xs font-semibold bg-white flex items-center gap-1.5 border-slate-200"
-                      onClick={() => document.getElementById("file-upload-input")?.click()}
+                      onClick={() =>
+                        document.getElementById("file-upload-input")?.click()
+                      }
                       disabled={uploading}
                     >
                       <Upload size={14} className="text-slate-500" />
-                      {uploading ? "Đang tải tệp lên..." : "Chọn tệp từ thiết bị"}
+                      {uploading
+                        ? "Đang tải tệp lên..."
+                        : "Chọn tệp từ thiết bị"}
                     </Button>
                     <input
                       id="file-upload-input"
                       type="file"
                       className="hidden"
                       onChange={handleFileUpload}
-                      accept={mode === "video" ? ".mp4,.webm,.ogg" : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.svg,.dwg,.dxf,.cdr"}
+                      accept={
+                        mode === "video"
+                          ? ".mp4,.webm,.ogg"
+                          : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.svg,.dwg,.dxf,.cdr"
+                      }
                     />
                     <p className="text-[10px] text-slate-400">
-                      {mode === "video" 
-                        ? "Hỗ trợ định dạng MP4, WebM, OGG..." 
-                        : "Hỗ trợ Văn phòng (PDF, Word, Excel, PowerPoint) hoặc Bản vẽ (DWG, DXF, CDR, Hình ảnh)"
-                      }
+                      {mode === "video"
+                        ? "Hỗ trợ định dạng MP4, WebM, OGG..."
+                        : "Hỗ trợ Văn phòng (PDF, Word, Excel, PowerPoint) hoặc Bản vẽ (DWG, DXF, CDR, Hình ảnh)"}
                     </p>
                   </div>
                 </div>
@@ -772,7 +842,11 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                     onChange={(e: any) =>
                       setDocForm({ ...docForm, url: e.target.value })
                     }
-                    placeholder={mode === "video" ? "Ví dụ: /uploads/... hoặc liên kết Youtube..." : "Ví dụ: /uploads/... hoặc liên kết ngoài..."}
+                    placeholder={
+                      mode === "video"
+                        ? "Ví dụ: /uploads/... hoặc liên kết Youtube..."
+                        : "Ví dụ: /uploads/... hoặc liên kết ngoài..."
+                    }
                     className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 text-xs h-9"
                   />
                 </div>
@@ -786,7 +860,11 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
                 >
                   Hủy
                 </Button>
-                <Button type="submit" variant="success" className="h-8 text-xs font-semibold">
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="h-8 text-xs font-semibold"
+                >
                   Lưu lại
                 </Button>
               </div>
@@ -796,41 +874,47 @@ export const DocumentsTab = ({ mode = "document" }: { mode?: "document" | "video
       )}
 
       {/* MODAL: TIẾN ĐỘ TẢI LÊN */}
-      {uploading && createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl p-6 space-y-4 animate-scaleUp">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 shrink-0">
-                <Upload size={18} className="animate-bounce" />
+      {uploading &&
+        createPortal(
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+            <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl p-6 space-y-4 animate-scaleUp">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 shrink-0">
+                  <Upload size={18} className="animate-bounce" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-slate-800 font-bold text-sm truncate">
+                    Đang tải tệp lên...
+                  </h4>
+                  <p
+                    className="text-[10px] text-slate-500 truncate mt-0.5"
+                    title={uploadFileName}
+                  >
+                    {uploadFileName} ({uploadFileSize})
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-slate-800 font-bold text-sm truncate">
-                  Đang tải tệp lên...
-                </h4>
-                <p className="text-[10px] text-slate-500 truncate mt-0.5" title={uploadFileName}>
-                  {uploadFileName} ({uploadFileSize})
-                </p>
-              </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50">
-                <div
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-350 ease-out"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-              <div className="flex justify-between items-center text-[10px] font-bold">
-                <span className="text-slate-400">
-                  {uploadProgress === 100 ? "Đang xử lý tệp..." : "Vui lòng chờ..."}
-                </span>
-                <span className="text-emerald-600">{uploadProgress}%</span>
+              <div className="space-y-1.5">
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full transition-all duration-350 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-[10px] font-bold">
+                  <span className="text-slate-400">
+                    {uploadProgress === 100
+                      ? "Đang xử lý tệp..."
+                      : "Vui lòng chờ..."}
+                  </span>
+                  <span className="text-emerald-600">{uploadProgress}%</span>
+                </div>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
 
       {/* CONFIRM DELETE MODAL */}
       <DeleteConfirmModal

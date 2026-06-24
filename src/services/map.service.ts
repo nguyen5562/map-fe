@@ -3,7 +3,9 @@ import { API_ROUTES } from "../const/apiConfig";
 
 export const mapService = {
   getAllMaps: async (userId?: string) => {
-    const url = userId ? `${API_ROUTES.MAP}/all?userId=${userId}` : API_ROUTES.MAP + "/all";
+    const url = userId
+      ? `${API_ROUTES.MAP}/all?userId=${userId}`
+      : API_ROUTES.MAP + "/all";
     const response = await api.get(url);
     return response.data;
   },
@@ -13,7 +15,11 @@ export const mapService = {
     return response.data;
   },
 
-  uploadMap: async (file: File, userId?: string, onProgress?: (percent: number) => void) => {
+  uploadMap: async (
+    file: File,
+    userId?: string,
+    onProgress?: (percent: number) => void,
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
     if (userId) {

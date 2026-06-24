@@ -12,8 +12,6 @@ const TARGET_TYPES = [
   "Đội hình hành quân",
 ];
 
-
-
 import { useSimulation } from "../../context/SimulationContext";
 
 export const TargetDefensePanel = () => {
@@ -45,7 +43,7 @@ export const TargetDefensePanel = () => {
   }, [comboInput, targetDefenseData]);
 
   const filteredOptions = TARGET_TYPES.filter((t) =>
-    t.toLowerCase().includes(comboInput.toLowerCase())
+    t.toLowerCase().includes(comboInput.toLowerCase()),
   );
 
   const handleSelect = (value: string) => {
@@ -53,8 +51,6 @@ export const TargetDefensePanel = () => {
     setTargetDefenseData({ ...targetDefenseData, targetType: value });
     setComboOpen(false);
   };
-
-
 
   return (
     <div
@@ -64,7 +60,7 @@ export const TargetDefensePanel = () => {
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between border-b border-slate-200 pb-2 cursor-pointer"
+        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
@@ -89,7 +85,10 @@ export const TargetDefensePanel = () => {
                 value={comboInput}
                 onChange={(e) => {
                   setComboInput(e.target.value);
-                  setTargetDefenseData({ ...targetDefenseData, targetType: e.target.value });
+                  setTargetDefenseData({
+                    ...targetDefenseData,
+                    targetType: e.target.value,
+                  });
                   setComboOpen(true);
                 }}
                 onFocus={() => setComboOpen(true)}
@@ -101,7 +100,10 @@ export const TargetDefensePanel = () => {
                 onClick={() => setComboOpen((o) => !o)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition"
               >
-                <ChevronDown size={14} className={`transition-transform duration-200 ${comboOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${comboOpen ? "rotate-180" : ""}`}
+                />
               </button>
 
               {comboOpen && filteredOptions.length > 0 && (
@@ -111,7 +113,9 @@ export const TargetDefensePanel = () => {
                       key={opt}
                       onMouseDown={() => handleSelect(opt)}
                       className={`px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors ${
-                        comboInput === opt ? "bg-slate-50 font-semibold text-emerald-600" : "text-slate-700"
+                        comboInput === opt
+                          ? "bg-slate-50 font-semibold text-emerald-600"
+                          : "text-slate-700"
                       }`}
                     >
                       {opt}
@@ -137,7 +141,11 @@ export const TargetDefensePanel = () => {
                   if (val === "" || parseFloat(val) >= 0) {
                     const dVal = parseFloat(val);
                     const calculatedArea = val
-                      ? Number((Math.PI * Math.pow(dVal / 2, 2) / 10000).toFixed(4)).toString()
+                      ? Number(
+                          ((Math.PI * Math.pow(dVal / 2, 2)) / 10000).toFixed(
+                            4,
+                          ),
+                        ).toString()
                       : "";
                     setTargetDefenseData({
                       ...targetDefenseData,
@@ -164,9 +172,12 @@ export const TargetDefensePanel = () => {
                     if (val === "" || parseFloat(val) >= 0) {
                       const lVal = parseFloat(targetDefenseData.length);
                       const wVal = parseFloat(val);
-                      const calculatedArea = (val && targetDefenseData.length)
-                        ? Number(((lVal * wVal) / 10000).toFixed(4)).toString()
-                        : "";
+                      const calculatedArea =
+                        val && targetDefenseData.length
+                          ? Number(
+                              ((lVal * wVal) / 10000).toFixed(4),
+                            ).toString()
+                          : "";
                       setTargetDefenseData({
                         ...targetDefenseData,
                         width: val,
@@ -190,9 +201,12 @@ export const TargetDefensePanel = () => {
                     if (val === "" || parseFloat(val) >= 0) {
                       const wVal = parseFloat(targetDefenseData.width);
                       const lVal = parseFloat(val);
-                      const calculatedArea = (targetDefenseData.width && val)
-                        ? Number(((wVal * lVal) / 10000).toFixed(4)).toString()
-                        : "";
+                      const calculatedArea =
+                        targetDefenseData.width && val
+                          ? Number(
+                              ((wVal * lVal) / 10000).toFixed(4),
+                            ).toString()
+                          : "";
                       setTargetDefenseData({
                         ...targetDefenseData,
                         length: val,
@@ -287,15 +301,24 @@ export const TargetDefensePanel = () => {
                 categoryLabel = "lớn (> 50 ha)";
               }
 
-              const isOutOfRange = multVal < recommendedMin || multVal > recommendedMax;
+              const isOutOfRange =
+                multVal < recommendedMin || multVal > recommendedMax;
 
               if (!isOutOfRange) return null;
 
               return (
                 <div className="mt-2.5 p-2.5 rounded-lg bg-rose-50 border border-rose-100 text-[11px] text-rose-700 flex items-start gap-1.5 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
-                  <AlertTriangle size={13} className="shrink-0 mt-0.5 text-rose-500" />
+                  <AlertTriangle
+                    size={13}
+                    className="shrink-0 mt-0.5 text-rose-500"
+                  />
                   <div>
-                    <span className="font-bold">Khuyến nghị:</span> Diện tích mục tiêu {categoryLabel} nên chọn từ <span className="font-bold">{recommendedMin} - {recommendedMax} lần</span>.
+                    <span className="font-bold">Khuyến nghị:</span> Diện tích
+                    mục tiêu {categoryLabel} nên chọn từ{" "}
+                    <span className="font-bold">
+                      {recommendedMin} - {recommendedMax} lần
+                    </span>
+                    .
                   </div>
                 </div>
               );

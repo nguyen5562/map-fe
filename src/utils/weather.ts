@@ -10,7 +10,12 @@ export const getBeaufort = (speed: number) => {
   return 8;
 };
 
-export const getStability = (tkkMin: number, tkkMax: number, tmdMin: number, tmdMax: number) => {
+export const getStability = (
+  tkkMin: number,
+  tkkMax: number,
+  tmdMin: number,
+  tmdMax: number,
+) => {
   const avgTkk = (tkkMin + tkkMax) / 2;
   const avgTmd = (tmdMin + tmdMax) / 2;
   if (avgTmd > avgTkk) return "ĐỐI LƯU";

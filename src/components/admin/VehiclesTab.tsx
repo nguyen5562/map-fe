@@ -127,7 +127,6 @@ export const VehiclesTab = () => {
 
   return (
     <div className="space-y-4 text-xs">
-
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
           Khí tài tạo khói mặc định
@@ -146,11 +145,18 @@ export const VehiclesTab = () => {
           <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-3 border border-rose-100 shadow-sm animate-bounce">
             <AlertTriangle size={20} />
           </div>
-          <p className="text-slate-800 font-bold text-sm">Không thể tải danh sách khí tài mặc định</p>
-          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
-            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm tra lại kết nối mạng hoặc trạng thái máy chủ.
+          <p className="text-slate-800 font-bold text-sm">
+            Không thể tải danh sách khí tài mặc định
           </p>
-          <Button onClick={loadVehicles} variant="secondary" className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50">
+          <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
+            Đã có lỗi xảy ra trong quá trình kết nối với máy chủ. Vui lòng kiểm
+            tra lại kết nối mạng hoặc trạng thái máy chủ.
+          </p>
+          <Button
+            onClick={loadVehicles}
+            variant="secondary"
+            className="mt-4 h-8 text-xs font-semibold px-4 border border-slate-200 hover:bg-slate-50"
+          >
             Tải lại
           </Button>
         </div>
@@ -198,44 +204,52 @@ export const VehiclesTab = () => {
                 ))
               ) : vehicles.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                  <td
+                    colSpan={7}
+                    className="px-4 py-10 text-center text-slate-400"
+                  >
                     Chưa có khí tài nào được định nghĩa
                   </td>
                 </tr>
               ) : (
-              vehicles.map((v) => (
-                <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-4 font-mono font-bold text-slate-900">{v.id}</td>
-                  <td className="p-4 font-bold">{v.name}</td>
-                  <td className="p-4 text-slate-500 max-w-[200px] truncate">
-                    {v.desc || "Không có"}
-                  </td>
-                  <td className="p-4 text-center font-mono">{v.l}</td>
-                  <td className="p-4 text-center font-mono">{v.r}</td>
-                  <td className="p-4 text-center font-mono">{v.t}</td>
-                  <td className="p-4 text-center">{v.unit || "cái"}</td>
-                  <td className="p-4 text-right flex justify-end gap-2">
-                    <button
-                      onClick={() => handleOpenVehicleModal(v)}
-                      className="p-1.5 hover:bg-slate-100 rounded-lg text-blue-600 transition-colors"
-                      title="Sửa"
-                    >
-                      <Edit size={13} />
-                    </button>
-                    <button
-                      onClick={() => requestDelete(v)}
-                      className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
-                      title="Xóa"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                vehicles.map((v) => (
+                  <tr
+                    key={v.id}
+                    className="hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="p-4 font-mono font-bold text-slate-900">
+                      {v.id}
+                    </td>
+                    <td className="p-4 font-bold">{v.name}</td>
+                    <td className="p-4 text-slate-500 max-w-[200px] truncate">
+                      {v.desc || "Không có"}
+                    </td>
+                    <td className="p-4 text-center font-mono">{v.l}</td>
+                    <td className="p-4 text-center font-mono">{v.r}</td>
+                    <td className="p-4 text-center font-mono">{v.t}</td>
+                    <td className="p-4 text-center">{v.unit || "cái"}</td>
+                    <td className="p-4 text-right flex justify-end gap-2">
+                      <button
+                        onClick={() => handleOpenVehicleModal(v)}
+                        className="p-1.5 hover:bg-slate-100 rounded-lg text-blue-600 transition-colors"
+                        title="Sửa"
+                      >
+                        <Edit size={13} />
+                      </button>
+                      <button
+                        onClick={() => requestDelete(v)}
+                        className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
+                        title="Xóa"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* MODAL: KHÍ TÀI MẶC ĐỊNH */}
@@ -253,7 +267,10 @@ export const VehiclesTab = () => {
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveVehicle} className="p-5 space-y-4 text-xs">
+            <form
+              onSubmit={handleSaveVehicle}
+              className="p-5 space-y-4 text-xs"
+            >
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-slate-650 font-semibold mb-1 block">
@@ -394,7 +411,11 @@ export const VehiclesTab = () => {
                 >
                   Hủy
                 </Button>
-                <Button type="submit" variant="success" className="h-8 text-xs font-semibold">
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="h-8 text-xs font-semibold"
+                >
                   Lưu lại
                 </Button>
               </div>

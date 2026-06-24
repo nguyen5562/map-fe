@@ -2,7 +2,11 @@ import { api } from "./api";
 import { API_ROUTES } from "../const/apiConfig";
 
 export const feedbackService = {
-  createFeedback: async (data: { type: string; title: string; content: string }) => {
+  createFeedback: async (data: {
+    type: string;
+    title: string;
+    content: string;
+  }) => {
     const response = await api.post(API_ROUTES.FEEDBACK, data);
     return response.data;
   },
@@ -18,12 +22,18 @@ export const feedbackService = {
   },
 
   updateStatus: async (id: string, status: string) => {
-    const response = await api.patch(`${API_ROUTES.FEEDBACK}/admin/${id}/status`, { status });
+    const response = await api.patch(
+      `${API_ROUTES.FEEDBACK}/admin/${id}/status`,
+      { status },
+    );
     return response.data;
   },
 
   addReply: async (feedbackId: string, content: string) => {
-    const response = await api.post(`${API_ROUTES.FEEDBACK}/${feedbackId}/reply`, { content });
+    const response = await api.post(
+      `${API_ROUTES.FEEDBACK}/${feedbackId}/reply`,
+      { content },
+    );
     return response.data;
   },
 
