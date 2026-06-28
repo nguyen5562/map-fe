@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -6,6 +6,7 @@ import {
   useMapEvents,
   useMap,
   Tooltip,
+  Polyline,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -28,7 +29,13 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { BASE_URL } from "../const/apiConfig";
-import { WeatherOverlay, GasMarker } from "../components/map";
+import { WeatherOverlay, GasMarker, GasLabel } from "../components/map";
+import {
+  estimateTextWidth,
+  getMainVehicleId,
+  parseCombatDate,
+  pad,
+} from "../components/map/GasLabel";
 import { LeftSidebar } from "../components/left-sidebar";
 import { RightSidebar } from "../components/right-sidebar";
 import { ConfirmChangesModal } from "../components/ui/ConfirmChangesModal";
@@ -100,7 +107,11 @@ function SimulationInner() {
   const pointsList = useSimulation((s) => s.pointsList);
   const smokeLineLength = useSimulation((s) => s.smokeLineLength);
   const smokeMethodData = useSimulation((s) => s.smokeMethodData);
+  const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
   const editingPointId = useSimulation((s) => s.editingPointId);
+  const selectedPointId = useSimulation((s) => s.selectedPointId);
+  const onSelectPoint = useSimulation((s) => s.onSelectPoint);
+  const updatePointLabelCoords = useSimulation((s) => s.updatePointLabelCoords);
   const confirmModal = useSimulation((s) => s.confirmModal);
   const closeConfirmModal = useSimulation((s) => s.closeConfirmModal);
   const handleConfirmModalSave = useSimulation((s) => s.handleConfirmModalSave);
@@ -212,6 +223,7 @@ function SimulationInner() {
 
             {/* Click Marker */}
             {clickedRaw &&
+              editingPointId === null &&
               isCalibrated &&
               (weatherActive ? (
                 <GasMarker
@@ -227,45 +239,155 @@ function SimulationInner() {
               ))}
 
             {/* Saved Points Markers */}
-            {pointsList
-              .filter((p) => p.id !== editingPointId)
-              .map((p, idx) => {
-                const baseDirAngle =
-                  p.weatherData.windAngle ??
-                  DIRECTION_ANGLES[p.weatherData.windDirection] ??
-                  0;
-                const pAlphaVal =
-                  p.weatherData.alpha === ""
-                    ? 90
-                    : Number(p.weatherData.alpha ?? 90);
-                const pBetaVal =
-                  p.weatherData.beta === ""
-                    ? 0
-                    : Number(p.weatherData.beta ?? 0);
-                const pSmokeOffset =
-                  (90 - pAlphaVal) *
-                  ((p.weatherData.alphaDirection ?? "right") === "right"
-                    ? 1
-                    : -1);
-                const compWindAngle = baseDirAngle - 180 + pBetaVal;
-                const compSmokeAngle = compWindAngle + pSmokeOffset;
+            {pointsList.map((p, idx) => {
+              const baseDirAngle =
+                p.weatherData.windAngle ??
+                DIRECTION_ANGLES[p.weatherData.windDirection] ??
+                0;
+              const pAlphaVal =
+                p.weatherData.alpha === ""
+                  ? 90
+                  : Number(p.weatherData.alpha ?? 90);
+              const pBetaVal =
+                p.weatherData.beta === "" ? 0 : Number(p.weatherData.beta ?? 0);
+              const pSmokeOffset =
+                (90 - pAlphaVal) *
+                ((p.weatherData.alphaDirection ?? "right") === "right"
+                  ? 1
+                  : -1);
+              const compWindAngle = baseDirAngle - 180 + pBetaVal;
+              const compSmokeAngle = compWindAngle + pSmokeOffset;
 
-                return weatherActive ? (
+              const actualLength = p.smokeLineLength
+                ? Number(p.smokeLineLength)
+                : 700;
+              const rawWidth = (actualLength * 1.25) / Math.abs(scale.x);
+              const rawHeight = rawWidth * (70 / 250);
+
+              // Nếu đang chỉnh sửa điểm này và người dùng click vị trí mới, dùng clickedRaw làm vị trí tạm
+              const isEditing = p.id === editingPointId;
+              const markerCoords =
+                isEditing && clickedRaw ? clickedRaw : p.coords;
+
+              const labelLat =
+                p.labelCoords?.lat ?? markerCoords.lat + rawHeight * 0.7;
+              const labelLng = p.labelCoords?.lng ?? markerCoords.lng;
+              const labelCenter = L.latLng(labelLat, labelLng);
+
+              const isSelected = p.id === selectedPointId;
+
+              let leaderLinePoints: L.LatLngExpression[] = [];
+              if (p.results) {
+                const mainVid = getMainVehicleId(
+                  p.selectedVehicles ?? [],
+                  p.results.vehicleBreakdown,
+                );
+                const mainVehicleName = mainVid
+                  ? (p.vehicleConfigs?.[mainVid]?.name ??
+                    vehicleConfigs[mainVid]?.name ??
+                    mainVid)
+                  : "";
+                const line1 = `${p.results.totalVehicles} ${mainVehicleName}`;
+
+                const fromH = pad(p.smokeTime.fromH || "0");
+                const fromM = pad(p.smokeTime.fromM || "0");
+                const toH = pad(p.smokeTime.toH || "0");
+                const toM = pad(p.smokeTime.toM || "0");
+                const dateLabel = parseCombatDate(p.weatherData?.combatTime);
+                const line2String = `${fromH}.${fromM}÷${toH}.${toM} - ${dateLabel}`;
+
+                const w1 = estimateTextWidth(line1, 17);
+                const w2 = estimateTextWidth(line2String, 15);
+                const maxW = Math.max(w1, w2);
+
+                const halfLine = (maxW + 12) / 2;
+                const halfLineLng = (halfLine / 250) * rawWidth;
+
+                // y=32 trong 70px height (viewBox của SVG)
+                const dividerLat = labelCenter.lat + (3 / 70) * rawHeight;
+
+                const isLabelToRight = labelCenter.lng >= markerCoords.lng;
+                const dividerLng = isLabelToRight
+                  ? labelCenter.lng - halfLineLng
+                  : labelCenter.lng + halfLineLng;
+
+                leaderLinePoints = [
+                  markerCoords,
+                  L.latLng(dividerLat, dividerLng),
+                ];
+              }
+
+              return weatherActive ? (
+                <React.Fragment key={p.id}>
                   <GasMarker
-                    key={p.id}
-                    center={p.coords}
+                    center={markerCoords}
                     angle={compSmokeAngle}
                     scaleX={scale.x}
                     smokeLineLength={p.smokeLineLength ?? 700}
                     lineType={p.smokeMethodData?.lineType ?? "Thẳng"}
                     lineRole={p.smokeMethodData?.lineRole ?? "Chính"}
+                    onClick={() => onSelectPoint(p.id)}
                   />
-                ) : (
-                  <Marker key={p.id} position={p.coords}>
-                    <Tooltip>{p.name || `Điểm ${idx + 1}`}</Tooltip>
-                  </Marker>
-                );
-              })}
+                  {p.results && (
+                    <>
+                      {leaderLinePoints.length > 0 && (
+                        <Polyline
+                          positions={leaderLinePoints}
+                          pathOptions={{
+                            color: "#0f172a",
+                            weight: 1.5,
+                          }}
+                        />
+                      )}
+                      <GasLabel
+                        key={`label-${p.id}-${labelCenter.lat}-${labelCenter.lng}`}
+                        center={labelCenter}
+                        results={p.results}
+                        smokeTime={p.smokeTime}
+                        vehicleConfigs={p.vehicleConfigs || vehicleConfigs}
+                        selectedVehicles={p.selectedVehicles ?? []}
+                        combatTime={p.weatherData?.combatTime}
+                        smokeLineLength={p.smokeLineLength ?? 700}
+                        scaleX={scale.x}
+                        onClick={() => onSelectPoint(p.id)}
+                      />
+                      {isSelected && (
+                        <Marker
+                          position={labelCenter}
+                          draggable={true}
+                          icon={L.divIcon({
+                            className:
+                              "bg-transparent border-none flex items-center justify-center",
+                            html: `<div style="width: 16px; height: 16px; border-radius: 50%; background-color: #3b82f6; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; cursor: move;">
+                                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                     </div>`,
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8],
+                          })}
+                          eventHandlers={{
+                            dragend: (e: any) => {
+                              const marker = e.target;
+                              const newPos = marker.getLatLng();
+                              updatePointLabelCoords(p.id, newPos);
+                            },
+                          }}
+                        />
+                      )}
+                    </>
+                  )}
+                </React.Fragment>
+              ) : (
+                <Marker
+                  key={p.id}
+                  position={markerCoords}
+                  eventHandlers={{
+                    click: () => onSelectPoint(p.id),
+                  }}
+                >
+                  <Tooltip>{p.name || `Điểm ${idx + 1}`}</Tooltip>
+                </Marker>
+              );
+            })}
           </MapContainer>
         ) : currentMap?.status === "processing" ||
           currentMap?.status === "resizing" ||

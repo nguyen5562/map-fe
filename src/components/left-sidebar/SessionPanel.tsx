@@ -11,6 +11,7 @@ import {
   Edit3,
   X,
   Check,
+  FilePlus,
 } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -25,8 +26,25 @@ export const SessionPanel = () => {
   const renameSession = useSimulation((s) => s.renameSession);
   const deleteSession = useSimulation((s) => s.deleteSession);
   const activeSessionId = useSimulation((s) => s.activeSessionId);
+  const resetCurrentSession = useSimulation((s) => s.resetCurrentSession);
+  const pointsList = useSimulation((s) => s.pointsList);
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) ?? null;
+
+  const [newSessionConfirmOpen, setNewSessionConfirmOpen] = useState(false);
+
+  const handleNewSessionClick = () => {
+    if (pointsList.length > 0) {
+      setNewSessionConfirmOpen(true);
+    } else {
+      resetCurrentSession();
+    }
+  };
+
+  const handleConfirmNewSession = () => {
+    resetCurrentSession();
+    setNewSessionConfirmOpen(false);
+  };
 
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -123,6 +141,15 @@ export const SessionPanel = () => {
         <div className="p-3 space-y-2">
           {/* Nút hành động lưu */}
           <div className="flex flex-col gap-1.5">
+            {/* Nút Lập phương án mới */}
+            <button
+              onClick={handleNewSessionClick}
+              className="w-full flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors"
+            >
+              <FilePlus size={13} />
+              Lập phương án mới
+            </button>
+
             {/* Nút Cập nhật — chỉ hiện khi đang có session active */}
             {activeSession && (
               <button
@@ -340,6 +367,51 @@ export const SessionPanel = () => {
                       <Loader2 size={12} className="animate-spin" />
                     )}
                     Xoa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {/* ── New Session Confirm Modal ── */}
+      {newSessionConfirmOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+            <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl">
+              <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
+                <h4 className="text-slate-800 font-bold text-sm flex items-center gap-2">
+                  <FilePlus size={14} className="text-indigo-600" />
+                  XÁC NHẬN LẬP PHƯƠNG ÁN MỚI
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setNewSessionConfirmOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="p-5 space-y-4 text-xs">
+                <p className="text-slate-600 leading-relaxed">
+                  Bạn có chắc chắn muốn lập phương án mới? Toàn bộ các điểm khói
+                  hiện tại trên bản đồ sẽ bị xóa.
+                </p>
+                <div className="flex gap-3 justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setNewSessionConfirmOpen(false)}
+                    className="h-8 px-4 rounded-lg text-xs border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmNewSession}
+                    className="h-8 px-4 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                  >
+                    Đồng ý
                   </button>
                 </div>
               </div>

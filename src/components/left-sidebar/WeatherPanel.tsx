@@ -41,9 +41,14 @@ export const WeatherPanel = () => {
     <div
       className={`rounded-xl border bg-white border-slate-200 shadow-sm overflow-hidden transition-opacity ${!isCalibrated ? "opacity-30 pointer-events-none" : ""}`}
     >
-      <button
-        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
         onClick={() => setShowWeather(!showWeather)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") setShowWeather(!showWeather);
+        }}
       >
         <div className="flex items-center gap-2">
           <Wind size={18} className="text-blue-600" />
@@ -69,7 +74,7 @@ export const WeatherPanel = () => {
             <ChevronDown size={14} className="text-slate-400" />
           )}
         </div>
-      </button>
+      </div>
 
       {showWeather && (
         <div className="px-4 pb-4 pt-2 space-y-4">

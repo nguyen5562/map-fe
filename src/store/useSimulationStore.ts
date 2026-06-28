@@ -569,6 +569,15 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     set({ pointsList: updated });
   },
 
+  updatePointLabelCoords: (id, coords) => {
+    const updated = get().pointsList.map((p) =>
+      p.id === id
+        ? { ...p, labelCoords: { lat: coords.lat, lng: coords.lng } }
+        : p,
+    );
+    set({ pointsList: updated });
+  },
+
   onSelectPoint: (id) => {
     const { clickedRaw, editingPointId, drafts, pointsList } = get();
 
@@ -1003,6 +1012,57 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     });
   },
 
+  resetCurrentSession: () => {
+    set({
+      activeSessionId: null,
+      clickedRaw: null,
+      currentRealCoords: null,
+      pointsList: [],
+      results: null,
+      selectedPointId: null,
+      editingPointId: null,
+      drafts: {},
+      targetDefenseData: {
+        targetType: "Trận địa hỏa lực",
+        length: "500",
+        width: "300",
+        diameter: "500",
+        area: "15",
+        coverageMultiplier: "10",
+      },
+      smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
+      smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
+      selectedVehicles: [],
+      vehicleConfigs: get().originalVehicleConfigs || {},
+      battlefieldData: {
+        firePoints: { distance: "100", direction: "Bắc" },
+        commandPost: { distance: "300", direction: "Bắc" },
+        reserveUnit: { distance: "200", direction: "Bắc" },
+      },
+      weatherActive: false,
+      weatherData: {
+        combatTime: "01.05.26",
+        windDirection: "Tây Bắc",
+        windAngle: 315,
+        secondaryWindDirection: "Tây",
+        secondaryWindAngle: 270,
+        beta: 0,
+        alpha: 90,
+        alphaDirection: "right" as const,
+        speed: 5,
+        rainfall: 5,
+        tkkMin: 28,
+        tkkMax: 35,
+        tmdMin: 30,
+        tmdMax: 37,
+        humidity: 70,
+      },
+      smokeLineLength: 700,
+      reserveCoefficient: 1.2,
+      vehicleWeights: {},
+    });
+  },
+
   // ── Session Actions ────────────────────────────────────────────────────
 
   fetchSessions: async (mapId: string) => {
@@ -1027,7 +1087,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     const snapshot = getSessionSnapshot(state);
     try {
       const newSession = await simulationSessionService.create(name, snapshot);
-      set((s) => ({ sessions: [newSession, ...s.sessions], activeSessionId: newSession.id }));
+      set((s) => ({
+        sessions: [newSession, ...s.sessions],
+        activeSessionId: newSession.id,
+      }));
       state.toast?.success(`Đã lưu phương án "${name}"`);
     } catch (e: any) {
       const msg = e?.response?.data?.message || "Lưu phương án thất bại!";
@@ -1041,13 +1104,16 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     if (!activeSessionId) return;
     const snapshot = getSessionSnapshot(state);
     try {
-      const updated = await simulationSessionService.update(activeSessionId, { data: snapshot });
+      const updated = await simulationSessionService.update(activeSessionId, {
+        data: snapshot,
+      });
       set((s) => ({
         sessions: s.sessions.map((sess) =>
           sess.id === activeSessionId ? { ...sess, ...updated } : sess,
         ),
       }));
-      const sessionName = sessions.find((s) => s.id === activeSessionId)?.name ?? "";
+      const sessionName =
+        sessions.find((s) => s.id === activeSessionId)?.name ?? "";
       state.toast?.success(`Đã cập nhật phương án "${sessionName}"`);
     } catch (e: any) {
       const msg = e?.response?.data?.message || "Cập nhật phương án thất bại!";

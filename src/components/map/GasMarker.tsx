@@ -8,6 +8,7 @@ export function GasMarker({
   smokeLineLength = 700,
   lineType = "Thẳng",
   lineRole = "Chính",
+  onClick,
 }: {
   center: L.LatLng;
   angle: number;
@@ -15,6 +16,7 @@ export function GasMarker({
   smokeLineLength?: number | "";
   lineType?: string;
   lineRole?: string;
+  onClick?: () => void;
 }) {
   // Tính chiều rộng overlay dựa trên độ dài tuyến khói (mét).
   // SVG viewBox 250, line từ 25→225 (200px = 80%), nên overlay = length / 0.8
@@ -32,6 +34,7 @@ export function GasMarker({
       key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${lineType}-${lineRole}`}
       bounds={bounds}
       attributes={{ viewBox: "0 0 250 250" }}
+      eventHandlers={onClick ? { click: onClick } : undefined}
     >
       <g
         style={{

@@ -143,6 +143,7 @@ export interface SimulationStoreState {
   onAddPoint: () => void;
   onDeletePoint: (id: string) => void;
   onRenamePoint: (id: string, name: string) => void;
+  updatePointLabelCoords: (id: string, coords: L.LatLng) => void;
   onSelectPoint: (id: string) => void;
   onStartEditPoint: (id: string) => void;
   onCancelEditPoint: () => void;
@@ -168,4 +169,5 @@ export interface SimulationStoreState {
   loadSession: (id: string) => Promise<void>;
   renameSession: (id: string, name: string) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
+  resetCurrentSession: () => void;
 }
