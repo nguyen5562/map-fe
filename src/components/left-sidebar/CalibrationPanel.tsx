@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+import { Settings, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
@@ -18,19 +18,25 @@ export const CalibrationPanel = () => {
   const calculateCalibration = useSimulation((s) => s.calculateCalibration);
   return (
     <div
-      className={`space-y-4 p-4 rounded-xl border ${isCalibrated ? "bg-slate-50 border-slate-200 opacity-80" : "bg-blue-50/50 border-blue-200 shadow-sm"}`}
+      className={`rounded-xl border overflow-hidden shadow-sm ${
+        isCalibrated
+          ? "bg-slate-50 border-slate-200 opacity-80"
+          : "bg-blue-50/50 border-blue-200"
+      }`}
     >
-      <div
-        className={`flex items-center justify-between cursor-pointer ${showCalibration ? "border-b border-slate-200 pb-2" : ""}`}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50/80 hover:bg-slate-100/80 transition-colors"
         onClick={() => setShowCalibration(!showCalibration)}
       >
         <div className="flex items-center gap-1 min-w-0">
           <Settings
-            size={16}
-            className={`shrink-0 ${isCalibrated ? "text-slate-400" : "text-blue-600"}`}
+            size={18}
+            className={`shrink-0 ${
+              isCalibrated ? "text-slate-400" : "text-blue-600"
+            }`}
           />
-          <h2 className="text-sm font-bold uppercase tracking-tighter text-slate-700 whitespace-nowrap">
-            1. Hiệu chuẩn hệ tọa độ
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700 whitespace-nowrap">
+            1. Hiệu chuẩn bản đồ
           </h2>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
@@ -47,14 +53,16 @@ export const CalibrationPanel = () => {
               Sửa
             </Button>
           )}
-          <span className="text-slate-400 text-xs">
-            {showCalibration ? "▼" : "▲"}
-          </span>
+          {showCalibration ? (
+            <ChevronUp size={14} className="text-slate-400" />
+          ) : (
+            <ChevronDown size={14} className="text-slate-400" />
+          )}
         </div>
-      </div>
+      </button>
 
       {showCalibration && (
-        <div className="space-y-4 mt-2">
+        <div className="px-4 pb-4 pt-2 space-y-4">
           {!isCalibrated && (
             <p className="text-xs text-slate-600 my-2">
               Áp 2 điểm mốc để quy đổi từ tọa độ ảnh sang Mét (VN-2000).
@@ -64,8 +72,9 @@ export const CalibrationPanel = () => {
           {/* Point 1 */}
           <div className="space-y-2 bg-white p-3 rounded-md border border-slate-200">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-700">
-                📌 Điểm mốc 1
+              <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                <MapPin size={13} className="text-blue-600 shrink-0" />
+                <span>Điểm mốc 1</span>
               </span>
               <Button
                 variant={isSelectingFor === "p1" ? "primary" : "outline"}
@@ -101,8 +110,9 @@ export const CalibrationPanel = () => {
           {/* Point 2 */}
           <div className="space-y-2 bg-white p-3 rounded-md border border-slate-200">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-700">
-                📌 Điểm mốc 2
+              <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                <MapPin size={13} className="text-blue-600 shrink-0" />
+                <span>Điểm mốc 2</span>
               </span>
               <Button
                 variant={isSelectingFor === "p2" ? "primary" : "outline"}

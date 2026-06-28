@@ -11,6 +11,7 @@ import {
   clearAccessToken,
   setUnauthorizedHandler,
 } from "../services/api";
+import { useSimulationStore } from "../store/useSimulationStore";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AuthUser {
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuth = useCallback(() => {
     clearAccessToken();
     setUser(null);
+    useSimulationStore.getState().resetStore();
   }, []);
 
   // Đăng ký handler: khi refresh thất bại trong interceptor → logout

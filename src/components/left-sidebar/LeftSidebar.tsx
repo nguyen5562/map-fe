@@ -12,7 +12,7 @@ import {
   X,
   Save,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CalibrationPanel } from "./CalibrationPanel";
 import { TargetDefensePanel } from "./TargetDefensePanel";
@@ -24,6 +24,7 @@ import { BattlefieldPanel } from "./BattlefieldPanel";
 import { TargetPanel } from "./TargetPanel";
 import { UploadProgressDialog } from "./UploadProgressDialog";
 import { PointsListPanel } from "./PointsListPanel";
+import { SessionPanel } from "./SessionPanel";
 import { useSimulation } from "../../context/SimulationContext";
 
 export const LeftSidebar = () => {
@@ -43,11 +44,18 @@ export const LeftSidebar = () => {
   const currentRealCoords = useSimulation((s) => s.currentRealCoords);
   const selectedPointId = useSimulation((s) => s.selectedPointId);
   const editingPointId = useSimulation((s) => s.editingPointId);
+  const fetchSessions = useSimulation((s) => s.fetchSessions);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProgress, setShowProgress] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [isMapDropdownOpen, setIsMapDropdownOpen] = useState(false);
+
+  // Fetch sessions khi map thay đổi (chỉ load sessions của map đang chọn)
+  useEffect(() => {
+    fetchSessions(currentMap?.id ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMap?.id]);
 
   // Rename modal state
   const [renameModalOpen, setRenameModalOpen] = useState(false);
@@ -243,6 +251,9 @@ export const LeftSidebar = () => {
         <div
           className={`p-4 flex-1 overflow-y-auto space-y-6 ${!currentMap || currentMap.status !== "ready" ? "opacity-50 pointer-events-none" : ""}`}
         >
+          {/* SESSION MANAGER */}
+          <SessionPanel />
+
           {/* LIST OF SAVED POINTS */}
           <PointsListPanel />
 

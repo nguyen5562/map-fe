@@ -25,9 +25,11 @@ export const performCalculation = (inputs: {
   const weights = inputs.vehicleWeights || {};
 
   // --- Thông số mục tiêu ---
-  const L = parseFloat(inputs.targetDefenseData.length) || 0; // dọc theo hướng gió (m)
-  const R = parseFloat(inputs.targetDefenseData.width) || 0; // chính diện hướng gió (m)
-  const D = parseFloat(inputs.targetDefenseData.diameter) || 0; // đường kính tuyến vòng (m)
+  const K = parseFloat(inputs.targetDefenseData.coverageMultiplier) || 1; // hệ số diện tích (lần)
+  const sqrtK = Math.sqrt(K); // nhân mỗi chiều với √K để diện tích tăng K lần
+  const L = (parseFloat(inputs.targetDefenseData.length) || 0) * sqrtK; // dọc theo hướng gió (m), đã nhân √K
+  const R = (parseFloat(inputs.targetDefenseData.width) || 0) * sqrtK; // chính diện hướng gió (m), đã nhân √K
+  const D = (parseFloat(inputs.targetDefenseData.diameter) || 0) * sqrtK; // đường kính tuyến vòng (m), đã nhân √K
 
   // --- Thông số khí tượng ---
   const alpha = Number(inputs.weatherData.alpha); // góc α (°)

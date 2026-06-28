@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wind } from "lucide-react";
+import { Wind, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { DatePickerInput } from "../ui/DatePickerInput";
@@ -39,15 +39,15 @@ export const WeatherPanel = () => {
 
   return (
     <div
-      className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${!isCalibrated ? "opacity-30 pointer-events-none" : ""}`}
+      className={`rounded-xl border bg-white border-slate-200 shadow-sm overflow-hidden transition-opacity ${!isCalibrated ? "opacity-30 pointer-events-none" : ""}`}
     >
-      <div
-        className={`flex items-center justify-between cursor-pointer ${showWeather ? "border-b border-slate-200 pb-2" : ""}`}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
         onClick={() => setShowWeather(!showWeather)}
       >
         <div className="flex items-center gap-2">
           <Wind size={18} className="text-blue-600" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700">
             5. Khí tượng
           </h2>
         </div>
@@ -58,20 +58,21 @@ export const WeatherPanel = () => {
               e.stopPropagation();
               const newState = !weatherActive;
               setWeatherActive(newState);
-              // if (newState) setShowWeather(false);
             }}
             className="h-7 text-xs px-2 w-20"
           >
             {weatherActive ? "Tắt" : "Hiển thị"}
           </Button>
-          <span className="text-slate-400 text-xs ml-1">
-            {showWeather ? "▼" : "▲"}
-          </span>
+          {showWeather ? (
+            <ChevronUp size={14} className="text-slate-400" />
+          ) : (
+            <ChevronDown size={14} className="text-slate-400" />
+          )}
         </div>
-      </div>
+      </button>
 
       {showWeather && (
-        <div className="space-y-4 mt-2">
+        <div className="px-4 pb-4 pt-2 space-y-4">
           {/* Thời gian tác chiến */}
           <div>
             <label className="text-xs font-semibold text-slate-500">

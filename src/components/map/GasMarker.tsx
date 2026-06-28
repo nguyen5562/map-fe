@@ -57,7 +57,7 @@ export function GasMarker({
 
             {/* ^ trái — apex cạnh trên (y=88), chân xuống (y=108) */}
             <path
-              d="M 95,108 L 105,88 L 115,108"
+              d="M 81.67,108 L 91.67,88 L 101.67,108"
               fill="none"
               stroke="#000000"
               strokeWidth="4"
@@ -67,7 +67,7 @@ export function GasMarker({
             />
             {/* ^ phải */}
             <path
-              d="M 135,108 L 145,88 L 155,108"
+              d="M 148.33,108 L 158.33,88 L 168.33,108"
               fill="none"
               stroke="#000000"
               strokeWidth="4"
@@ -78,7 +78,7 @@ export function GasMarker({
 
             {/* V trái — apex cạnh dưới (y=163), chân lên (y=143) */}
             <path
-              d="M 95,143 L 105,163 L 115,143"
+              d="M 81.67,143 L 91.67,163 L 101.67,143"
               fill="none"
               stroke="#000000"
               strokeWidth="4"
@@ -88,7 +88,7 @@ export function GasMarker({
             />
             {/* V phải */}
             <path
-              d="M 135,143 L 145,163 L 155,143"
+              d="M 148.33,143 L 158.33,163 L 168.33,143"
               fill="none"
               stroke="#000000"
               strokeWidth="4"
@@ -138,7 +138,7 @@ export function GasMarker({
 
             {/* Mũi tên V trái */}
             <path
-              d="M 95,105 L 105,125 L 115,105"
+              d="M 81.67,105 L 91.67,125 L 101.67,105"
               fill="none"
               stroke="#000000"
               strokeWidth="4"
@@ -149,7 +149,7 @@ export function GasMarker({
 
             {/* Mũi tên V phải */}
             <path
-              d="M 135,105 L 145,125 L 155,105"
+              d="M 148.33,105 L 158.33,125 L 168.33,105"
               fill="none"
               stroke="#000000"
               strokeWidth="4"

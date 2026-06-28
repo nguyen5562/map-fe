@@ -9,3 +9,4 @@ export { SmokeVehiclePanel } from "./SmokeVehiclePanel";
 export { BattlefieldPanel } from "./BattlefieldPanel";
 export { TargetPanel } from "./TargetPanel";
 export { PointsListPanel } from "./PointsListPanel";
+export { SessionPanel } from "./SessionPanel";

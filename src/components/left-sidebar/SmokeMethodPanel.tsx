@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Route } from "lucide-react";
+import { Route, ChevronDown, ChevronUp } from "lucide-react";
 
 import { useSimulation } from "../../context/SimulationContext";
 
@@ -12,25 +12,29 @@ export const SmokeMethodPanel = () => {
 
   return (
     <div
-      className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
+      className={`rounded-xl border bg-white border-slate-200 shadow-sm overflow-hidden transition-opacity ${
         !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
-      <div
-        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
           <Route size={18} className="text-teal-600" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700">
             2. Phương pháp phát khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
-      </div>
+        {showPanel ? (
+          <ChevronUp size={14} className="text-slate-400" />
+        ) : (
+          <ChevronDown size={14} className="text-slate-400" />
+        )}
+      </button>
 
       {showPanel && (
-        <div className="space-y-4 mt-2">
+        <div className="px-4 pb-4 pt-2 space-y-4">
           {/* Theo tuyến */}
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-2 block">

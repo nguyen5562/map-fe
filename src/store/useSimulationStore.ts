@@ -1,9 +1,12 @@
 import { create } from "zustand";
+import L from "leaflet";
 import { mapService } from "../services/map.service";
+import { simulationSessionService } from "../services/simulationSession.service";
 import { performCalculation, aggregateResults } from "../utils/simulationMath";
 import { validateInputs } from "../utils/simulationValidation";
 import type { SimulationStoreState } from "../types/simulation";
 import { convertRawToReal, convertRealToRaw } from "../utils/calibrationMath";
+import { getSessionSnapshot } from "../types/simulationSession";
 
 const captureCurrentStateAsDraft = (state: any) => {
   return {
@@ -30,6 +33,9 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   currentMap: null,
   isUploading: false,
   uploadProgress: 0,
+  sessions: [],
+  isSessionsLoading: false,
+  activeSessionId: null,
   clickedRaw: null,
   currentRealCoords: null,
   isCalibrated: false,
@@ -64,7 +70,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     area: "15",
     coverageMultiplier: "10",
   },
-  smokeTime: { fromH: "", fromM: "", toH: "", toM: "" },
+  smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
   smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
   selectedVehicles: [],
   vehicleConfigs: {},
@@ -529,7 +535,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         drafts: updatedDrafts,
       });
 
-      toast?.success(`Đã lưu mục tiêu mới: Điểm ${updatedPointsList.length}`);
+      toast?.success(`Đã lưu mục tiêu mới: ${newPoint.name}`);
     }
   },
 
@@ -885,9 +891,14 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       if (!isCalibrated)
         return toast?.error("Bạn cần hiệu chuẩn bản đồ trước!");
 
+      const baseName = targetDefenseData.targetType || "Mục tiêu";
+      const sameTypeCount = pointsList.filter(
+        (p) => p.targetDefenseData?.targetType === baseName,
+      ).length;
+
       const newPoint = {
         id: Math.random().toString(36).substring(2, 9),
-        name: `Điểm ${pointsList.length + 1}`,
+        name: `${baseName} ${sameTypeCount + 1}`,
         coords: clickedRaw,
         realCoords: rawToReal(clickedRaw.lng, clickedRaw.lat),
         targetDefenseData: { ...targetDefenseData },
@@ -926,5 +937,216 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       clickedRaw: null,
       currentRealCoords: null,
     });
+  },
+
+  resetStore: () => {
+    set({
+      maps: [],
+      currentMap: null,
+      isUploading: false,
+      uploadProgress: 0,
+      clickedRaw: null,
+      currentRealCoords: null,
+      isCalibrated: false,
+      showCalibration: true,
+      showWeather: true,
+      isSelectingFor: null,
+      p1: { rawX: null, rawY: null, realX: "", realY: "" },
+      p2: { rawX: null, rawY: null, realX: "", realY: "" },
+      scale: { x: 1, y: 1 },
+      searchX: "",
+      searchY: "",
+      pointsList: [],
+      results: null,
+      selectedPointId: null,
+      editingPointId: null,
+      drafts: {},
+      targetDefenseData: {
+        targetType: "Trận địa hỏa lực",
+        length: "500",
+        width: "300",
+        diameter: "500",
+        area: "15",
+        coverageMultiplier: "10",
+      },
+      smokeTime: { fromH: "", fromM: "", toH: "", toM: "" },
+      smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
+      selectedVehicles: [],
+      vehicleConfigs: {},
+      originalVehicleConfigs: {},
+      battlefieldData: {
+        firePoints: { distance: "100", direction: "Bắc" },
+        commandPost: { distance: "300", direction: "Bắc" },
+        reserveUnit: { distance: "200", direction: "Bắc" },
+      },
+      weatherActive: false,
+      weatherData: {
+        combatTime: "01.05.26",
+        windDirection: "Tây Bắc",
+        windAngle: 315,
+        secondaryWindDirection: "Tây",
+        secondaryWindAngle: 270,
+        beta: 0,
+        alpha: 90,
+        alphaDirection: "right" as const,
+        speed: 5,
+        rainfall: 5,
+        tkkMin: 28,
+        tkkMax: 35,
+        tmdMin: 30,
+        tmdMax: 37,
+        humidity: 70,
+      },
+      smokeLineLength: 700,
+      reserveCoefficient: 1.2,
+      vehicleWeights: {},
+    });
+  },
+
+  // ── Session Actions ────────────────────────────────────────────────────
+
+  fetchSessions: async (mapId: string) => {
+    if (!mapId) {
+      set({ sessions: [] });
+      return;
+    }
+    set({ isSessionsLoading: true });
+    try {
+      const sessions = await simulationSessionService.getAll(mapId);
+      set({ sessions });
+    } catch (e) {
+      console.error("Không thể tải danh sách phương án", e);
+      get().toast?.error("Không thể tải danh sách phương án.");
+    } finally {
+      set({ isSessionsLoading: false });
+    }
+  },
+
+  saveSession: async (name: string) => {
+    const state = get();
+    const snapshot = getSessionSnapshot(state);
+    try {
+      const newSession = await simulationSessionService.create(name, snapshot);
+      set((s) => ({ sessions: [newSession, ...s.sessions], activeSessionId: newSession.id }));
+      state.toast?.success(`Đã lưu phương án "${name}"`);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || "Lưu phương án thất bại!";
+      get().toast?.error(msg);
+    }
+  },
+
+  updateCurrentSession: async () => {
+    const state = get();
+    const { activeSessionId, sessions } = state;
+    if (!activeSessionId) return;
+    const snapshot = getSessionSnapshot(state);
+    try {
+      const updated = await simulationSessionService.update(activeSessionId, { data: snapshot });
+      set((s) => ({
+        sessions: s.sessions.map((sess) =>
+          sess.id === activeSessionId ? { ...sess, ...updated } : sess,
+        ),
+      }));
+      const sessionName = sessions.find((s) => s.id === activeSessionId)?.name ?? "";
+      state.toast?.success(`Đã cập nhật phương án "${sessionName}"`);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || "Cập nhật phương án thất bại!";
+      get().toast?.error(msg);
+    }
+  },
+
+  loadSession: async (id: string) => {
+    const state = get();
+    try {
+      const session = await simulationSessionService.getById(id);
+      const { data } = session;
+
+      // Fallback & Merge: lấy initialState làm base để đảm bảo không bị undefined
+      // với các field mới được thêm sau này
+      set({
+        // Calibration
+        p1: data.p1 ?? state.p1,
+        p2: data.p2 ?? state.p2,
+        scale: data.scale ?? state.scale,
+        isCalibrated: !!(
+          data.p1?.rawX &&
+          data.p1?.rawY &&
+          data.p2?.rawX &&
+          data.p2?.rawY
+        ),
+        // Points
+        pointsList: data.pointsList ?? [],
+        clickedRaw: data.clickedRaw
+          ? L.latLng(data.clickedRaw.lat, data.clickedRaw.lng)
+          : null,
+        currentRealCoords: data.currentRealCoords ?? null,
+        selectedPointId: data.pointsList?.length
+          ? (data.pointsList[data.pointsList.length - 1]?.id ?? null)
+          : null,
+        editingPointId: null,
+        drafts: data.drafts ?? {},
+        results: data.pointsList?.length
+          ? aggregateResults(data.pointsList)
+          : null,
+        // Form data
+        targetDefenseData: data.targetDefenseData ?? state.targetDefenseData,
+        smokeMethodData: data.smokeMethodData ?? state.smokeMethodData,
+        selectedVehicles: data.selectedVehicles ?? [],
+        vehicleConfigs: data.vehicleConfigs ?? {},
+        vehicleWeights: data.vehicleWeights ?? {},
+        battlefieldData: data.battlefieldData ?? state.battlefieldData,
+        weatherData: data.weatherData ?? state.weatherData,
+        weatherActive: data.weatherActive ?? false,
+        smokeTime: data.smokeTime ?? state.smokeTime,
+        smokeLineLength: data.smokeLineLength ?? 700,
+        reserveCoefficient: data.reserveCoefficient ?? 1.2,
+      });
+
+      // Fetch bản đồ tương ứng nếu mapId có giá trị
+      if (data.mapId) {
+        const map = state.maps.find((m) => m.id === data.mapId);
+        if (map) {
+          set({ currentMap: map });
+        } else {
+          // Bản đồ không còn trong danh sách - hiển thị cảnh báo
+          state.toast?.error(
+            "Bản đồ gốc của phương án này đã bị xóa. Vui lòng chọn bản đồ khác.",
+          );
+          set({ currentMap: null });
+        }
+      }
+
+      state.toast?.success(`Đã tải phương án "${session.name}"`);
+      set({ activeSessionId: id });
+    } catch (e) {
+      console.error("Không thể tải phương án", e);
+      get().toast?.error("Không thể tải phương án.");
+    }
+  },
+
+  renameSession: async (id: string, name: string) => {
+    try {
+      const updated = await simulationSessionService.update(id, { name });
+      set((s) => ({
+        sessions: s.sessions.map((sess) =>
+          sess.id === id ? { ...sess, ...updated } : sess,
+        ),
+      }));
+      get().toast?.success(`Đã đổi tên thành "${name}"`);
+    } catch (e) {
+      get().toast?.error("Đổi tên phương án thất bại!");
+    }
+  },
+
+  deleteSession: async (id: string) => {
+    try {
+      await simulationSessionService.delete(id);
+      set((s) => ({
+        sessions: s.sessions.filter((sess) => sess.id !== id),
+      }));
+      get().toast?.success("Đã xóa phương án.");
+    } catch (e) {
+      get().toast?.error("Xóa phương án thất bại!");
+    }
   },
 }));

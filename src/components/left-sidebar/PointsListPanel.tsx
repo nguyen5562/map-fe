@@ -1,4 +1,4 @@
-import { MapPin, Trash2, Edit, X } from "lucide-react";
+import { MapPin, Trash2, Edit, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 
 import { useSimulation } from "../../context/SimulationContext";
@@ -34,24 +34,29 @@ export const PointsListPanel = () => {
   };
 
   return (
-    <div className="space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm">
-      <div
-        className={`flex items-center justify-between cursor-pointer select-none ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
+    <div className="rounded-xl border bg-white border-slate-200 shadow-sm overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors select-none"
         onClick={() => setShowPanel(!showPanel)}
       >
-        <div className="flex items-center gap-1 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
           <MapPin size={18} className="text-indigo-600 shrink-0" />
           <h2 className="text-sm font-bold uppercase tracking-tight text-slate-700 truncate">
-            Danh sách trận địa khói ({pointsList.length})
+            Danh sách trận địa khói
           </h2>
+          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold shrink-0">
+            {pointsList.length}
+          </span>
         </div>
-        <span className="text-slate-400 text-xs shrink-0 ml-1">
-          {showPanel ? "▼" : "▲"}
-        </span>
-      </div>
+        {showPanel ? (
+          <ChevronUp size={14} className="text-slate-400 shrink-0 ml-1" />
+        ) : (
+          <ChevronDown size={14} className="text-slate-400 shrink-0 ml-1" />
+        )}
+      </button>
 
       {showPanel && (
-        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+        <div className="px-4 pb-3 pt-2 space-y-2 max-h-[160px] overflow-y-auto">
           {pointsList.length === 0 ? (
             <p className="text-xs text-slate-400 italic py-2 text-center">
               Chưa có điểm nào được lưu. Click bản đồ và bấm "Điểm kế tiếp".
@@ -92,19 +97,24 @@ export const PointsListPanel = () => {
                         />
                       </div>
                     ) : (
-                      <p className="text-xs font-bold text-slate-700 flex items-center gap-1 group">
+                      <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5 group">
                         <span
-                          className="cursor-pointer hover:underline flex items-center gap-0.5"
+                          className="cursor-pointer hover:underline flex items-center gap-1"
                           onClick={(e) => {
                             e.stopPropagation();
                             startEdit(p, idx);
                           }}
                           title="Click để đổi tên"
                         >
-                          📍 {p.name || `Điểm ${idx + 1}`}
-                          <span className="opacity-0 group-hover:opacity-100 text-[10px] text-blue-500 transition-opacity ml-1">
-                            ✏️
-                          </span>
+                          <MapPin
+                            size={12}
+                            className="text-emerald-600 shrink-0"
+                          />
+                          <span>{p.name || `Điểm ${idx + 1}`}</span>
+                          <Edit
+                            size={10}
+                            className="opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity ml-1 shrink-0"
+                          />
                         </span>
                         <span className="text-[10px] font-normal text-slate-400 shrink-0">
                           ({methodType} - {vehicleName})
@@ -175,8 +185,9 @@ export const PointsListPanel = () => {
               }`}
             >
               <div className="flex-1 min-w-0 pr-2">
-                <p className="text-xs font-bold text-amber-700">
-                  📍 * Mục tiêu tạm (Chưa lưu)
+                <p className="text-xs font-bold text-amber-700 flex items-center gap-1">
+                  <MapPin size={12} className="text-amber-700 shrink-0" />
+                  <span>* Mục tiêu tạm (Chưa lưu)</span>
                 </p>
                 <p className="text-[10px] text-slate-500 italic mt-0.5">
                   Nhấp để quay lại nhập liệu & lưu

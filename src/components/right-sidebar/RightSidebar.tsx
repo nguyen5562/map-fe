@@ -10,6 +10,8 @@ import {
   Clock,
   Crosshair,
   TriangleAlert,
+  MapPin,
+  BarChart3,
 } from "lucide-react";
 import { useSimulation } from "../../context/SimulationContext";
 
@@ -165,8 +167,9 @@ export const RightSidebar = () => {
           {hasResults && activeTab === "detail" && selectedPoint && (
             <>
               {/* Point Indicator Title */}
-              <div className="px-1 text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1">
-                <span>📍 Đang xem:</span>
+              <div className="px-1 text-[11px] font-bold text-blue-600 uppercase tracking-wide flex items-center gap-1.5">
+                <MapPin size={13} className="text-blue-600 shrink-0" />
+                <span>Đang xem:</span>
                 <span className="underline">{selectedPoint.name}</span>
               </div>
 
@@ -359,8 +362,9 @@ export const RightSidebar = () => {
           {hasResults && activeTab === "summary" && pointsList.length >= 2 && (
             <>
               {/* Summary Indicator Title */}
-              <div className="px-1 text-[11px] font-bold text-indigo-650 uppercase tracking-wide flex items-center gap-1">
-                <span>📊 Đang xem:</span>
+              <div className="px-1 text-[11px] font-bold text-indigo-650 uppercase tracking-wide flex items-center gap-1.5">
+                <BarChart3 size={13} className="text-indigo-650 shrink-0" />
+                <span>Đang xem:</span>
                 <span className="underline">Tổng hợp toàn bộ các trận địa</span>
               </div>
 

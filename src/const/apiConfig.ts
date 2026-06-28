@@ -15,4 +15,5 @@ export const API_ROUTES = {
   DOCUMENTS: "/documents",
   VEHICLES: "/vehicles",
   FEEDBACK: "/feedback",
+  SIMULATION_SESSIONS: "/simulation-session",
 };

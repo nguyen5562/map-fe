@@ -8,6 +8,7 @@ import type {
   SmokeMethodData,
   WeatherData,
 } from "../context/SimulationContext";
+import type { SimulationSessionMeta } from "./simulationSession";
 
 export interface SimulationStoreState {
   // Toast reference
@@ -154,4 +155,17 @@ export interface SimulationStoreState {
   rawToReal: (rx: number, ry: number) => { x: number; y: number };
   realToRaw: (realX: number, realY: number) => L.LatLng | null;
   syncCalibration: () => void;
+  resetStore: () => void;
+
+  // ── Session Management ────────────────────────────────────────────────────
+  sessions: SimulationSessionMeta[];
+  isSessionsLoading: boolean;
+  activeSessionId: string | null;
+
+  fetchSessions: (mapId: string) => Promise<void>;
+  saveSession: (name: string) => Promise<void>;
+  updateCurrentSession: () => Promise<void>;
+  loadSession: (id: string) => Promise<void>;
+  renameSession: (id: string, name: string) => Promise<void>;
+  deleteSession: (id: string) => Promise<void>;
 }

@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Layers } from "lucide-react";
+import {
+  Layers,
+  Flame,
+  Eye,
+  Shield,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Input } from "../ui/Input";
 
 const DIRECTIONS = [
@@ -81,30 +88,34 @@ export const BattlefieldPanel = () => {
 
   return (
     <div
-      className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
+      className={`rounded-xl border bg-white border-slate-200 shadow-sm overflow-hidden transition-opacity ${
         !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
       {/* Header */}
-      <div
-        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
           <Layers size={18} className="text-rose-600" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            8. Thành phần, cấu trúc trận địa khói
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700">
+            8. cấu trúc trận địa khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
-      </div>
+        {showPanel ? (
+          <ChevronUp size={14} className="text-slate-400" />
+        ) : (
+          <ChevronDown size={14} className="text-slate-400" />
+        )}
+      </button>
 
       {showPanel && (
-        <div className="space-y-3 mt-2">
+        <div className="px-4 pb-4 pt-2 space-y-3">
           {/* Vị trí điểm hỏa */}
           <div>
             <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <span>🔥</span> Vị trí điểm hỏa
+              <Flame size={14} className="text-orange-500" /> Vị trí điểm hỏa
             </label>
             <PositionInput
               value={battlefieldData.firePoints}
@@ -117,7 +128,8 @@ export const BattlefieldPanel = () => {
           {/* Vị trí chỉ huy, quan sát */}
           <div>
             <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <span>🎖️</span> Vị trí chỉ huy, quan sát
+              <Eye size={14} className="text-blue-500" /> Vị trí chỉ huy, quan
+              sát
             </label>
             <PositionInput
               value={battlefieldData.commandPost}
@@ -130,7 +142,8 @@ export const BattlefieldPanel = () => {
           {/* Vị trí bộ phận dự bị, bảo đảm */}
           <div>
             <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <span>🛡️</span> Vị trí bộ phận dự bị, bảo đảm
+              <Shield size={14} className="text-emerald-500" /> Vị trí bộ phận
+              dự bị, bảo đảm
             </label>
             <PositionInput
               value={battlefieldData.reserveUnit}

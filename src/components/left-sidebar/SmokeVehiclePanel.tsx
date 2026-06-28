@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Truck, RotateCcw, AlertTriangle } from "lucide-react";
+import {
+  Truck,
+  RotateCcw,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 export type VehicleConfig = {
   id: string;
@@ -82,25 +88,29 @@ export const SmokeVehiclePanel = () => {
 
   return (
     <div
-      className={`space-y-4 p-4 rounded-xl border bg-white border-slate-200 shadow-sm transition-opacity ${
+      className={`rounded-xl border bg-white border-slate-200 shadow-sm overflow-hidden transition-opacity ${
         !isCalibrated ? "opacity-30 pointer-events-none" : ""
       }`}
     >
-      <div
-        className={`flex items-center justify-between cursor-pointer ${showPanel ? "border-b border-slate-200 pb-2" : ""}`}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
         onClick={() => setShowPanel(!showPanel)}
       >
         <div className="flex items-center gap-2">
           <Truck size={18} className="text-orange-600" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            7. Lựa chọn phương tiện thả khói
+          <h2 className="text-sm font-bold tracking-wide uppercase text-slate-700">
+            7. Phương tiện thả khói
           </h2>
         </div>
-        <span className="text-slate-400 text-xs">{showPanel ? "▼" : "▲"}</span>
-      </div>
+        {showPanel ? (
+          <ChevronUp size={14} className="text-slate-400" />
+        ) : (
+          <ChevronDown size={14} className="text-slate-400" />
+        )}
+      </button>
 
       {showPanel && (
-        <div className="mt-2 space-y-3">
+        <div className="px-4 pb-4 pt-2 mt-0 space-y-3">
           <div className="flex flex-wrap gap-2">
             {sortedVehicles.map((v) => {
               const isSelected = selectedVehicles.includes(v.id);
@@ -308,32 +318,30 @@ export const SmokeVehiclePanel = () => {
           )}
 
           {/* Hệ số dự phòng (Tách ra riêng biệt) */}
-          {selectedVehicles.length > 0 && (
-            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-450 block uppercase tracking-wider">
-                Hệ số phương tiện, khí tài bổ trợ, dự bị
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step={0.1}
-                  min={1}
-                  value={reserveCoefficient}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setReserveCoefficient(val === "" ? "" : parseFloat(val));
-                  }}
-                  className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
-                  lần
-                </span>
-              </div>
-              <p className="text-[9px] text-slate-400">
-                Mặc định 1.2 (dự phòng 20%)
-              </p>
+          <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-450 block uppercase tracking-wider">
+              Hệ số phương tiện, khí tài bổ trợ, dự bị
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step={0.1}
+                min={1}
+                value={reserveCoefficient}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setReserveCoefficient(val === "" ? "" : parseFloat(val));
+                }}
+                className="w-full h-8 px-2 pr-6 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                lần
+              </span>
             </div>
-          )}
+            <p className="text-[9px] text-slate-400">
+              Mặc định 1.2 (dự phòng 20%)
+            </p>
+          </div>
         </div>
       )}
     </div>

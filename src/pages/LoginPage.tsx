@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  LogIn,
+  User,
+  Lock,
+  LifeBuoy,
+  FileText,
+  Download,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 
@@ -36,21 +45,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
-      {/* ── LEFT PANEL: Ảnh nền diễn tập ── */}
-      <div className="hidden lg:flex lg:w-3/5 relative">
-        {/* Background image */}
+    <div className="min-h-screen flex overflow-hidden relative bg-[#0d1117]">
+      {/* ── LEFT PANEL ── */}
+      <div className="hidden lg:flex lg:w-3/5 relative overflow-hidden bg-zinc-950">
+        {/* Background image constrained to the left panel only */}
         <img
           src="/smoke-bg-2.jpg"
           alt="Diễn tập Binh chủng Hóa học"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
         />
-        {/* Dark overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+        {/* Dark overlay gradients inside the left panel */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/25 pointer-events-none" />
 
         {/* Content over image */}
-        <div className="relative z-10 flex flex-col justify-between p-10 w-full">
+        <div className="relative z-10 flex flex-col justify-between p-10 w-full h-full">
           {/* Top logo area */}
           <div className="flex items-center gap-3">
             <img
@@ -81,28 +90,16 @@ export default function LoginPage() {
               <br />
               <span className="text-emerald-400">Khí tài phát khói</span>
             </h1>
-            <p className="text-white/60 text-sm max-w-sm leading-relaxed">
+            <p className="text-white/60 text-sm max-w-sm leading-relaxed mb-6">
               Hệ thống hỗ trợ mô phỏng và tính toán phương án triển khai màn
               khói ngụy trang trong tác chiến.
             </p>
-
-            {/* <div className="mt-6 flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-yellow-400 font-black text-xl">BÍ MẬT</p>
-                <p className="text-white/40 text-[10px] uppercase tracking-wider">Cấp độ bảo mật</p>
-              </div>
-              <div className="w-px h-8 bg-white/20" />
-              <div className="text-center">
-                <p className="text-white font-bold text-sm">PHÒNG HÓA</p>
-                <p className="text-white/40 text-[10px] uppercase tracking-wider">Đơn vị sử dụng</p>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>
 
       {/* ── RIGHT PANEL: Form đăng nhập ── */}
-      <div className="flex-1 flex flex-col bg-[#0d1117] relative overflow-hidden">
+      <div className="flex-1 flex flex-col bg-[#0d1117] border-l border-white/5 relative overflow-hidden z-10">
         {/* Subtle texture */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -113,12 +110,9 @@ export default function LoginPage() {
           }}
         />
 
-        {/* Glow accent top-right */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col flex-1 justify-center px-8 sm:px-12 lg:px-16 max-w-md w-full mx-auto">
+        <div className="relative z-10 flex flex-col flex-1 justify-center pt-12 lg:pt-36 pb-6 px-8 sm:px-12 lg:px-16 max-w-md w-full mx-auto">
           {/* Mobile logo (shown only on small screens) */}
-          <div className="flex lg:hidden items-center gap-3 mb-10">
+          <div className="flex lg:hidden items-center gap-3 mb-8">
             <img
               src="/favicon.ico"
               alt="Logo"
@@ -133,16 +127,20 @@ export default function LoginPage() {
           </div>
 
           {/* Heading */}
-          {/* <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-1 h-5 bg-yellow-400 rounded-full" />
-              <span className="text-yellow-400 text-xs font-semibold uppercase tracking-widest">
+          <div className="mb-6">
+            {/* <div className="flex items-center gap-2 mb-2">
+              <div className="w-1 h-5 bg-emerald-400 rounded-full" />
+              <span className="text-emerald-400 text-xs font-semibold uppercase tracking-widest">
                 Xác thực danh tính
               </span>
-            </div>
-            <h2 className="text-white text-2xl font-black tracking-wide">ĐĂNG NHẬP HỆ THỐNG</h2>
-            <p className="text-white/40 text-xs mt-1">Chỉ dành cho cán bộ được cấp quyền truy cập</p>
-          </div> */}
+            </div> */}
+            <h2 className="text-white text-2xl font-black tracking-wide animate-fade-in">
+              ĐĂNG NHẬP HỆ THỐNG
+            </h2>
+            {/* <p className="text-white/40 text-xs mt-1">
+              Chỉ dành cho cán bộ được cấp quyền truy cập
+            </p> */}
+          </div>
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
@@ -223,18 +221,62 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Divider + security note */}
-          {/* <div className="mt-8 pt-6 border-t border-white/5">
-            <p className="text-white/20 text-[10px] text-center leading-relaxed uppercase tracking-wider">
-              Hệ thống bảo mật - Mọi hoạt động đều được ghi lại nhật ký
-            </p>
-          </div> */}
+          {/* Support and Manual section directly below the button */}
+          <div className="mt-6 pt-5 border-t border-white/10 space-y-4">
+            {/* Hotlines */}
+            <div className="space-y-2">
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5 text-emerald-400 font-bold uppercase tracking-wider text-[10px]">
+                  <LifeBuoy size={12} className="animate-pulse" />
+                  <span>Hỗ trợ kỹ thuật</span>
+                </div>
+                <div className="text-white/45 text-[9px] uppercase tracking-wider pl-[18px] font-semibold pt-[3px]">
+                  Trường Sĩ quan Phòng hóa, Binh chủng Hóa học
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-1.5 text-xs text-white/60">
+                <div className="flex items-center justify-between hover:bg-white/5 px-2 py-1.5 rounded-lg transition">
+                  <span>Nguyễn Văn Hưng</span>
+                  <span className="font-mono font-bold text-emerald-400">
+                    0979.100.804
+                  </span>
+                </div>
+                <div className="flex items-center justify-between hover:bg-white/5 px-2 py-1.5 rounded-lg transition">
+                  <span>Nguyễn Khôi Nguyên</span>
+                  <span className="font-mono font-bold text-emerald-400">
+                    0354.866.976
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* User Manual Button */}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                toast.info(
+                  "Chức năng tải tài liệu hướng dẫn sẽ khả dụng khi tệp tin được cập nhật.",
+                );
+              }}
+              className="flex items-center justify-between bg-white/5 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/20 text-white/80 hover:text-emerald-300 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-2">
+                <FileText size={13} className="text-emerald-500/70" />
+                <span>Tài liệu hướng dẫn sử dụng</span>
+              </div>
+              <Download
+                size={13}
+                className="text-white/40 hover:text-white/70 transition-colors"
+              />
+            </a>
+          </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="relative z-10 px-8 py-4 border-t border-white/5">
+        <div className="relative z-10 px-8 py-4 border-t border-white/5 mt-auto">
           <p className="text-white/20 text-[10px] text-center">
-            © 2026 Binh chủng Hóa học : Quân đội Nhân dân Việt Nam
+            © 2026 - Trường Sĩ quan Phòng hóa, Binh chủng Hóa học
           </p>
         </div>
       </div>
