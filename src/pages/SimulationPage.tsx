@@ -86,6 +86,60 @@ const DIRECTION_ANGLES: Record<string, number> = {
   "Tây Bắc": 315,
 };
 
+/**
+ * Calculates the intersection point on the boundary of the rotated rectangle/line
+ * so the leader line doesn't penetrate to the center.
+ */
+function getLeaderLineIntersection(
+  center: L.LatLng,
+  labelAnchor: L.LatLng,
+  angleDegrees: number,
+  rawWidth: number,
+  lineType: string,
+): L.LatLng {
+  // Fallback check to avoid any issues with scale/NaN
+  if (!rawWidth || isNaN(rawWidth)) {
+    return center;
+  }
+
+  // Rectangle dimensions relative to 250 viewBox unit of the SVG overlay
+  const wHalf = 0.4 * rawWidth; // 100/250 * rawWidth
+  const hHalf = (lineType === "Vòng" ? 0.15 : 0.02) * rawWidth; // 37.5/250 or 5/250
+
+  const xc = center.lng;
+  const yc = center.lat;
+  const xp = labelAnchor.lng;
+  const yp = labelAnchor.lat;
+
+  // GasMarker rotates the SVG by (angle + 180) degrees.
+  const angleRad = ((angleDegrees + 180) * Math.PI) / 180;
+
+  // Transform label anchor to the local coordinate system of the rotated marker (CW rotation)
+  const dx = xp - xc;
+  const dy = yp - yc;
+  const u = dx * Math.cos(angleRad) - dy * Math.sin(angleRad);
+  const v = dx * Math.sin(angleRad) + dy * Math.cos(angleRad);
+
+  // Find intersection scaling factor t
+  const tU = u !== 0 ? wHalf / Math.abs(u) : Infinity;
+  const tV = v !== 0 ? hHalf / Math.abs(v) : Infinity;
+  const t = Math.min(1, tU, tV);
+
+  // Intersection coordinates in local system
+  const ui = t * u;
+  const vi = t * v;
+
+  // Transform back to LatLng coordinates (CW inverse rotation)
+  const xi = xc + ui * Math.cos(angleRad) + vi * Math.sin(angleRad);
+  const yi = yc - ui * Math.sin(angleRad) + vi * Math.cos(angleRad);
+
+  if (isNaN(xi) || isNaN(yi)) {
+    return center;
+  }
+
+  return L.latLng(yi, xi);
+}
+
 function SimulationInner() {
   const maps = useSimulation((s) => s.maps);
   const currentMap = useSimulation((s) => s.currentMap);
@@ -311,10 +365,16 @@ function SimulationInner() {
                   ? labelCenter.lng - halfLineLng
                   : labelCenter.lng + halfLineLng;
 
-                leaderLinePoints = [
+                const labelAnchor = L.latLng(dividerLat, dividerLng);
+                const intersectionPoint = getLeaderLineIntersection(
                   markerCoords,
-                  L.latLng(dividerLat, dividerLng),
-                ];
+                  labelAnchor,
+                  compSmokeAngle,
+                  rawWidth,
+                  p.smokeMethodData?.lineType ?? "Thẳng",
+                );
+
+                leaderLinePoints = [intersectionPoint, labelAnchor];
               }
 
               return weatherActive ? (

@@ -57,4 +57,11 @@ export const documentService = {
     );
     return response.data;
   },
+  renameFolder: async (sectionId: string, oldName: string, newName: string) => {
+    const response = await api.put(
+      `${API_ROUTES.DOCUMENTS}/sections/${sectionId}/folders/rename`,
+      { oldName, newName },
+    );
+    return response.data;
+  },
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import {
   BookOpen,
   ChevronRight,
+  ChevronDown,
   FileText,
   ExternalLink,
   Users,
@@ -15,6 +16,7 @@ import {
   AlertTriangle,
   Mail,
   Image as ImageIcon,
+  Folder,
 } from "lucide-react";
 import { documentService } from "../services/document.service";
 import { resolveBackendUrl } from "../utils/url";
@@ -50,9 +52,12 @@ const AUTHORS = [
 
 // ── SECTION TYPES ─────────────────────────────────────────
 type DocItem = {
+  id: string;
   title: string;
-  type: "pdf" | "drawing" | "word" | "excel" | "powerpoint" | "image";
+  type: string;
   classified?: boolean;
+  url?: string;
+  folder?: string | null;
 };
 
 type Section = {
@@ -68,35 +73,50 @@ const FILE_BADGE: Record<string, { label: string; color: string }> = {
     label: "PDF",
     color: "bg-rose-50 text-rose-600 border border-rose-100/70",
   },
-  drawing: {
-    label: "DRAWING",
-    color: "bg-sky-50 text-sky-600 border border-sky-100/70",
-  },
   word: {
     label: "WORD",
     color: "bg-blue-50 text-blue-600 border border-blue-100/70",
   },
   excel: {
     label: "EXCEL",
-    color: "bg-green-50 text-green-700 border border-green-100/70",
+    color: "bg-emerald-50 text-emerald-700 border border-emerald-100/70",
   },
   powerpoint: {
     label: "SLIDE",
-    color: "bg-orange-50 text-orange-600 border border-orange-100/70",
+    color: "bg-orange-50 text-orange-655 border border-orange-100/70",
   },
   image: {
-    label: "IMAGE",
-    color: "bg-purple-50 text-purple-600 border border-purple-100/70",
+    label: "HÌNH ẢNH",
+    color: "bg-purple-50 text-purple-650 border border-purple-100/70",
+  },
+  drawing: {
+    label: "BẢN VẼ",
+    color: "bg-sky-50 text-sky-655 border border-sky-100/70",
+  },
+  zip: {
+    label: "NÉN",
+    color: "bg-amber-50 text-amber-700 border border-amber-100/70",
+  },
+  txt: {
+    label: "VĂN BẢN",
+    color: "bg-slate-50 text-slate-600 border border-slate-200",
+  },
+  other: {
+    label: "TÀI LIỆU",
+    color: "bg-slate-50 text-slate-600 border border-slate-200",
   },
 };
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   pdf: <FileText size={13} />,
-  drawing: <PenTool size={13} />,
   word: <FileText size={13} />,
   excel: <FileDown size={13} />,
   powerpoint: <FileText size={13} />,
   image: <ImageIcon size={13} />,
+  drawing: <PenTool size={13} />,
+  zip: <FileText size={13} />,
+  txt: <FileText size={13} />,
+  other: <FileText size={13} />,
 };
 
 // ── ABOUT MODAL ───────────────────────────────────────────
@@ -207,6 +227,9 @@ export default function DocsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeDoc, setActiveDoc] = useState<any | null>(null);
+  const [collapsedFolders, setCollapsedFolders] = useState<
+    Record<string, boolean>
+  >({});
 
   const handleDownload = (
     e: React.MouseEvent,
@@ -555,48 +578,141 @@ export default function DocsPage() {
                     <div className="border-t border-slate-100">
                       {section.items && section.items.length > 0 ? (
                         <div className="divide-y divide-slate-100">
-                          {section.items.map((item: any, i: number) => {
-                            const badge =
-                              FILE_BADGE[item.type] || FILE_BADGE.pdf;
-                            return (
-                              <div
-                                key={i}
-                                onClick={() => {
-                                  if (item.url) setActiveDoc(item);
-                                }}
-                                className={`flex items-center justify-between px-5 py-3.5 ${
-                                  item.url
-                                    ? "hover:bg-emerald-50/40 cursor-pointer"
-                                    : "cursor-default"
-                                } transition-colors group`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <span
-                                    className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
+                          {(() => {
+                            const folderGroups: Record<string, any[]> = {};
+                            section.items.forEach((item: any) => {
+                              if (item.folder) {
+                                if (!folderGroups[item.folder]) {
+                                  folderGroups[item.folder] = [];
+                                }
+                                folderGroups[item.folder].push(item);
+                              }
+                            });
+
+                            const uiList: any[] = [];
+                            const renderedFolders = new Set<string>();
+
+                            section.items.forEach((item: any) => {
+                              if (item.folder) {
+                                if (!renderedFolders.has(item.folder)) {
+                                  renderedFolders.add(item.folder);
+                                  uiList.push({
+                                    type: "folder",
+                                    name: item.folder,
+                                  });
+
+                                  const collapseKey = `${section.id}-${item.folder}`;
+                                  if (!collapsedFolders[collapseKey]) {
+                                    folderGroups[item.folder].forEach(
+                                      (f: any) => {
+                                        uiList.push({
+                                          type: "item",
+                                          item: f,
+                                          folderName: item.folder,
+                                        });
+                                      },
+                                    );
+                                  }
+                                }
+                              } else {
+                                uiList.push({ type: "item", item });
+                              }
+                            });
+
+                            return uiList.map((entry) => {
+                              if (entry.type === "folder") {
+                                const folderName = entry.name;
+                                const collapseKey = `${section.id}-${folderName}`;
+                                const isCollapsed =
+                                  collapsedFolders[collapseKey];
+                                const toggleCollapse = (
+                                  e: React.MouseEvent,
+                                ) => {
+                                  e.stopPropagation();
+                                  setCollapsedFolders((prev) => ({
+                                    ...prev,
+                                    [collapseKey]: !prev[collapseKey],
+                                  }));
+                                };
+
+                                return (
+                                  <div
+                                    key={`folder-${folderName}`}
+                                    onClick={toggleCollapse}
+                                    className="flex items-center justify-between p-2.5 px-5 bg-slate-50/50 hover:bg-slate-100/50 border-b border-slate-100 cursor-pointer select-none transition-colors"
                                   >
-                                    {TYPE_ICON[item.type] || TYPE_ICON.pdf}
-                                    {badge.label}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-sm font-medium text-slate-700">
-                                      {item.title}
-                                    </p>
-                                    {item.classified && (
-                                      <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
-                                        <Lock size={9} /> MẬT
+                                    <div className="flex items-center gap-2 text-slate-700">
+                                      {isCollapsed ? (
+                                        <ChevronRight
+                                          size={13}
+                                          className="text-slate-400"
+                                        />
+                                      ) : (
+                                        <ChevronDown
+                                          size={13}
+                                          className="text-slate-400"
+                                        />
+                                      )}
+                                      <Folder
+                                        size={14}
+                                        className="text-amber-500 fill-amber-500 shrink-0"
+                                      />
+                                      <span className="text-xs font-bold">
+                                        {folderName}
                                       </span>
-                                    )}
+                                      <span className="text-[9px] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded-full">
+                                        {folderGroups[folderName].length} tệp
+                                      </span>
+                                    </div>
                                   </div>
+                                );
+                              }
+
+                              const { item, folderName } = entry;
+                              const badge =
+                                FILE_BADGE[item.type] || FILE_BADGE.other;
+                              return (
+                                <div
+                                  key={item.id}
+                                  onClick={() => {
+                                    if (item.url) setActiveDoc(item);
+                                  }}
+                                  className={`flex items-center justify-between px-5 py-3.5 ${
+                                    folderName ? "pl-10 bg-slate-50/10" : ""
+                                  } ${
+                                    item.url
+                                      ? "hover:bg-emerald-50/40 cursor-pointer"
+                                      : "cursor-default"
+                                  } transition-colors group`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <span
+                                      className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
+                                    >
+                                      {TYPE_ICON[item.type] || TYPE_ICON.other}
+                                      {badge.label}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-medium text-slate-700">
+                                        {item.title}
+                                      </p>
+                                      {item.classified && (
+                                        <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
+                                          <Lock size={9} /> MẬT
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {item.url && (
+                                    <ExternalLink
+                                      size={13}
+                                      className="text-emerald-600 hover:text-emerald-700 shrink-0 ml-4 transition-colors"
+                                    />
+                                  )}
                                 </div>
-                                {item.url && (
-                                  <ExternalLink
-                                    size={13}
-                                    className="text-emerald-600 hover:text-emerald-700 shrink-0 ml-4 transition-colors"
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
+                              );
+                            });
+                          })()}
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 px-5 py-5 text-slate-400">

@@ -14,6 +14,11 @@ import {
   AlertTriangle,
   Upload,
   Image as ImageIcon,
+  FolderOpen,
+  UploadCloud,
+  Folder,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -91,11 +96,43 @@ export const DocumentsTab = ({
     type: "pdf",
     classified: false,
     url: "",
+    folder: "",
   });
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadFileName, setUploadFileName] = useState("");
   const [uploadFileSize, setUploadFileSize] = useState("");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [isNewSectionUpload, setIsNewSectionUpload] = useState(false);
+
+  const [uploadQueueLength, setUploadQueueLength] = useState(0);
+  const [uploadCurrentIndex, setUploadCurrentIndex] = useState(0);
+
+  const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(
+    null,
+  );
+  const [dragOverNewSection, setDragOverNewSection] = useState(false);
+
+  const [activeDropdownSectionId, setActiveDropdownSectionId] = useState<
+    string | null
+  >(null);
+  const [collapsedFolders, setCollapsedFolders] = useState<
+    Record<string, boolean>
+  >({});
+
+  useEffect(() => {
+    const closeDropdown = () => {
+      setActiveDropdownSectionId(null);
+    };
+    document.addEventListener("click", closeDropdown);
+    return () => {
+      document.removeEventListener("click", closeDropdown);
+    };
+  }, []);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -114,104 +151,274 @@ export const DocumentsTab = ({
     message: string;
   } | null>(null);
 
-  // Drag and drop
-  const dragItemRef = useRef<{ sectionId: string; index: number } | null>(null);
+  const dragItemRef = useRef<any>(null);
   const [dragOverKey, setDragOverKey] = useState<string | null>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const ext = file.name.split(".").pop()?.toLowerCase() || "";
-
-    if (mode === "video") {
-      const allowedVideoExtensions = ["mp4", "webm", "ogg"];
-      if (!allowedVideoExtensions.includes(ext)) {
-        toast.error(
-          "Định dạng video không được hỗ trợ. Vui lòng chỉ chọn tệp .mp4, .webm, .ogg",
-        );
-        e.target.value = "";
-        return;
-      }
-    } else {
-      const allowedDocExtensions = [
-        "doc",
-        "docx",
-        "xls",
-        "xlsx",
-        "pdf",
-        "ppt",
-        "pptx",
-        "png",
-        "jpg",
-        "jpeg",
-        "webp",
-        "svg",
-        "dwg",
-        "dxf",
-        "cdr",
-      ];
-      if (!allowedDocExtensions.includes(ext)) {
-        toast.error(
-          "Định dạng tệp không hỗ trợ. Vui lòng chọn tài liệu văn phòng (PDF, Word, Excel, PowerPoint) hoặc bản vẽ sơ đồ (DWG, DXF, CDR, Hình ảnh)",
-        );
-        e.target.value = "";
-        return;
+  const getRomanNumeral = (num: number): string => {
+    const romanMap: [number, string][] = [
+      [1000, "M"],
+      [900, "CM"],
+      [500, "D"],
+      [400, "CD"],
+      [100, "C"],
+      [90, "XC"],
+      [50, "L"],
+      [40, "XL"],
+      [10, "X"],
+      [9, "IX"],
+      [5, "V"],
+      [4, "IV"],
+      [1, "I"],
+    ];
+    let roman = "";
+    let tempNum = num;
+    for (const [val, char] of romanMap) {
+      while (tempNum >= val) {
+        roman += char;
+        tempNum -= val;
       }
     }
+    return roman || "I";
+  };
+
+  const readAllEntries = async (dirReader: any): Promise<any[]> => {
+    let allEntries: any[] = [];
+    const read = async () => {
+      const entries = await new Promise<any[]>((resolve, reject) => {
+        dirReader.readEntries(resolve, reject);
+      });
+      if (entries.length > 0) {
+        allEntries = allEntries.concat(entries);
+        await read();
+      }
+    };
+    await read();
+    return allEntries;
+  };
+
+  const traverseFileTree = async (item: any, fileList: File[]) => {
+    if (item.isFile) {
+      const file = await new Promise<File>((resolve, reject) => {
+        item.file(resolve, reject);
+      });
+      Object.defineProperty(file, "webkitRelativePath", {
+        value: item.fullPath.startsWith("/")
+          ? item.fullPath.substring(1)
+          : item.fullPath,
+        writable: true,
+      });
+      fileList.push(file);
+    } else if (item.isDirectory) {
+      const dirReader = item.createReader();
+      const entries = await readAllEntries(dirReader);
+      for (const entry of entries) {
+        await traverseFileTree(entry, fileList);
+      }
+    }
+  };
+
+  const processUploadQueue = async (
+    files: File[],
+    targetSectionId: string | null,
+    createSectionName?: string,
+  ) => {
+    if (files.length === 0) return;
 
     setUploading(true);
-    setUploadProgress(0);
-    setUploadFileName(file.name);
-    setUploadFileSize(formatFileSize(file.size));
+    setUploadQueueLength(files.length);
+    setUploadCurrentIndex(0);
 
     try {
-      const res = await documentService.uploadFile(file, (progressEvent) => {
-        const total = progressEvent.total || 0;
-        if (total > 0) {
-          const percent = Math.round((progressEvent.loaded * 100) / total);
-          setUploadProgress(percent);
-        }
-      });
+      let sectionId = targetSectionId;
 
-      // Auto-determine document type/format based on file extension
-      let detectedType = docForm.type;
-      if (mode !== "video") {
-        const ext = res.extension;
-        if (ext === "pdf") {
-          detectedType = "pdf";
-        } else if (["doc", "docx"].includes(ext)) {
-          detectedType = "word";
-        } else if (["xls", "xlsx"].includes(ext)) {
-          detectedType = "excel";
-        } else if (["ppt", "pptx"].includes(ext)) {
-          detectedType = "powerpoint";
-        } else if (["png", "jpg", "jpeg", "webp", "svg"].includes(ext)) {
-          detectedType = "image";
-        } else if (["dwg", "dxf", "cdr"].includes(ext)) {
-          detectedType = "drawing";
-        }
+      if (!sectionId && createSectionName) {
+        const nextRoman = getRomanNumeral(sections.length + 1);
+        const newSec = await documentService.createSection({
+          roman: nextRoman,
+          title: createSectionName,
+          subtitle: "Thư mục tải lên",
+          type: mode,
+        });
+        sectionId = newSec.id;
       }
 
-      // Auto-populate Title if it's currently empty
-      const originalNameWithoutExt =
-        file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+      if (!sectionId) {
+        throw new Error("Không xác định được chuyên mục tải lên.");
+      }
 
-      setDocForm((prev) => ({
-        ...prev,
-        title: prev.title ? prev.title : originalNameWithoutExt,
-        url: res.url,
-        type: mode === "video" ? "video" : detectedType,
-      }));
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadCurrentIndex(i + 1);
+        setUploadFileName(file.name);
+        setUploadFileSize(formatFileSize(file.size));
+        setUploadProgress(0);
 
-      toast.success("Tải tệp lên thành công!");
+        const res = await documentService.uploadFile(file, (progressEvent) => {
+          const total = progressEvent.total || 0;
+          if (total > 0) {
+            const percent = Math.round((progressEvent.loaded * 100) / total);
+            setUploadProgress(percent);
+          }
+        });
+
+        const ext =
+          res.extension || file.name.split(".").pop()?.toLowerCase() || "";
+        let detectedType = "other";
+        if (mode === "video") {
+          detectedType = "video";
+        } else {
+          if (ext === "pdf") {
+            detectedType = "pdf";
+          } else if (["doc", "docx"].includes(ext)) {
+            detectedType = "word";
+          } else if (["xls", "xlsx"].includes(ext)) {
+            detectedType = "excel";
+          } else if (["ppt", "pptx"].includes(ext)) {
+            detectedType = "powerpoint";
+          } else if (["png", "jpg", "jpeg", "webp", "svg"].includes(ext)) {
+            detectedType = "image";
+          } else if (["dwg", "dxf", "cdr"].includes(ext)) {
+            detectedType = "drawing";
+          } else {
+            detectedType = ext;
+          }
+        }
+
+        let folder: string | undefined = undefined;
+        if (file.webkitRelativePath) {
+          const parts = file.webkitRelativePath.split("/");
+          if (parts.length > 1) {
+            if (createSectionName) {
+              if (parts.length > 2) {
+                folder = parts.slice(1, parts.length - 1).join("/");
+              }
+            } else {
+              folder = parts.slice(0, parts.length - 1).join("/");
+            }
+          }
+        }
+
+        const title =
+          file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+
+        await documentService.createDocument({
+          title,
+          type: detectedType,
+          classified: false,
+          url: res.url,
+          sectionId,
+          folder: folder || null,
+        });
+      }
+
+      toast.success(
+        createSectionName
+          ? `Đã tạo chuyên mục "${createSectionName}" và tải lên ${files.length} tài liệu thành công!`
+          : `Tải lên ${files.length} tài liệu thành công!`,
+      );
+      loadDocuments();
     } catch (err) {
       console.error(err);
-      toast.error("Không thể tải tệp lên. Vui lòng thử lại.");
+      toast.error("Đã xảy ra lỗi trong quá trình tải tệp lên.");
     } finally {
       setUploading(false);
       setUploadProgress(0);
-      e.target.value = "";
+      setUploadQueueLength(0);
+      setUploadCurrentIndex(0);
+      setActiveSectionId(null);
+    }
+  };
+
+  const triggerFileInput = (sectionId: string) => {
+    setActiveSectionId(sectionId);
+    setIsNewSectionUpload(false);
+    fileInputRef.current?.click();
+  };
+
+  const triggerFolderInput = (sectionId: string) => {
+    setActiveSectionId(sectionId);
+    setIsNewSectionUpload(false);
+    folderInputRef.current?.click();
+  };
+
+  const triggerNewSectionFolderInput = () => {
+    setActiveSectionId(null);
+    setIsNewSectionUpload(true);
+    folderInputRef.current?.click();
+  };
+
+  const handleFileInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    if (activeSectionId) {
+      await processUploadQueue(files, activeSectionId);
+    }
+    e.target.value = "";
+  };
+
+  const handleFolderInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    if (isNewSectionUpload) {
+      const firstPath = files[0].webkitRelativePath || "";
+      const folderName = firstPath.split("/")[0] || "Thư mục mới";
+      await processUploadQueue(files, null, folderName);
+    } else if (activeSectionId) {
+      await processUploadQueue(files, activeSectionId);
+    }
+    e.target.value = "";
+  };
+
+  const toggleDropdown = (sectionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveDropdownSectionId((prev) =>
+      prev === sectionId ? null : sectionId,
+    );
+  };
+
+  const handleDragOverSection = (e: React.DragEvent, sectionId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const isFileDrag = e.dataTransfer.types.includes("Files");
+    if (isFileDrag) {
+      setDragOverSectionId(sectionId);
+    }
+  };
+
+  const handleDragLeaveSection = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverSectionId(null);
+  };
+
+  const handleDropSection = async (e: React.DragEvent, sectionId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverSectionId(null);
+
+    const isFileDrag = e.dataTransfer.types.includes("Files");
+    if (!isFileDrag) return;
+
+    const items = Array.from(e.dataTransfer.items || []);
+    if (items.length === 0) return;
+
+    const fileList: File[] = [];
+    for (const item of items) {
+      const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+      if (entry) {
+        await traverseFileTree(entry, fileList);
+      } else {
+        const file = item.getAsFile();
+        if (file) fileList.push(file);
+      }
+    }
+
+    if (fileList.length > 0) {
+      await processUploadQueue(fileList, sectionId);
     }
   };
 
@@ -274,6 +481,31 @@ export const DocumentsTab = ({
     }
   };
 
+  const handleRenameFolder = async (
+    sectionId: string,
+    oldName: string,
+    e: React.MouseEvent,
+  ) => {
+    e.stopPropagation();
+    const newName = prompt("Nhập tên mới cho thư mục:", oldName);
+    if (newName === null) return;
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      toast.error("Tên thư mục không được để trống.");
+      return;
+    }
+    if (trimmed === oldName) return;
+
+    try {
+      await documentService.renameFolder(sectionId, oldName, trimmed);
+      toast.success("Đổi tên thư mục thành công!");
+      loadDocuments();
+    } catch (err) {
+      console.error(err);
+      toast.error("Lỗi khi đổi tên thư mục.");
+    }
+  };
+
   const handleOpenDocModal = (secId: string, doc: any = null) => {
     setSelectedSectionId(secId);
     if (doc) {
@@ -283,6 +515,7 @@ export const DocumentsTab = ({
         type: doc.type,
         classified: doc.classified,
         url: doc.url || "",
+        folder: doc.folder || "",
       });
     } else {
       setEditingDoc(null);
@@ -291,6 +524,7 @@ export const DocumentsTab = ({
         type: mode === "video" ? "video" : "pdf",
         classified: false,
         url: "",
+        folder: "",
       });
     }
     setDocModalOpen(true);
@@ -303,7 +537,11 @@ export const DocumentsTab = ({
       return;
     }
     try {
-      const data = { ...docForm, sectionId: selectedSectionId };
+      const data = {
+        ...docForm,
+        sectionId: selectedSectionId,
+        folder: docForm.folder || null,
+      };
       if (editingDoc) {
         await documentService.updateDocument(editingDoc.id, data);
         toast.success("Cập nhật tài liệu thành công!");
@@ -349,7 +587,11 @@ export const DocumentsTab = ({
   };
 
   const handleDragStart = (sectionId: string, index: number) => {
-    dragItemRef.current = { sectionId, index };
+    dragItemRef.current = { sectionId, type: "item", index };
+  };
+
+  const handleDragFolderStart = (sectionId: string, folderName: string) => {
+    dragItemRef.current = { sectionId, type: "folder", folderName };
   };
 
   const handleDragOver = (e: React.DragEvent, key: string) => {
@@ -361,40 +603,97 @@ export const DocumentsTab = ({
     setDragOverKey(null);
     if (!dragItemRef.current) return;
     if (dragItemRef.current.sectionId !== sectionId) return;
-    const dragIndex = dragItemRef.current.index;
-    if (dragIndex === dropIndex) return;
 
-    // Reorder items locally first (optimistic update)
-    setSections((prev: any[]) =>
-      prev.map((sec: any) => {
-        if (sec.id !== sectionId) return sec;
-        const items = [...sec.items];
-        const [moved] = items.splice(dragIndex, 1);
-        items.splice(dropIndex, 0, moved);
-        return { ...sec, items };
-      }),
-    );
+    const section = sections.find((s: any) => s.id === sectionId);
+    if (!section) return;
 
-    // Persist to backend
-    try {
-      const section = sections.find((s: any) => s.id === sectionId);
-      if (!section) return;
-      const items = [...section.items];
-      const [moved] = items.splice(dragIndex, 1);
-      items.splice(dropIndex, 0, moved);
-      await documentService.reorderDocuments(
-        sectionId,
-        items.map((i: any) => i.id),
+    if (dragItemRef.current.type === "item") {
+      const dragIndex = dragItemRef.current.index;
+      if (dragIndex === dropIndex) return;
+      const draggedDoc = section.items[dragIndex];
+      const targetDoc = section.items[dropIndex];
+
+      // Reorder items locally first (optimistic update)
+      setSections((prev: any[]) =>
+        prev.map((sec: any) => {
+          if (sec.id !== sectionId) return sec;
+          const items = [...sec.items];
+          const [moved] = items.splice(dragIndex, 1);
+          moved.folder = targetDoc ? targetDoc.folder : null;
+          items.splice(dropIndex, 0, moved);
+          return { ...sec, items };
+        }),
       );
-    } catch (err) {
-      console.error("Lỗi lưu thứ tự tài liệu:", err);
-      loadDocuments(); // revert on error
+
+      // Persist to backend
+      try {
+        if (draggedDoc && targetDoc && draggedDoc.folder !== targetDoc.folder) {
+          await documentService.updateDocument(draggedDoc.id, {
+            title: draggedDoc.title,
+            type: draggedDoc.type,
+            classified: draggedDoc.classified,
+            url: draggedDoc.url,
+            folder: targetDoc.folder || null,
+            sectionId: sectionId,
+          });
+        }
+
+        const items = [...section.items];
+        const [moved] = items.splice(dragIndex, 1);
+        if (targetDoc) {
+          moved.folder = targetDoc.folder;
+        }
+        items.splice(dropIndex, 0, moved);
+        await documentService.reorderDocuments(
+          sectionId,
+          items.map((i: any) => i.id),
+        );
+        loadDocuments();
+      } catch (err) {
+        console.error("Lỗi lưu thứ tự tài liệu:", err);
+        loadDocuments(); // revert on error
+      }
+    } else if (dragItemRef.current.type === "folder") {
+      const draggedFolderName = dragItemRef.current.folderName;
+      const targetDoc = section.items[dropIndex];
+
+      if (targetDoc && targetDoc.folder === draggedFolderName) {
+        dragItemRef.current = null;
+        return;
+      }
+
+      try {
+        const folderDocs = section.items.filter(
+          (x: any) => x.folder === draggedFolderName,
+        );
+        const remainingDocs = section.items.filter(
+          (x: any) => x.folder !== draggedFolderName,
+        );
+
+        let newInsertIndex = remainingDocs.length;
+        if (targetDoc) {
+          newInsertIndex = remainingDocs.findIndex(
+            (x: any) => x.id === targetDoc.id,
+          );
+        }
+
+        remainingDocs.splice(newInsertIndex, 0, ...folderDocs);
+
+        await documentService.reorderDocuments(
+          sectionId,
+          remainingDocs.map((i: any) => i.id),
+        );
+        loadDocuments();
+      } catch (err) {
+        console.error("Lỗi di chuyển thư mục:", err);
+        loadDocuments();
+      }
     }
     dragItemRef.current = null;
   };
 
   return (
-    <div className="space-y-6 text-xs">
+    <div className="space-y-6 text-xs relative">
       <div className="flex justify-between items-center pb-2 border-b border-slate-100">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
           {mode === "video" ? "Danh mục & Video" : "Danh mục & tài liệu"}
@@ -477,8 +776,28 @@ export const DocumentsTab = ({
         sections.map((section) => (
           <div
             key={section.id}
-            className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white"
+            onDragOver={(e) => handleDragOverSection(e, section.id)}
+            onDragLeave={handleDragLeaveSection}
+            onDrop={(e) => handleDropSection(e, section.id)}
+            className={`relative border rounded-xl overflow-hidden shadow-sm bg-white transition-all duration-200 ${
+              dragOverSectionId === section.id
+                ? "border-emerald-500 ring-2 ring-emerald-500/20 scale-[1.01]"
+                : "border-slate-200 hover:border-slate-300"
+            }`}
           >
+            {/* DRAG OVER CARD OVERLAY */}
+            {dragOverSectionId === section.id && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-emerald-50/90 backdrop-blur-[1px] text-emerald-700 animate-fadeIn pointer-events-none">
+                <UploadCloud size={28} className="animate-bounce mb-2" />
+                <p className="font-bold text-xs">
+                  Thả tệp tin/thư mục tại đây để tải lên
+                </p>
+                <p className="text-[10px] text-emerald-600 mt-0.5">
+                  Tự động thêm vào Mục {section.roman}
+                </p>
+              </div>
+            )}
+
             {/* Header */}
             <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
               <div>
@@ -497,13 +816,40 @@ export const DocumentsTab = ({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleOpenDocModal(section.id)}
-                  className="text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-2 py-1 rounded-lg border border-emerald-200 transition-all flex items-center gap-1 shadow-xs"
-                >
-                  <Plus size={10} />{" "}
-                  {mode === "video" ? "Thêm video" : "Thêm tài liệu"}
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={(e) => toggleDropdown(section.id, e)}
+                    className="text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-all flex items-center gap-1 shadow-xs"
+                  >
+                    <Plus size={10} /> Tải lên <ChevronDown size={10} />
+                  </button>
+                  {activeDropdownSectionId === section.id && (
+                    <div className="absolute right-0 mt-1 z-30 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 min-w-[120px] space-y-0.5 animate-scaleUp">
+                      <button
+                        onClick={() => {
+                          setActiveDropdownSectionId(null);
+                          triggerFileInput(section.id);
+                        }}
+                        className="w-full text-left text-[10px] font-semibold text-slate-700 hover:bg-slate-50 px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                      >
+                        <FileText size={12} className="text-slate-400" /> Tải
+                        tệp tin
+                      </button>
+                      {mode !== "video" && (
+                        <button
+                          onClick={() => {
+                            setActiveDropdownSectionId(null);
+                            triggerFolderInput(section.id);
+                          }}
+                          className="w-full text-left text-[10px] font-semibold text-slate-700 hover:bg-slate-50 px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                          <FolderOpen size={12} className="text-slate-400" />{" "}
+                          Tải thư mục
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => handleOpenSectionModal(section)}
                   className="p-1 text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
@@ -528,49 +874,248 @@ export const DocumentsTab = ({
 
             {/* Items */}
             <div className="divide-y divide-slate-100">
-              {section.items && section.items.length > 0 ? (
-                section.items.map((item: any, idx: number) => {
-                  const badge = FILE_BADGE[item.type] || FILE_BADGE.pdf;
-                  const dndKey = `${section.id}-${idx}`;
+              {(() => {
+                if (!section.items || section.items.length === 0) {
+                  return (
+                    <div className="p-4 text-center text-slate-400 text-xs italic">
+                      Chưa có tài liệu trong mục này
+                    </div>
+                  );
+                }
+
+                // Group items by folder
+                const folderGroups: Record<string, any[]> = {};
+                section.items.forEach((item: any) => {
+                  if (item.folder) {
+                    if (!folderGroups[item.folder]) {
+                      folderGroups[item.folder] = [];
+                    }
+                    folderGroups[item.folder].push(item);
+                  }
+                });
+
+                const uiList: any[] = [];
+                const renderedFolders = new Set<string>();
+
+                section.items.forEach((item: any) => {
+                  if (item.folder) {
+                    if (!renderedFolders.has(item.folder)) {
+                      renderedFolders.add(item.folder);
+                      uiList.push({ type: "folder", name: item.folder });
+
+                      const collapseKey = `${section.id}-${item.folder}`;
+                      if (!collapsedFolders[collapseKey]) {
+                        folderGroups[item.folder].forEach((f: any) => {
+                          const origIdx = section.items.findIndex(
+                            (x: any) => x.id === f.id,
+                          );
+                          uiList.push({
+                            type: "item",
+                            item: f,
+                            originalIndex: origIdx,
+                            folderName: item.folder,
+                          });
+                        });
+                      }
+                    }
+                  } else {
+                    const origIdx = section.items.findIndex(
+                      (x: any) => x.id === item.id,
+                    );
+                    uiList.push({ type: "item", item, originalIndex: origIdx });
+                  }
+                });
+
+                return uiList.map((entry) => {
+                  if (entry.type === "folder") {
+                    const folderName = entry.name;
+                    const collapseKey = `${section.id}-${folderName}`;
+                    const isCollapsed = collapsedFolders[collapseKey];
+                    const toggleCollapse = (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      setCollapsedFolders((prev) => ({
+                        ...prev,
+                        [collapseKey]: !prev[collapseKey],
+                      }));
+                    };
+
+                    return (
+                      <div
+                        key={`folder-${folderName}`}
+                        draggable
+                        onDragStart={() =>
+                          handleDragFolderStart(section.id, folderName)
+                        }
+                        onClick={toggleCollapse}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onDrop={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!dragItemRef.current) return;
+                          if (dragItemRef.current.sectionId !== section.id)
+                            return;
+
+                          if (dragItemRef.current.type === "item") {
+                            const dragIndex = dragItemRef.current.index;
+                            const draggedDoc = section.items[dragIndex];
+                            if (draggedDoc.folder === folderName) return;
+
+                            try {
+                              await documentService.updateDocument(
+                                draggedDoc.id,
+                                {
+                                  title: draggedDoc.title,
+                                  type: draggedDoc.type,
+                                  classified: draggedDoc.classified,
+                                  url: draggedDoc.url,
+                                  folder: folderName,
+                                  sectionId: section.id,
+                                },
+                              );
+                              toast.success(
+                                `Đã di chuyển tài liệu vào thư mục "${folderName}"`,
+                              );
+                              loadDocuments();
+                            } catch (err) {
+                              console.error(err);
+                              toast.error("Lỗi di chuyển tài liệu");
+                            }
+                          } else if (dragItemRef.current.type === "folder") {
+                            const draggedFolderName =
+                              dragItemRef.current.folderName;
+                            if (draggedFolderName === folderName) return;
+
+                            try {
+                              const folderDocs = section.items.filter(
+                                (x: any) => x.folder === draggedFolderName,
+                              );
+                              const remainingDocs = section.items.filter(
+                                (x: any) => x.folder !== draggedFolderName,
+                              );
+
+                              let newInsertIndex = remainingDocs.findIndex(
+                                (x: any) => x.folder === folderName,
+                              );
+                              if (newInsertIndex === -1) {
+                                newInsertIndex = remainingDocs.length;
+                              }
+
+                              remainingDocs.splice(
+                                newInsertIndex,
+                                0,
+                                ...folderDocs,
+                              );
+
+                              await documentService.reorderDocuments(
+                                section.id,
+                                remainingDocs.map((i: any) => i.id),
+                              );
+                              toast.success(
+                                `Đã đổi thứ tự thư mục "${draggedFolderName}" lên trước thư mục "${folderName}"`,
+                              );
+                              loadDocuments();
+                            } catch (err) {
+                              console.error("Lỗi sắp xếp thư mục:", err);
+                              loadDocuments();
+                            }
+                          }
+                          dragItemRef.current = null;
+                        }}
+                        className="flex items-center justify-between p-2.5 px-4 bg-slate-50/50 hover:bg-slate-100/50 border-b border-slate-100 cursor-grab active:cursor-grabbing select-none transition-colors"
+                      >
+                        <div className="flex items-center gap-2 text-slate-700">
+                          {isCollapsed ? (
+                            <ChevronRight
+                              size={13}
+                              className="text-slate-400"
+                            />
+                          ) : (
+                            <ChevronDown size={13} className="text-slate-400" />
+                          )}
+                          <Folder
+                            size={14}
+                            className="text-amber-500 fill-amber-500 shrink-0"
+                          />
+                          <span className="text-xs font-bold">
+                            {folderName}
+                          </span>
+                          <span className="text-[9px] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded-full">
+                            {folderGroups[folderName].length} tệp
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) =>
+                              handleRenameFolder(section.id, folderName, e)
+                            }
+                            className="p-1 text-slate-405 hover:text-emerald-600 hover:bg-slate-200/60 rounded transition-colors"
+                            title="Đổi tên thư mục"
+                          >
+                            <Edit size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const { item, originalIndex, folderName } = entry;
+                  const badge = FILE_BADGE[item.type] || {
+                    label: (item.type || "file").toUpperCase(),
+                    color:
+                      "bg-slate-100 text-slate-650 border border-slate-200",
+                  };
+                  const icon = TYPE_ICON[item.type] || <FileText size={10} />;
+                  const dndKey = `${section.id}-${originalIndex}`;
                   const isDragOver = dragOverKey === dndKey;
+
                   return (
                     <div
                       key={item.id}
                       draggable
-                      onDragStart={() => handleDragStart(section.id, idx)}
+                      onDragStart={() =>
+                        handleDragStart(section.id, originalIndex)
+                      }
                       onDragOver={(e) => handleDragOver(e, dndKey)}
                       onDragLeave={() => setDragOverKey(null)}
-                      onDrop={() => handleDrop(section.id, idx)}
+                      onDrop={() => handleDrop(section.id, originalIndex)}
                       onDragEnd={() => {
                         setDragOverKey(null);
                         dragItemRef.current = null;
                       }}
                       className={`flex items-center justify-between p-3 px-4 transition-colors select-none ${
+                        folderName ? "pl-9 bg-slate-50/20" : ""
+                      } ${
                         isDragOver
                           ? "bg-emerald-50 border-t-2 border-t-emerald-400"
                           : "hover:bg-slate-50"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400 transition-colors shrink-0">
                           <GripVertical size={14} />
                         </div>
                         <span
                           className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
                         >
-                          {TYPE_ICON[item.type] || TYPE_ICON.pdf}
+                          {icon}
                           {badge.label}
                         </span>
-                        <span className="text-xs font-semibold text-slate-700">
+                        <span
+                          className="text-xs font-semibold text-slate-700 truncate"
+                          title={item.title}
+                        >
                           {item.title}
                         </span>
                         {item.classified && (
-                          <span className="bg-rose-50 text-rose-600 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border border-rose-100 flex items-center gap-1">
+                          <span className="bg-rose-50 text-rose-650 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border border-rose-100 flex items-center gap-1 shrink-0">
                             <Lock size={9} /> MẬT
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0 ml-4">
                         <button
                           onClick={() => handleOpenDocModal(section.id, item)}
                           className="p-1 text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
@@ -593,15 +1138,72 @@ export const DocumentsTab = ({
                       </div>
                     </div>
                   );
-                })
-              ) : (
-                <div className="p-4 text-center text-slate-400 text-xs italic">
-                  Chưa có tài liệu trong mục này
-                </div>
-              )}
+                });
+              })()}
             </div>
           </div>
         ))
+      )}
+
+      {/* KHU VỰC THẢ ĐỂ TẠO CHUYÊN MỤC MỚI */}
+      {mode !== "video" && (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            const isFileDrag = e.dataTransfer.types.includes("Files");
+            if (isFileDrag) {
+              setDragOverNewSection(true);
+            }
+          }}
+          onDragLeave={() => setDragOverNewSection(false)}
+          onDrop={async (e) => {
+            e.preventDefault();
+            setDragOverNewSection(false);
+            const isFileDrag = e.dataTransfer.types.includes("Files");
+            if (!isFileDrag) return;
+
+            const items = Array.from(e.dataTransfer.items || []);
+            if (items.length === 0) return;
+
+            const fileList: File[] = [];
+            for (const item of items) {
+              const entry = item.webkitGetAsEntry
+                ? item.webkitGetAsEntry()
+                : null;
+              if (entry) {
+                await traverseFileTree(entry, fileList);
+              } else {
+                const file = item.getAsFile();
+                if (file) fileList.push(file);
+              }
+            }
+
+            if (fileList.length > 0) {
+              const firstPath = fileList[0].webkitRelativePath || "";
+              const folderName =
+                firstPath.split("/")[0] || "Chuyên mục mới từ kéo thả";
+              await processUploadQueue(fileList, null, folderName);
+            }
+          }}
+          className={`border-2 border-dashed rounded-xl p-8 transition-all flex flex-col items-center justify-center text-center cursor-pointer ${
+            dragOverNewSection
+              ? "border-emerald-500 bg-emerald-50 text-emerald-700 scale-[1.01]"
+              : "border-slate-350 bg-slate-50/50 hover:bg-slate-50 text-slate-500"
+          }`}
+          onClick={triggerNewSectionFolderInput}
+        >
+          <UploadCloud
+            size={28}
+            className={`mb-2 ${dragOverNewSection ? "animate-bounce" : ""}`}
+          />
+          <p className="font-bold text-xs">
+            Kéo thả thư mục vào đây để tải lên
+          </p>
+          <p className="text-[10px] text-slate-400 mt-1">
+            Hoặc nhấp vào đây để chọn thư mục từ thiết bị. Chuyên mục mới sẽ tự
+            động được tạo.
+          </p>
+        </div>
       )}
 
       {/* MODAL: CHUYÊN MỤC TÀI LIỆU */}
@@ -621,7 +1223,7 @@ export const DocumentsTab = ({
             </div>
             <form onSubmit={handleSaveSection} className="p-5 space-y-4">
               <div>
-                <label className="text-slate-650 font-semibold mb-1 block">
+                <label className="text-slate-655 font-semibold mb-1 block">
                   Ký hiệu số La Mã
                 </label>
                 <Input
@@ -731,6 +1333,24 @@ export const DocumentsTab = ({
                   className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
+
+              {mode !== "video" && (
+                <div>
+                  <label className="text-slate-650 font-semibold mb-1 block">
+                    Thư mục con (Không bắt buộc)
+                  </label>
+                  <Input
+                    type="text"
+                    value={docForm.folder}
+                    onChange={(e: any) =>
+                      setDocForm({ ...docForm, folder: e.target.value })
+                    }
+                    placeholder="Ví dụ: Sách hướng dẫn, Bản vẽ sơ đồ..."
+                    className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 text-xs"
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-slate-650 font-semibold mb-1 block">
@@ -764,11 +1384,14 @@ export const DocumentsTab = ({
                         Hình ảnh sơ đồ (.png, .jpg, .jpeg, .webp, .svg)
                       </option>
                       <option value="drawing">Bản vẽ (.dwg, .dxf, .cdr)</option>
+                      <option value="zip">Tệp nén (.zip, .rar)</option>
+                      <option value="txt">Văn bản thuần (.txt)</option>
+                      <option value="other">Định dạng khác</option>
                     </select>
                   )}
                 </div>
                 <div className="flex items-end pb-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-slate-650 font-semibold select-none">
+                  <label className="flex items-center gap-2 cursor-pointer text-slate-655 font-semibold select-none">
                     <input
                       type="checkbox"
                       checked={docForm.classified}
@@ -788,46 +1411,8 @@ export const DocumentsTab = ({
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="text-slate-650 font-semibold mb-1 block">
-                    {mode === "video" ? "Tải video lên" : "Tải tài liệu lên"}
-                  </label>
-                  <div className="border border-dashed border-slate-200 hover:border-emerald-500 rounded-xl p-4 bg-slate-50/50 transition-colors flex flex-col items-center justify-center text-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-8 text-xs font-semibold bg-white flex items-center gap-1.5 border-slate-200"
-                      onClick={() =>
-                        document.getElementById("file-upload-input")?.click()
-                      }
-                      disabled={uploading}
-                    >
-                      <Upload size={14} className="text-slate-500" />
-                      {uploading
-                        ? "Đang tải tệp lên..."
-                        : "Chọn tệp từ thiết bị"}
-                    </Button>
-                    <input
-                      id="file-upload-input"
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                      accept={
-                        mode === "video"
-                          ? ".mp4,.webm,.ogg"
-                          : ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.svg,.dwg,.dxf,.cdr"
-                      }
-                    />
-                    <p className="text-[10px] text-slate-400">
-                      {mode === "video"
-                        ? "Hỗ trợ định dạng MP4, WebM, OGG..."
-                        : "Hỗ trợ Văn phòng (PDF, Word, Excel, PowerPoint) hoặc Bản vẽ (DWG, DXF, CDR, Hình ảnh)"}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-slate-650 font-semibold block">
+                    <label className="text-slate-655 font-semibold block">
                       Đường dẫn tệp tĩnh hoặc liên kết ngoài (URL)
                     </label>
                     {docForm.url && (
@@ -883,8 +1468,10 @@ export const DocumentsTab = ({
                   <Upload size={18} className="animate-bounce" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-slate-800 font-bold text-sm truncate">
-                    Đang tải tệp lên...
+                  <h4 className="text-slate-850 font-bold text-sm truncate">
+                    {uploadQueueLength > 1
+                      ? `Đang tải lên (${uploadCurrentIndex}/${uploadQueueLength} tệp)...`
+                      : "Đang tải tệp lên..."}
                   </h4>
                   <p
                     className="text-[10px] text-slate-500 truncate mt-0.5"
@@ -899,7 +1486,15 @@ export const DocumentsTab = ({
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50">
                   <div
                     className="bg-emerald-500 h-full rounded-full transition-all duration-350 ease-out"
-                    style={{ width: `${uploadProgress}%` }}
+                    style={{
+                      width: `${
+                        uploadQueueLength > 1
+                          ? ((uploadCurrentIndex - 1) / uploadQueueLength) *
+                              100 +
+                            uploadProgress / uploadQueueLength
+                          : uploadProgress
+                      }%`,
+                    }}
                   />
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-bold">
@@ -908,7 +1503,15 @@ export const DocumentsTab = ({
                       ? "Đang xử lý tệp..."
                       : "Vui lòng chờ..."}
                   </span>
-                  <span className="text-emerald-600">{uploadProgress}%</span>
+                  <span className="text-emerald-600">
+                    {uploadQueueLength > 1
+                      ? Math.round(
+                          ((uploadCurrentIndex - 1) / uploadQueueLength) * 100 +
+                            uploadProgress / uploadQueueLength,
+                        )
+                      : uploadProgress}
+                    %
+                  </span>
                 </div>
               </div>
             </div>
@@ -923,6 +1526,23 @@ export const DocumentsTab = ({
         onConfirm={executeDelete}
         message={deleteTarget?.message || ""}
         label={deleteTarget?.label}
+      />
+
+      {/* INPUT ẨN ĐỂ CHỌN TỆP VÀ THƯ MỤC */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        multiple
+        {...({ webkitdirectory: "", directory: "" } as any)}
+        className="hidden"
+        onChange={handleFolderInputChange}
       />
     </div>
   );
