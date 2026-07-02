@@ -103,10 +103,13 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   vehicleWeights: {},
 
   // Setters
-  setCurrentMap: (val) =>
-    set((state) => ({
-      currentMap: typeof val === "function" ? val(state.currentMap) : val,
-    })),
+  setCurrentMap: (val) => {
+    const nextMap = typeof val === "function" ? val(get().currentMap) : val;
+    if (get().currentMap?.id !== nextMap?.id) {
+      get().resetCurrentSession();
+    }
+    set({ currentMap: nextMap });
+  },
   setIsCalibrated: (val) =>
     set((state) => ({
       isCalibrated: typeof val === "function" ? val(state.isCalibrated) : val,
@@ -272,7 +275,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       const newMap = await mapService.uploadMap(file, userId, (percent) => {
         set({ uploadProgress: percent });
       });
-      set({ currentMap: newMap });
+      get().setCurrentMap(newMap);
       get().fetchMaps();
     } catch (e) {
       get().toast?.error("Tải bản đồ lên thất bại!");
