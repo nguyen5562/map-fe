@@ -124,6 +124,13 @@ export const DocumentsTab = ({
     Record<string, boolean>
   >({});
 
+  const [renameFolderModalOpen, setRenameFolderModalOpen] = useState(false);
+  const [renameFolderTarget, setRenameFolderTarget] = useState<{
+    sectionId: string;
+    oldName: string;
+    newName: string;
+  } | null>(null);
+
   useEffect(() => {
     const closeDropdown = () => {
       setActiveDropdownSectionId(null);
@@ -145,8 +152,9 @@ export const DocumentsTab = ({
   // Delete modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
-    type: "section" | "document";
+    type: "section" | "document" | "folder";
     id: string;
+    folderName?: string;
     label: string;
     message: string;
   } | null>(null);
@@ -481,24 +489,34 @@ export const DocumentsTab = ({
     }
   };
 
-  const handleRenameFolder = async (
+  const handleOpenRenameFolderModal = (
     sectionId: string,
     oldName: string,
     e: React.MouseEvent,
   ) => {
     e.stopPropagation();
-    const newName = prompt("Nhập tên mới cho thư mục:", oldName);
-    if (newName === null) return;
+    setRenameFolderTarget({ sectionId, oldName, newName: oldName });
+    setRenameFolderModalOpen(true);
+  };
+
+  const handleRenameFolderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renameFolderTarget) return;
+    const { sectionId, oldName, newName } = renameFolderTarget;
     const trimmed = newName.trim();
     if (!trimmed) {
       toast.error("Tên thư mục không được để trống.");
       return;
     }
-    if (trimmed === oldName) return;
+    if (trimmed === oldName) {
+      setRenameFolderModalOpen(false);
+      return;
+    }
 
     try {
       await documentService.renameFolder(sectionId, oldName, trimmed);
       toast.success("Đổi tên thư mục thành công!");
+      setRenameFolderModalOpen(false);
       loadDocuments();
     } catch (err) {
       console.error(err);
@@ -557,18 +575,19 @@ export const DocumentsTab = ({
   };
 
   const requestDelete = (
-    type: "section" | "document",
+    type: "section" | "document" | "folder",
     id: string,
     label: string,
     message: string,
+    folderName?: string,
   ) => {
-    setDeleteTarget({ type, id, label, message });
+    setDeleteTarget({ type, id, label, message, folderName });
     setDeleteModalOpen(true);
   };
 
   const executeDelete = async () => {
     if (!deleteTarget) return;
-    const { type, id } = deleteTarget;
+    const { type, id, folderName } = deleteTarget;
     setDeleteModalOpen(false);
     try {
       if (type === "section") {
@@ -577,6 +596,11 @@ export const DocumentsTab = ({
       } else if (type === "document") {
         await documentService.deleteDocument(id);
         toast.success("Xóa tài liệu thành công!");
+      } else if (type === "folder") {
+        if (folderName) {
+          await documentService.deleteFolder(id, folderName);
+          toast.success(`Xóa thư mục "${folderName}" thành công!`);
+        }
       }
       loadDocuments();
     } catch (err: any) {
@@ -1049,12 +1073,32 @@ export const DocumentsTab = ({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={(e) =>
-                              handleRenameFolder(section.id, folderName, e)
+                              handleOpenRenameFolderModal(
+                                section.id,
+                                folderName,
+                                e,
+                              )
                             }
                             className="p-1 text-slate-405 hover:text-emerald-600 hover:bg-slate-200/60 rounded transition-colors"
                             title="Đổi tên thư mục"
                           >
                             <Edit size={12} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              requestDelete(
+                                "folder",
+                                section.id,
+                                folderName,
+                                `Bạn có chắc chắn muốn xóa thư mục "${folderName}" cùng toàn bộ tài liệu bên trong? Hành động này không thể hoàn tác.`,
+                                folderName,
+                              );
+                            }}
+                            className="p-1 text-slate-405 hover:text-red-505 hover:bg-red-50 rounded transition-colors"
+                            title="Xóa thư mục"
+                          >
+                            <Trash2 size={12} />
                           </button>
                         </div>
                       </div>
@@ -1527,6 +1571,62 @@ export const DocumentsTab = ({
         message={deleteTarget?.message || ""}
         label={deleteTarget?.label}
       />
+
+      {/* MODAL: ĐỔI TÊN THƯ MỤC */}
+      {renameFolderModalOpen && renameFolderTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl animate-scaleUp text-xs">
+            <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
+              <h4 className="text-slate-850 font-bold text-sm flex items-center gap-1.5">
+                <Edit size={16} className="text-emerald-600" /> Đổi tên thư mục
+              </h4>
+              <button
+                onClick={() => setRenameFolderModalOpen(false)}
+                className="text-slate-400 hover:text-slate-650 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleRenameFolderSubmit} className="p-5 space-y-4">
+              <div>
+                <label className="text-slate-650 font-semibold mb-1 block">
+                  Tên thư mục mới
+                </label>
+                <Input
+                  type="text"
+                  value={renameFolderTarget.newName}
+                  onChange={(e: any) =>
+                    setRenameFolderTarget({
+                      ...renameFolderTarget,
+                      newName: e.target.value,
+                    })
+                  }
+                  placeholder="Nhập tên thư mục..."
+                  className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3 justify-end pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRenameFolderModalOpen(false)}
+                  className="h-8 text-xs font-semibold"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="h-8 text-xs font-semibold"
+                >
+                  Lưu lại
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* INPUT ẨN ĐỂ CHỌN TỆP VÀ THƯ MỤC */}
       <input

@@ -64,4 +64,11 @@ export const documentService = {
     );
     return response.data;
   },
+  deleteFolder: async (sectionId: string, folderName: string) => {
+    const response = await api.delete(
+      `${API_ROUTES.DOCUMENTS}/sections/${sectionId}/folders/delete`,
+      { params: { folderName } },
+    );
+    return response.data;
+  },
 };
