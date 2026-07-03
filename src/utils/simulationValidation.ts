@@ -41,7 +41,7 @@ export const validateInputs = (
     smokeMethodData.lineType === "Vòng" &&
     (!targetDefenseData.diameter || !targetDefenseData.diameter.trim());
   const isLineTypeThangEmpty =
-    smokeMethodData.lineType === "Thẳng" &&
+    (smokeMethodData.lineType === "Thẳng" || smokeMethodData.lineType === "Diện") &&
     (!targetDefenseData.width ||
       !targetDefenseData.width.trim() ||
       !targetDefenseData.length ||

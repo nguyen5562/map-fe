@@ -23,7 +23,7 @@ export interface TargetDefenseData {
 }
 
 export interface SmokeMethodData {
-  lineType: "Thẳng" | "Vòng";
+  lineType: "Thẳng" | "Vòng" | "Diện";
   lineRole?: "Chính" | "Dự bị";
 }
 

@@ -238,9 +238,17 @@ export const RightSidebar = () => {
                   <>
                     {selectedPoint.results.straightLine_vehicles > 0 && (
                       <>
-                        <GroupLabel>Tuyến thẳng</GroupLabel>
+                        <GroupLabel>
+                          {selectedPoint.smokeMethodData?.lineType === "Diện"
+                            ? "Theo diện"
+                            : "Tuyến thẳng"}
+                        </GroupLabel>
                         <ResultRow
-                          label="Số tuyến khói cần bố trí (N)"
+                          label={
+                            selectedPoint.smokeMethodData?.lineType === "Diện"
+                              ? "Số tuyến theo diện cần bố trí (N)"
+                              : "Số tuyến khói cần bố trí (N)"
+                          }
                           value={selectedPoint.results.straightLine_routes}
                           unit="tuyến"
                         />
@@ -460,7 +468,11 @@ export const RightSidebar = () => {
                                   {vres.straightLine_vehicles > 0 && (
                                     <>
                                       <div className="flex justify-between pl-1">
-                                        <span>Số tuyến thẳng (N):</span>
+                                        <span>
+                                          {p.smokeMethodData?.lineType === "Diện"
+                                            ? "Số tuyến theo diện (N):"
+                                            : "Số tuyến thẳng (N):"}
+                                        </span>
                                         <span className="font-medium text-slate-750">
                                           {vres.straightLine_routes} tuyến
                                         </span>
@@ -513,7 +525,11 @@ export const RightSidebar = () => {
                             {p.results?.straightLine_vehicles > 0 && (
                               <>
                                 <div className="flex justify-between">
-                                  <span>Số tuyến thẳng (N):</span>
+                                  <span>
+                                    {p.smokeMethodData?.lineType === "Diện"
+                                      ? "Số tuyến theo diện (N):"
+                                      : "Số tuyến thẳng (N):"}
+                                  </span>
                                   <span className="font-medium text-slate-700">
                                     {p.results.straightLine_routes} tuyến
                                   </span>

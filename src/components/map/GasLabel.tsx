@@ -2,6 +2,7 @@ import { SVGOverlay } from "react-leaflet";
 import L from "leaflet";
 import type { VehicleConfig } from "../left-sidebar/SmokeVehiclePanel";
 import type { SmokeTimeRange } from "../left-sidebar/SmokeTimePanel";
+import type { TargetDefenseData, SmokeMethodData } from "../../context/SimulationContext";
 
 export const UTM_FONT = "'UTM Helvetins', 'Times New Roman', Times, serif";
 
@@ -25,6 +26,8 @@ type Props = {
   smokeLineLength?: number | "";
   scaleX: number;
   onClick?: () => void;
+  targetDefenseData?: TargetDefenseData;
+  smokeMethodData?: SmokeMethodData;
 };
 
 /** Pad số thành 2 chữ số */
@@ -88,12 +91,13 @@ export function GasLabel({
   center,
   results,
   smokeTime,
-  vehicleConfigs,
   selectedVehicles,
   combatTime,
   smokeLineLength = 700,
   scaleX,
   onClick,
+  targetDefenseData,
+  smokeMethodData,
 }: Props) {
   if (!results || results.totalVehicles == null) return null;
 
@@ -108,12 +112,31 @@ export function GasLabel({
     [center.lat + rawHeight / 2, center.lng + rawWidth / 2],
   ];
 
-  // Lấy tên phương tiện chính
+  // Lấy id phương tiện chính (ví dụ: HPK-2.5)
   const mainVid = getMainVehicleId(selectedVehicles, results.vehicleBreakdown);
-  const mainVehicleName = mainVid
-    ? (vehicleConfigs[mainVid]?.name ?? mainVid)
-    : "";
-  const line1 = `${results.totalVehicles} ${mainVehicleName}`;
+
+  // Tính toán độ dài hiển thị:
+  // Nếu là tuyến thẳng hoặc diện thì lấy cái R, còn tuyến vòng lấy D, nhân với căn cái số lần bao phủ (K)
+  const K = parseFloat(targetDefenseData?.coverageMultiplier || "1") || 1;
+  const sqrtK = Math.sqrt(K);
+  const R = parseFloat(targetDefenseData?.width || "0") || 0;
+  const D = parseFloat(targetDefenseData?.diameter || "0") || 0;
+  const lineType = smokeMethodData?.lineType || "Thẳng";
+
+  let displayedLength = actualLength;
+  if (lineType === "Vòng") {
+    if (D > 0) {
+      displayedLength = D * sqrtK;
+    }
+  } else {
+    if (R > 0) {
+      displayedLength = R * sqrtK;
+    }
+  }
+
+  // Chuyển đổi từ mét sang km, hiển thị tối đa 2 chữ số thập phân (ví dụ 700m -> 0.7km, 1250m -> 1.25km)
+  const lengthInKm = Number((displayedLength / 1000).toFixed(2));
+  const line1 = `${results.totalVehicles} ${mainVid || ""} - ${lengthInKm}km`;
 
   const fromH = pad(smokeTime.fromH || "0");
   const fromM = pad(smokeTime.fromM || "0");

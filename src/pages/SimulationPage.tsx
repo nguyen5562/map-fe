@@ -102,14 +102,25 @@ function getLeaderLineIntersection(
     return center;
   }
 
-  // Rectangle dimensions relative to 250 viewBox unit of the SVG overlay
-  const wHalf = 0.4 * rawWidth; // 100/250 * rawWidth
-  const hHalf = (lineType === "Vòng" ? 0.15 : 0.02) * rawWidth; // 37.5/250 or 5/250
-
   const xc = center.lng;
   const yc = center.lat;
   const xp = labelAnchor.lng;
   const yp = labelAnchor.lat;
+
+  if (lineType === "Vòng") {
+    const dx = xp - xc;
+    const dy = yp - yc;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const r_circle = 0.3 * rawWidth; // 75/250 * rawWidth
+    if (len > r_circle) {
+      return new L.LatLng(yc + (dy / len) * r_circle, xc + (dx / len) * r_circle);
+    }
+    return center;
+  }
+
+  // Rectangle dimensions relative to 250 viewBox unit of the SVG overlay
+  const wHalf = 0.4 * rawWidth; // 100/250 * rawWidth
+  const hHalf = (lineType === "Diện" ? 0.15 : 0.02) * rawWidth; // 37.5/250 or 5/250
 
   // GasMarker rotates the SVG by (angle + 180) degrees.
   const angleRad = ((angleDegrees + 180) * Math.PI) / 180;
@@ -410,6 +421,8 @@ function SimulationInner() {
                         smokeLineLength={p.smokeLineLength ?? 700}
                         scaleX={scale.x}
                         onClick={() => onSelectPoint(p.id)}
+                        targetDefenseData={p.targetDefenseData}
+                        smokeMethodData={p.smokeMethodData}
                       />
                       {isSelected && (
                         <Marker

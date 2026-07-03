@@ -35,35 +35,47 @@ export const SmokeMethodPanel = () => {
 
       {showPanel && (
         <div className="px-4 pb-4 pt-2 space-y-4">
-          {/* Theo tuyến */}
+          {/* Phương pháp */}
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-2 block">
-              Theo tuyến
+              Phương pháp
             </label>
             <div className="flex gap-2">
               <button
                 onClick={() =>
                   setSmokeMethodData({ ...smokeMethodData, lineType: "Thẳng" })
                 }
-                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
+                className={`flex-1 h-9 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] ${
                   smokeMethodData.lineType === "Thẳng"
                     ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
                     : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
                 }`}
               >
-                Thẳng
+                Tuyến thẳng
               </button>
               <button
                 onClick={() =>
                   setSmokeMethodData({ ...smokeMethodData, lineType: "Vòng" })
                 }
-                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
+                className={`flex-1 h-9 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] ${
                   smokeMethodData.lineType === "Vòng"
                     ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
                     : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
                 }`}
               >
-                Vòng
+                Tuyến vòng
+              </button>
+              <button
+                onClick={() =>
+                  setSmokeMethodData({ ...smokeMethodData, lineType: "Diện" })
+                }
+                className={`flex-1 h-9 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] ${
+                  smokeMethodData.lineType === "Diện"
+                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
+                    : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
+                }`}
+              >
+                Theo diện
               </button>
             </div>
           </div>
@@ -78,7 +90,7 @@ export const SmokeMethodPanel = () => {
                 onClick={() =>
                   setSmokeMethodData({ ...smokeMethodData, lineRole: "Chính" })
                 }
-                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
+                className={`flex-1 h-9 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] ${
                   (smokeMethodData.lineRole || "Chính") === "Chính"
                     ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
                     : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"
@@ -90,7 +102,7 @@ export const SmokeMethodPanel = () => {
                 onClick={() =>
                   setSmokeMethodData({ ...smokeMethodData, lineRole: "Dự bị" })
                 }
-                className={`flex-1 h-9 rounded-lg text-sm font-bold border transition-all duration-200 active:scale-[0.98] ${
+                className={`flex-1 h-9 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] ${
                   smokeMethodData.lineRole === "Dự bị"
                     ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200/50"
                     : "bg-white text-slate-600 border-slate-300 hover:border-teal-400 hover:text-teal-600"

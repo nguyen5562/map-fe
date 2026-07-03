@@ -42,8 +42,8 @@ export function GasMarker({
           transformOrigin: "125px 125px",
         }}
       >
-        {lineType === "Vòng" ? (
-          /* Ký hiệu tuyến vòng: hình chữ nhật + 2x^ và 2xV bên trong hướng vào giữa */
+        {lineType === "Diện" ? (
+          /* Ký hiệu theo diện: hình chữ nhật + 2x^ và 2xV bên trong hướng vào giữa */
           <>
             {/* Hình chữ nhật, kích thước tương tự ký hiệu cũ */}
             <rect
@@ -92,6 +92,61 @@ export function GasMarker({
             {/* V phải */}
             <path
               d="M 148.33,143 L 158.33,163 L 168.33,143"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </>
+        ) : lineType === "Vòng" ? (
+          /* Ký hiệu tuyến vòng: hình tròn + 4 cái râu hướng vào trong */
+          <>
+            <circle
+              cx="125"
+              cy="125"
+              r="75"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="4"
+              vectorEffect="non-scaling-stroke"
+              strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
+            />
+
+            {/* Râu trên: apex tại (125,50), chân tại (115,70) và (135,70) */}
+            <path
+              d="M 115,70 L 125,50 L 135,70"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+            {/* Râu dưới: apex tại (125,200), chân tại (115,180) và (135,180) */}
+            <path
+              d="M 115,180 L 125,200 L 135,180"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+            {/* Râu trái: apex tại (50,125), chân tại (70,115) và (70,135) */}
+            <path
+              d="M 70,115 L 50,125 L 70,135"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+            {/* Râu phải: apex tại (200,125), chân tại (180,115) và (180,135) */}
+            <path
+              d="M 180,115 L 200,125 L 180,135"
               fill="none"
               stroke="#000000"
               strokeWidth="4"

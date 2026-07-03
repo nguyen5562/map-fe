@@ -283,9 +283,13 @@ export const VehiclesTab = () => {
                       setVehicleForm({ ...vehicleForm, id: e.target.value })
                     }
                     placeholder="HPK-2.5, TPK..."
-                    disabled={!!editingVehicle}
                     className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                   />
+                  {editingVehicle && vehicleForm.id !== editingVehicle.id && (
+                    <p className="text-[10px] text-amber-600 mt-1 leading-tight font-medium">
+                      * Đổi mã ID sẽ cập nhật các phương án đã lưu liên quan.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-slate-650 font-semibold mb-1 block">
