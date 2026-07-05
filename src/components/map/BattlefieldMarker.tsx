@@ -10,11 +10,13 @@ export function BattlefieldMarker({
   center,
   type,
   scaleX,
+  commandPostLevel = "squad",
   onClick,
 }: {
   center: L.LatLng;
   type: "firePoints" | "reserveUnit" | "commandPost";
-  scaleX: number; // from useSimulationStore → scale.x  (metres per pixel)
+  scaleX: number;
+  commandPostLevel?: "squad" | "platoon" | "company";
   onClick?: () => void;
 }) {
   const battlefieldScale = useSimulationStore((s) => s.battlefieldScale ?? 1);
@@ -37,7 +39,7 @@ export function BattlefieldMarker({
     >
       {type === "firePoints" && <FirePointSymbol />}
       {type === "reserveUnit" && <ReserveUnitSymbol />}
-      {type === "commandPost" && <CommandPostSymbol />}
+      {type === "commandPost" && <CommandPostSymbol level={commandPostLevel} />}
     </SVGOverlay>
   );
 }
@@ -166,10 +168,8 @@ function ReserveUnitSymbol() {
 }
 
 // ── Hình 3: Bộ phận chỉ huy ──────────────────────────────────────────────────
-// Hai tam giác đều cạnh nhau viền đen.
-// Trái: có chữ H bên trong (không có cột ở đỉnh).
-// Phải: rỗng bên trong (có cột đứng ở đỉnh).
-function CommandPostSymbol() {
+// Trái: tam giác + H; Phải: tam giác rỗng + cột đỉnh + gạch ngang theo cấp.
+function CommandPostSymbol({ level = "squad" }: { level?: "squad" | "platoon" | "company" }) {
   return (
     <g>
       {/* --- LEFT TRIANGLE (with H) --- */}
@@ -181,38 +181,11 @@ function CommandPostSymbol() {
         strokeLinejoin="round"
         vectorEffect={VE}
       />
-      {/* H inside (bold stroke SW_THICK to match triangle, narrow 10px width) */}
-      <line
-        x1="25"
-        y1="42"
-        x2="25"
-        y2="58"
-        stroke={STROKE_COLOR}
-        strokeWidth={SW_THICK}
-        strokeLinecap="round"
-        vectorEffect={VE}
-      />
-      <line
-        x1="35"
-        y1="42"
-        x2="35"
-        y2="58"
-        stroke={STROKE_COLOR}
-        strokeWidth={SW_THICK}
-        strokeLinecap="round"
-        vectorEffect={VE}
-      />
-      <line
-        x1="25"
-        y1="50"
-        x2="35"
-        y2="50"
-        stroke={STROKE_COLOR}
-        strokeWidth={SW_THICK}
-        vectorEffect={VE}
-      />
+      <line x1="25" y1="42" x2="25" y2="58" stroke={STROKE_COLOR} strokeWidth={SW_THICK} strokeLinecap="round" vectorEffect={VE} />
+      <line x1="35" y1="42" x2="35" y2="58" stroke={STROKE_COLOR} strokeWidth={SW_THICK} strokeLinecap="round" vectorEffect={VE} />
+      <line x1="25" y1="50" x2="35" y2="50" stroke={STROKE_COLOR} strokeWidth={SW_THICK} vectorEffect={VE} />
 
-      {/* --- RIGHT TRIANGLE (with stem above apex, empty inside) --- */}
+      {/* --- RIGHT TRIANGLE (empty, with stem above apex) --- */}
       <polygon
         points="90,25 65,68 115,68"
         fill={FILL_COLOR}
@@ -222,16 +195,15 @@ function CommandPostSymbol() {
         vectorEffect={VE}
       />
       {/* Stem above apex */}
-      <line
-        x1="90"
-        y1="9"
-        x2="90"
-        y2="25"
-        stroke={STROKE_COLOR}
-        strokeWidth={SW_THICK}
-        strokeLinecap="round"
-        vectorEffect={VE}
-      />
+      <line x1="90" y1="9" x2="90" y2="25" stroke={STROKE_COLOR} strokeWidth={SW_THICK} strokeLinecap="round" vectorEffect={VE} />
+      {/* Trung đội: 1 gạch ngang */}
+      {(level === "platoon" || level === "company") && (
+        <line x1="83" y1="20" x2="97" y2="20" stroke={STROKE_COLOR} strokeWidth={SW_THICK} strokeLinecap="round" vectorEffect={VE} />
+      )}
+      {/* Đại đội: thêm gạch ngang thứ 2 */}
+      {level === "company" && (
+        <line x1="83" y1="14" x2="97" y2="14" stroke={STROKE_COLOR} strokeWidth={SW_THICK} strokeLinecap="round" vectorEffect={VE} />
+      )}
     </g>
   );
 }

@@ -66,6 +66,7 @@ export interface SimulationStoreState {
   originalVehicleConfigs: Record<string, VehicleConfig>;
   battlefieldData: BattlefieldData;
   battlefieldScale: number;
+  commandPostLevel: "squad" | "platoon" | "company";
   weatherActive: boolean;
   weatherData: WeatherData;
   smokeLineLength: number | "";
@@ -137,6 +138,7 @@ export interface SimulationStoreState {
     val: BattlefieldData | ((prev: BattlefieldData) => BattlefieldData),
   ) => void;
   setBattlefieldScale: (val: number | ((prev: number) => number)) => void;
+  setCommandPostLevel: (val: "squad" | "platoon" | "company") => void;
   setWeatherActive: (val: boolean | ((prev: boolean) => boolean)) => void;
   setWeatherData: (
     val: WeatherData | ((prev: WeatherData) => WeatherData),

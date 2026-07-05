@@ -11,6 +11,16 @@ import {
   Edit3,
   X,
   Save,
+  Layers,
+  MapPin,
+  Crosshair,
+  Flame,
+  Shield,
+  Locate,
+  CloudSun,
+  Clock,
+  Truck,
+  Mountain,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -26,6 +36,19 @@ import { UploadProgressDialog } from "./UploadProgressDialog";
 import { PointsListPanel } from "./PointsListPanel";
 import { SessionPanel } from "./SessionPanel";
 import { useSimulation } from "../../context/SimulationContext";
+
+const TAB_DEFS = [
+  { id: "session",     label: "Phiên",  title: "Quản lý phiên làm việc",          icon: Layers    },
+  { id: "points",      label: "Điểm",   title: "Danh sách điểm mục tiêu",         icon: MapPin    },
+  { id: "calibration", label: "Chuẩn",  title: "Bước 1 - Hiệu chuẩn bản đồ",      icon: Crosshair },
+  { id: "method",      label: "Khói",   title: "Bước 2 - Phương pháp che khuất",  icon: Flame     },
+  { id: "defense",     label: "Phòng",  title: "Bước 3 - Phòng thủ mục tiêu",     icon: Shield    },
+  { id: "target",      label: "Tọa độ", title: "Bước 4 - Chọn tọa độ mục tiêu",   icon: Locate    },
+  { id: "weather",     label: "Tiết",   title: "Bước 5 - Thời tiết",              icon: CloudSun  },
+  { id: "smoketime",   label: "Gian",   title: "Bước 6 - Thời gian che khuất",    icon: Clock     },
+  { id: "vehicle",     label: "Xe",     title: "Bước 7 - Phương tiện che khuất",  icon: Truck     },
+  { id: "battlefield", label: "Địa",    title: "Bước 8 - Địa hình chiến trường",  icon: Mountain  },
+];
 
 export const LeftSidebar = () => {
   const isSidebarOpen = useSimulation((s) => s.isSidebarOpen);
@@ -50,6 +73,8 @@ export const LeftSidebar = () => {
   const [showProgress, setShowProgress] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [isMapDropdownOpen, setIsMapDropdownOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [tooltipInfo, setTooltipInfo] = useState<{ title: string; x: number; y: number } | null>(null);
 
   // Fetch sessions khi map thay đổi (chỉ load sessions của map đang chọn)
   useEffect(() => {
@@ -78,10 +103,26 @@ export const LeftSidebar = () => {
     e.target.value = "";
   };
 
+  const renderPanel = () => {
+    switch (activeTab) {
+      case 0:  return <SessionPanel />;
+      case 1:  return <PointsListPanel />;
+      case 2:  return <CalibrationPanel />;
+      case 3:  return <SmokeMethodPanel />;
+      case 4:  return <TargetDefensePanel />;
+      case 5:  return <TargetPanel />;
+      case 6:  return <WeatherPanel />;
+      case 7:  return <SmokeTimePanel />;
+      case 8:  return <SmokeVehiclePanel />;
+      case 9:  return <BattlefieldPanel />;
+      default: return null;
+    }
+  };
+
   return (
     <div
       className={`relative h-full transition-all duration-300 ease-in-out flex-shrink-0 z-[1001] ${
-        isSidebarOpen ? "w-[340px]" : "w-0"
+        isSidebarOpen ? "w-[380px]" : "w-0"
       }`}
     >
       {/* Hidden file input */}
@@ -106,7 +147,7 @@ export const LeftSidebar = () => {
 
       {/* SIDEBAR CONTENT */}
       <div
-        className={`absolute top-0 left-0 w-[340px] h-full bg-white border-r border-slate-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 left-0 w-[380px] h-full bg-white border-r border-slate-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -247,43 +288,61 @@ export const LeftSidebar = () => {
           </div>
         </div>
 
-        {/* ── Scrollable Panels ── */}
-        <div
-          className={`p-4 flex-1 overflow-y-auto space-y-6 ${!currentMap || currentMap.status !== "ready" ? "opacity-50 pointer-events-none" : ""}`}
-        >
-          {/* SESSION MANAGER */}
-          <SessionPanel />
+        {/* ── Tab Bar + Content Area ── */}
+        <div className="flex flex-1 overflow-hidden">
 
-          {/* LIST OF SAVED POINTS */}
-          <PointsListPanel />
-
-          <div
-            className={`space-y-6 ${selectedPointId !== null && editingPointId === null ? "pointer-events-none opacity-80 select-none" : ""}`}
-          >
-            {/* STEP 1: CALIBRATION */}
-            <CalibrationPanel />
-
-            {/* STEP 2: SMOKE METHOD */}
-            <SmokeMethodPanel />
-
-            {/* STEP 3: TARGET DEFENSE */}
-            <TargetDefensePanel />
-
-            {/* STEP 4: FIND & CHECK COORDS */}
-            <TargetPanel />
-
-            {/* STEP 5: WEATHER */}
-            <WeatherPanel />
-
-            {/* STEP 6: SMOKE TIME */}
-            <SmokeTimePanel />
-
-            {/* STEP 7: SMOKE VEHICLE */}
-            <SmokeVehiclePanel />
-
-            {/* STEP 8: BATTLEFIELD STRUCTURE */}
-            <BattlefieldPanel />
+          {/* Tab Bar */}
+          <div className="w-12 flex-shrink-0 border-r border-slate-200 bg-slate-50/80 flex flex-col overflow-y-auto">
+            {TAB_DEFS.map((tab, i) => {
+              const TabIcon = tab.icon;
+              const isActive = activeTab === i;
+              const isMapNotReady = !currentMap || currentMap.status !== "ready";
+              const isDimmed = i >= 2 && isMapNotReady;
+              const badge = i === 1 && pointsList.length > 0 ? pointsList.length : 0;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(i)}
+                  onMouseEnter={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    setTooltipInfo({ title: tab.title, x: r.right + 8, y: r.top + r.height / 2 });
+                  }}
+                  onMouseLeave={() => setTooltipInfo(null)}
+                  className={`relative w-full h-[40px] flex items-center justify-center transition-colors duration-150 select-none outline-none focus:outline-none ${
+                    isActive
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                  } ${isDimmed ? "opacity-40" : ""}`}
+                >
+                  {isActive && (
+                    <span className="absolute right-0 top-1/2 -translate-y-1/2 w-[2.5px] h-6 bg-blue-500 rounded-l-sm" />
+                  )}
+                  {badge > 0 && (
+                    <span className="absolute top-[6px] right-[6px] h-[13px] min-w-[13px] bg-blue-500 text-white text-[7px] font-bold rounded-full flex items-center justify-center px-[2px] leading-none">
+                      {badge > 9 ? "9+" : badge}
+                    </span>
+                  )}
+                  <TabIcon size={16} strokeWidth={isActive ? 2.25 : 1.75} />
+                </button>
+              );
+            })}
           </div>
+
+          {/* Content Area - chỉ render panel đang active */}
+          <div
+            className={`flex-1 overflow-y-auto p-3 ${
+              !currentMap || currentMap.status !== "ready"
+                ? "opacity-50 pointer-events-none"
+                : ""
+            } ${
+              activeTab >= 2 && selectedPointId !== null && editingPointId === null
+                ? "pointer-events-none opacity-80 select-none"
+                : ""
+            }`}
+          >
+            {renderPanel()}
+          </div>
+
         </div>
 
         {/* ── Sticky Action Footer ── */}
@@ -318,11 +377,24 @@ export const LeftSidebar = () => {
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className={`absolute top-1/2 -translate-y-1/2 w-6 h-16 bg-white border border-slate-200 rounded-r-md shadow-md flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-blue-600 focus:outline-none z-[1002] transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "left-[340px] border-l-0" : "left-0 border-l"
+          isSidebarOpen ? "left-[380px] border-l-0" : "left-0 border-l"
         }`}
       >
         {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
+
+      {/* TAB TOOLTIP PORTAL */}
+      {tooltipInfo !== null &&
+        createPortal(
+          <div
+            className="fixed z-[9999] pointer-events-none bg-slate-800 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap"
+            style={{ top: tooltipInfo.y, left: tooltipInfo.x, transform: "translateY(-50%)" }}
+          >
+            {tooltipInfo.title}
+            <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />
+          </div>,
+          document.body,
+        )}
 
       {/* RENAME MAP MODAL */}
       {renameModalOpen &&

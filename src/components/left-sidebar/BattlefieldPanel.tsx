@@ -103,6 +103,8 @@ export const BattlefieldPanel = () => {
   const setBattlefieldScale = useSimulation((s) => s.setBattlefieldScale);
   const isSelectingFor = useSimulation((s) => s.isSelectingFor);
   const setIsSelectingFor = useSimulation((s) => s.setIsSelectingFor);
+  const commandPostLevel = useSimulation((s) => s.commandPostLevel);
+  const setCommandPostLevel = useSimulation((s) => s.setCommandPostLevel);
   const [showPanel, setShowPanel] = useState(true);
 
   return (
@@ -204,8 +206,8 @@ export const BattlefieldPanel = () => {
                     {isSelecting
                       ? "Đang chọn..."
                       : hasCoords
-                        ? "Sửa vị trí"
-                        : "Chọn trên bản đồ"}
+                        ? "Chọn lại"
+                        : "Chọn"}
                   </Button>
                 </div>
 
@@ -234,6 +236,28 @@ export const BattlefieldPanel = () => {
                     <span className="text-xs text-slate-400">
                       Chưa chọn vị trí
                     </span>
+                  </div>
+                )}
+
+                {/* Level selector - only for commandPost */}
+                {key === "commandPost" && (
+                  <div className="flex flex-col gap-1.5 pt-1 border-t border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-medium">Cấp chỉ huy</span>
+                    <div className="flex gap-1">
+                      {(["squad", "platoon", "company"] as const).map((lvl) => (
+                        <button
+                          key={lvl}
+                          onClick={() => setCommandPostLevel(lvl)}
+                          className={`flex-1 h-7 text-[10px] font-semibold rounded-md border transition-colors ${
+                            commandPostLevel === lvl
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-slate-500 border-slate-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600"
+                          }`}
+                        >
+                          {lvl === "squad" ? "Tiểu đội" : lvl === "platoon" ? "Trung đội" : "Đại đội"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

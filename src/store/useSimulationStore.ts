@@ -81,6 +81,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
   },
   battlefieldScale: 1,
+  commandPostLevel: "squad" as const,
   weatherActive: false,
   weatherData: {
     combatTime: "01.05.26",
@@ -238,6 +239,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       battlefieldScale:
         typeof val === "function" ? val(state.battlefieldScale) : val,
     })),
+  setCommandPostLevel: (val) => set({ commandPostLevel: val }),
   setWeatherActive: (val) =>
     set((state) => ({
       weatherActive: typeof val === "function" ? val(state.weatherActive) : val,
@@ -1186,6 +1188,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           };
         })(),
         battlefieldScale: data.battlefieldScale ?? 1,
+        commandPostLevel: ((data.commandPostLevel ?? "squad") as "squad" | "platoon" | "company"),
         weatherData: data.weatherData ?? state.weatherData,
         weatherActive: data.weatherActive ?? false,
         smokeTime: data.smokeTime ?? state.smokeTime,

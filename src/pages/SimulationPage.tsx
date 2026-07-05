@@ -196,6 +196,7 @@ function SimulationInner() {
   const currentRealCoords = useSimulation((s) => s.currentRealCoords);
   const battlefieldData = useSimulation((s) => s.battlefieldData);
   const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
+  const commandPostLevel = useSimulation((s) => s.commandPostLevel);
   const rawToReal = useSimulation((s) => s.rawToReal);
   // Automatically recalculate distances and directions when currentRealCoords or battlefield coords change
   useEffect(() => {
@@ -424,6 +425,7 @@ function SimulationInner() {
                 center={battlefieldData.commandPost.rawCoords}
                 type="commandPost"
                 scaleX={scale.x}
+                commandPostLevel={commandPostLevel}
               />
             )}
 
