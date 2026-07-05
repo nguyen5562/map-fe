@@ -26,7 +26,13 @@ export interface SimulationStoreState {
   isCalibrated: boolean;
   showCalibration: boolean;
   showWeather: boolean;
-  isSelectingFor: "p1" | "p2" | null;
+  isSelectingFor:
+    | "p1"
+    | "p2"
+    | "firePoints"
+    | "commandPost"
+    | "reserveUnit"
+    | null;
 
   p1: CalibrationPoint;
   p2: CalibrationPoint;
@@ -59,6 +65,7 @@ export interface SimulationStoreState {
   vehicleConfigs: Record<string, VehicleConfig>;
   originalVehicleConfigs: Record<string, VehicleConfig>;
   battlefieldData: BattlefieldData;
+  battlefieldScale: number;
   weatherActive: boolean;
   weatherData: WeatherData;
   smokeLineLength: number | "";
@@ -74,8 +81,19 @@ export interface SimulationStoreState {
     val:
       | "p1"
       | "p2"
+      | "firePoints"
+      | "commandPost"
+      | "reserveUnit"
       | null
-      | ((prev: "p1" | "p2" | null) => "p1" | "p2" | null),
+      | ((
+          prev:
+            | "p1"
+            | "p2"
+            | "firePoints"
+            | "commandPost"
+            | "reserveUnit"
+            | null,
+        ) => "p1" | "p2" | "firePoints" | "commandPost" | "reserveUnit" | null),
   ) => void;
   setP1: (
     val: CalibrationPoint | ((prev: CalibrationPoint) => CalibrationPoint),
@@ -118,6 +136,7 @@ export interface SimulationStoreState {
   setBattlefieldData: (
     val: BattlefieldData | ((prev: BattlefieldData) => BattlefieldData),
   ) => void;
+  setBattlefieldScale: (val: number | ((prev: number) => number)) => void;
   setWeatherActive: (val: boolean | ((prev: boolean) => boolean)) => void;
   setWeatherData: (
     val: WeatherData | ((prev: WeatherData) => WeatherData),

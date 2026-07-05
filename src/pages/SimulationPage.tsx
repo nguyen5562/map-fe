@@ -29,7 +29,12 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { BASE_URL } from "../const/apiConfig";
-import { WeatherOverlay, GasMarker, GasLabel } from "../components/map";
+import {
+  WeatherOverlay,
+  GasMarker,
+  GasLabel,
+  BattlefieldMarker,
+} from "../components/map";
 import {
   estimateTextWidth,
   getMainVehicleId,
@@ -39,6 +44,7 @@ import {
 import { LeftSidebar } from "../components/left-sidebar";
 import { RightSidebar } from "../components/right-sidebar";
 import { ConfirmChangesModal } from "../components/ui/ConfirmChangesModal";
+import { angleToDirection } from "../components/left-sidebar/BattlefieldPanel";
 import {
   SimulationProvider,
   useSimulation,
@@ -113,7 +119,10 @@ function getLeaderLineIntersection(
     const len = Math.sqrt(dx * dx + dy * dy);
     const r_circle = 0.3 * rawWidth; // 75/250 * rawWidth
     if (len > r_circle) {
-      return new L.LatLng(yc + (dy / len) * r_circle, xc + (dx / len) * r_circle);
+      return new L.LatLng(
+        yc + (dy / len) * r_circle,
+        xc + (dx / len) * r_circle,
+      );
     }
     return center;
   }
@@ -184,17 +193,109 @@ function SimulationInner() {
     (s) => s.handleConfirmModalDiscard,
   );
 
+  const currentRealCoords = useSimulation((s) => s.currentRealCoords);
+  const battlefieldData = useSimulation((s) => s.battlefieldData);
+  const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
+  const rawToReal = useSimulation((s) => s.rawToReal);
+  // Automatically recalculate distances and directions when currentRealCoords or battlefield coords change
+  useEffect(() => {
+    if (!isCalibrated) return;
+
+    let changed = false;
+    const nextBattlefieldData = { ...battlefieldData };
+
+    const keys: ("firePoints" | "commandPost" | "reserveUnit")[] = [
+      "firePoints",
+      "commandPost",
+      "reserveUnit",
+    ];
+
+    for (const key of keys) {
+      const entry = battlefieldData[key];
+      if (entry.rawCoords) {
+        const real = rawToReal(entry.rawCoords.lng, entry.rawCoords.lat);
+        let distance = "";
+        let direction = "Bắc";
+
+        if (real && currentRealCoords) {
+          const dx = real.x - currentRealCoords.x;
+          const dy = real.y - currentRealCoords.y;
+          const dist = Math.round(Math.sqrt(dx * dx + dy * dy));
+          distance = String(dist);
+          const mathAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+          const compassAngle = 90 - mathAngle;
+          direction = angleToDirection(compassAngle);
+        }
+
+        if (entry.distance !== distance || entry.direction !== direction) {
+          nextBattlefieldData[key] = {
+            ...entry,
+            distance,
+            direction,
+          };
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      setBattlefieldData(nextBattlefieldData);
+    }
+  }, [
+    currentRealCoords,
+    battlefieldData.firePoints.rawCoords,
+    battlefieldData.commandPost.rawCoords,
+    battlefieldData.reserveUnit.rawCoords,
+    isCalibrated,
+    p1,
+    p2,
+    rawToReal,
+    setBattlefieldData,
+  ]);
+
   const handleMapClick = (e: L.LeafletMouseEvent) => {
     const rawX = e.latlng.lng;
     const rawY = e.latlng.lat;
-    setClickedRaw(e.latlng);
 
     if (isSelectingFor === "p1") {
       setP1({ ...p1, rawX, rawY });
       setIsSelectingFor(null);
+      setClickedRaw(e.latlng);
     } else if (isSelectingFor === "p2") {
       setP2({ ...p2, rawX, rawY });
       setIsSelectingFor(null);
+      setClickedRaw(e.latlng);
+    } else if (
+      isSelectingFor === "firePoints" ||
+      isSelectingFor === "commandPost" ||
+      isSelectingFor === "reserveUnit"
+    ) {
+      const real = rawToReal(rawX, rawY);
+      const key = isSelectingFor;
+      // Compute distance + direction from current smoke center
+      let distance = "";
+      let direction = "Bắc";
+      if (real && currentRealCoords) {
+        const dx = real.x - currentRealCoords.x;
+        const dy = real.y - currentRealCoords.y;
+        const dist = Math.round(Math.sqrt(dx * dx + dy * dy));
+        distance = String(dist);
+        // Math angle: 0=East, 90=North. Compass: 0=North, 90=East
+        const mathAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const compassAngle = 90 - mathAngle;
+        direction = angleToDirection(compassAngle);
+      }
+      setBattlefieldData({
+        ...battlefieldData,
+        [key]: {
+          rawCoords: e.latlng,
+          distance,
+          direction,
+        },
+      });
+      setIsSelectingFor(null);
+    } else {
+      setClickedRaw(e.latlng);
     }
   };
 
@@ -247,6 +348,23 @@ function SimulationInner() {
           weatherData={weatherDataWithAngle}
         />
 
+        {/* Battlefield selection mode banner */}
+        {(isSelectingFor === "firePoints" ||
+          isSelectingFor === "commandPost" ||
+          isSelectingFor === "reserveUnit") && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+            <div className="flex items-center gap-2 bg-slate-900/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              {isSelectingFor === "firePoints" &&
+                "Click vao ban do de chon Vi tri diem hoa"}
+              {isSelectingFor === "reserveUnit" &&
+                "Click vao ban do de chon Vi tri bo phan du bi, bao dam"}
+              {isSelectingFor === "commandPost" &&
+                "Click vao ban do de chon Vi tri bo phan chi huy"}
+            </div>
+          </div>
+        )}
+
         {currentMap?.status === "ready" ? (
           <MapContainer
             key={currentMap.id}
@@ -284,6 +402,29 @@ function SimulationInner() {
               <Marker position={[p2.rawY!, p2.rawX!]}>
                 <Tooltip permanent>Mốc 2</Tooltip>
               </Marker>
+            )}
+
+            {/* Battlefield Position Markers - Military SVG Symbols */}
+            {isCalibrated && battlefieldData.firePoints.rawCoords && (
+              <BattlefieldMarker
+                center={battlefieldData.firePoints.rawCoords}
+                type="firePoints"
+                scaleX={scale.x}
+              />
+            )}
+            {isCalibrated && battlefieldData.reserveUnit.rawCoords && (
+              <BattlefieldMarker
+                center={battlefieldData.reserveUnit.rawCoords}
+                type="reserveUnit"
+                scaleX={scale.x}
+              />
+            )}
+            {isCalibrated && battlefieldData.commandPost.rawCoords && (
+              <BattlefieldMarker
+                center={battlefieldData.commandPost.rawCoords}
+                type="commandPost"
+                scaleX={scale.x}
+              />
             )}
 
             {/* Click Marker */}

@@ -1,14 +1,30 @@
 import { useState } from "react";
 import {
   Layers,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
   Flame,
   Eye,
   Shield,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
-import { Input } from "../ui/Input";
+import L from "leaflet";
+import { Button } from "../ui/Button";
+import { useSimulation } from "../../context/SimulationContext";
 
+export type PositionEntry = {
+  rawCoords: L.LatLng | null;
+  distance: string; // metres, computed from center
+  direction: string; // compass label
+};
+
+export type BattlefieldData = {
+  firePoints: PositionEntry;
+  commandPost: PositionEntry;
+  reserveUnit: PositionEntry;
+};
+
+// ── Compass helpers ────────────────────────────────────────────────────────────
 const DIRECTIONS = [
   "Bắc",
   "Đông Bắc",
@@ -20,70 +36,73 @@ const DIRECTIONS = [
   "Tây Bắc",
 ];
 
-type PositionEntry = {
-  distance: string;
-  direction: string;
-};
+export function angleToDirection(angleDeg: number): string {
+  // Normalize angle to [0, 360)
+  const a = ((angleDeg % 360) + 360) % 360;
+  const idx = Math.round(a / 45) % 8;
+  return DIRECTIONS[idx];
+}
 
-type BattlefieldData = {
-  firePoints: PositionEntry;
-  commandPost: PositionEntry;
-  reserveUnit: PositionEntry;
-};
+// ── Field config ──────────────────────────────────────────────────────────────
+type BattlefieldKey = keyof BattlefieldData;
 
-const PositionInput = ({
-  value,
-  onChange,
-}: {
-  value: PositionEntry;
-  onChange: (v: PositionEntry) => void;
-}) => (
-  <div className="mt-1 space-y-1.5">
-    <p className="text-xs text-slate-400">Cách trung tâm trận địa khói:</p>
-    <div className="grid gap-x-1" style={{ gridTemplateColumns: "4fr 5fr" }}>
-      <div className="flex items-center gap-1">
-        <span className="text-xs text-slate-400 shrink-0">cách</span>
-        <Input
-          type="number"
-          min={0}
-          value={value.distance}
-          onChange={(e: any) => {
-            const val = e.target.value;
-            if (val === "" || parseFloat(val) >= 0) {
-              onChange({ ...value, distance: val });
-            }
-          }}
-          placeholder="0"
-          className="text-center"
-        />
-        <span className="text-xs text-slate-400 shrink-0">m,</span>
-      </div>
-      <div className="flex items-center gap-1">
-        <span className="text-xs text-slate-400 shrink-0">hướng</span>
-        <select
-          value={value.direction}
-          onChange={(e) => onChange({ ...value, direction: e.target.value })}
-          className="w-full h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all"
-        >
-          {DIRECTIONS.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  </div>
-);
+const FIELD_CONFIG: {
+  key: BattlefieldKey;
+  label: string;
+  // SVG icon (inline) matching the military symbols from the brief
+  symbolSvg: string;
+  selectingKey: "firePoints" | "commandPost" | "reserveUnit";
+}[] = [
+  {
+    key: "firePoints",
+    label: "Vị trí điểm hỏa",
+    // Hình 1: hình chữ nhật ngang + cột zíc zắc quay bên phải (chỉ viền đen)
+    symbolSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="20" viewBox="0 0 52 40">
+      <rect x="2" y="2" width="48" height="26" rx="1" fill="none" stroke="#000000" stroke-width="3"/>
+      <path d="M 26,28 L 26,33 L 31,33 L 31,38" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+    selectingKey: "firePoints",
+  },
+  {
+    key: "reserveUnit",
+    label: "Vị trí bộ phận dự bị, bảo đảm",
+    // Hình 2: TRÁI = + (nhỏ) trên đỉnh trái √; PHẢI = H trên đỉnh trái √ (chỉ viền đen)
+    symbolSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 72 48">
+      <path d="M 12,22 L 16,32 L 22,14 L 32,14" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="15" y1="14" x2="15" y2="20" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="12" y1="17" x2="18" y2="17" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+      
+      <path d="M 46,22 L 50,32 L 56,14 L 66,14" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <line x1="46" y1="14" x2="46" y2="22" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="52" y1="14" x2="52" y2="22" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="46" y1="18" x2="52" y2="18" stroke="#000000" stroke-width="2.5"/>
+    </svg>`,
+    selectingKey: "reserveUnit",
+  },
+  {
+    key: "commandPost",
+    label: "Vị trí bộ phận chỉ huy",
+    // Hình 3: TRÁI = tam giác + H bên trong; PHẢI = tam giác rỗng + cột đỉnh (chỉ viền đen)
+    symbolSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 72 48">
+      <polygon points="18,4 34,44 2,44" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+      <line x1="12" y1="24" x2="12" y2="36" stroke="#000000" stroke-width="2"/>
+      <line x1="24" y1="24" x2="24" y2="36" stroke="#000000" stroke-width="2"/>
+      <line x1="12" y1="30" x2="24" y2="30" stroke="#000000" stroke-width="2"/>
+      <line x1="54" y1="2"  x2="54" y2="6"  stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+      <polygon points="54,6 70,44 38,44" fill="none" stroke="#000000" stroke-width="2.5" stroke-linejoin="round"/>
+    </svg>`,
+    selectingKey: "commandPost",
+  },
+];
 
-export type { BattlefieldData };
-
-import { useSimulation } from "../../context/SimulationContext";
-
+// ── Panel component ───────────────────────────────────────────────────────────
 export const BattlefieldPanel = () => {
   const isCalibrated = useSimulation((s) => s.isCalibrated);
   const battlefieldData = useSimulation((s) => s.battlefieldData);
-  const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
+  const battlefieldScale = useSimulation((s) => s.battlefieldScale);
+  const setBattlefieldScale = useSimulation((s) => s.setBattlefieldScale);
+  const isSelectingFor = useSimulation((s) => s.isSelectingFor);
+  const setIsSelectingFor = useSimulation((s) => s.setIsSelectingFor);
   const [showPanel, setShowPanel] = useState(true);
 
   return (
@@ -112,46 +131,114 @@ export const BattlefieldPanel = () => {
 
       {showPanel && (
         <div className="px-4 pb-4 pt-2 space-y-3">
-          {/* Vị trí điểm hỏa */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <Flame size={14} className="text-orange-500" /> Vị trí điểm hỏa
-            </label>
-            <PositionInput
-              value={battlefieldData.firePoints}
-              onChange={(v) =>
-                setBattlefieldData({ ...battlefieldData, firePoints: v })
-              }
+          <p className="text-xs text-slate-400 mt-1">
+            Chọn từng vị trí trực tiếp trên bản đồ.
+          </p>
+
+          {/* Tỉ lệ kích thước ký hiệu */}
+          <div className="flex items-center justify-between bg-rose-50/50 rounded-lg border border-rose-100 p-2.5">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-bold text-slate-700">
+                Tỉ lệ kích thước ký hiệu
+              </span>
+              <span className="text-[10px] text-slate-400">
+                Mặc định là 1 (từ 0.1 trở lên)
+              </span>
+            </div>
+            <input
+              type="number"
+              min="0.1"
+              step="0.1"
+              value={battlefieldScale}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) {
+                  setBattlefieldScale(Math.max(0.1, val));
+                }
+              }}
+              className="w-16 h-8 text-center text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500"
             />
           </div>
 
-          {/* Vị trí chỉ huy, quan sát */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <Eye size={14} className="text-blue-500" /> Vị trí chỉ huy, quan
-              sát
-            </label>
-            <PositionInput
-              value={battlefieldData.commandPost}
-              onChange={(v) =>
-                setBattlefieldData({ ...battlefieldData, commandPost: v })
-              }
-            />
-          </div>
+          {FIELD_CONFIG.map(({ key, label, selectingKey }) => {
+            const entry = battlefieldData[key];
+            const isSelecting = isSelectingFor === selectingKey;
+            const hasCoords = entry.rawCoords !== null;
 
-          {/* Vị trí bộ phận dự bị, bảo đảm */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-              <Shield size={14} className="text-emerald-500" /> Vị trí bộ phận
-              dự bị, bảo đảm
-            </label>
-            <PositionInput
-              value={battlefieldData.reserveUnit}
-              onChange={(v) =>
-                setBattlefieldData({ ...battlefieldData, reserveUnit: v })
-              }
-            />
-          </div>
+            // Get the old label icon
+            let labelIcon = null;
+            if (key === "firePoints") {
+              labelIcon = (
+                <Flame size={14} className="text-orange-500 shrink-0" />
+              );
+            } else if (key === "commandPost") {
+              labelIcon = <Eye size={14} className="text-blue-500 shrink-0" />;
+            } else if (key === "reserveUnit") {
+              labelIcon = (
+                <Shield size={14} className="text-emerald-500 shrink-0" />
+              );
+            }
+
+            return (
+              <div
+                key={key}
+                className="bg-slate-50 rounded-lg border border-slate-200 p-3 space-y-2"
+              >
+                {/* Label + button row */}
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                    {labelIcon}
+                    {label}
+                  </label>
+                  <Button
+                    variant={isSelecting ? "primary" : "outline"}
+                    className="h-7 text-xs px-2 shrink-0"
+                    onClick={(e: any) => {
+                      e.stopPropagation();
+                      setIsSelectingFor(
+                        isSelecting ? null : (selectingKey as any),
+                      );
+                    }}
+                  >
+                    <MapPin size={11} className="mr-1" />
+                    {isSelecting
+                      ? "Đang chọn..."
+                      : hasCoords
+                        ? "Sửa vị trí"
+                        : "Chọn trên bản đồ"}
+                  </Button>
+                </div>
+
+                {/* Info display: distance + direction */}
+                {hasCoords ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Cách (m)
+                      </span>
+                      <div className="h-8 rounded-md border border-slate-200 bg-white px-2 flex items-center text-xs font-semibold text-slate-700">
+                        {entry.distance}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Hướng
+                      </span>
+                      <div className="h-8 rounded-md border border-slate-200 bg-white px-2 flex items-center text-xs font-semibold text-slate-700">
+                        {entry.direction}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-8 rounded-md border border-dashed border-slate-300 bg-white flex items-center justify-center">
+                    <span className="text-xs text-slate-400">
+                      Chưa chọn vị trí
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

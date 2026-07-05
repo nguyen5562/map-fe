@@ -114,8 +114,9 @@ export const performCalculation = (inputs: {
     const coverTime_min = v > 0 ? Math.round((l / v / 60) * 100) / 100 : 0;
 
     vehicleBreakdown[vehicleId] = {
-      straightLine_vehicles: (lineType === "Thẳng" || lineType === "Diện") ? A : 0,
-      straightLine_routes: (lineType === "Thẳng" || lineType === "Diện") ? N : 0,
+      straightLine_vehicles:
+        lineType === "Thẳng" || lineType === "Diện" ? A : 0,
+      straightLine_routes: lineType === "Thẳng" || lineType === "Diện" ? N : 0,
       circularLine_vehicles: lineType === "Vòng" ? A : 0,
       circularLine_routes: lineType === "Vòng" ? N : 0,
       pointVehicles: a,
@@ -130,14 +131,14 @@ export const performCalculation = (inputs: {
 
   return {
     straightLine_vehicles:
-      (lineType === "Thẳng" || lineType === "Diện")
+      lineType === "Thẳng" || lineType === "Diện"
         ? Object.values(vehicleBreakdown).reduce(
             (sum, v) => sum + v.straightLine_vehicles,
             0,
           )
         : 0,
     straightLine_routes:
-      (lineType === "Thẳng" || lineType === "Diện")
+      lineType === "Thẳng" || lineType === "Diện"
         ? Object.values(vehicleBreakdown).reduce(
             (sum, v) => sum + v.straightLine_routes,
             0,

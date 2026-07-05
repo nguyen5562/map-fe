@@ -2,3 +2,4 @@
 export { WeatherOverlay } from "./WeatherOverlay";
 export { GasMarker } from "./GasMarker";
 export { GasLabel } from "./GasLabel";
+export { BattlefieldMarker } from "./BattlefieldMarker";

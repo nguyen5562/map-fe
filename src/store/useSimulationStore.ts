@@ -76,10 +76,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   vehicleConfigs: {},
   originalVehicleConfigs: {},
   battlefieldData: {
-    firePoints: { distance: "100", direction: "Bắc" },
-    commandPost: { distance: "300", direction: "Bắc" },
-    reserveUnit: { distance: "200", direction: "Bắc" },
+    firePoints: { rawCoords: null, distance: "", direction: "Bắc" },
+    commandPost: { rawCoords: null, distance: "", direction: "Bắc" },
+    reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
   },
+  battlefieldScale: 1,
   weatherActive: false,
   weatherData: {
     combatTime: "01.05.26",
@@ -231,6 +232,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     set((state) => ({
       battlefieldData:
         typeof val === "function" ? val(state.battlefieldData) : val,
+    })),
+  setBattlefieldScale: (val) =>
+    set((state) => ({
+      battlefieldScale:
+        typeof val === "function" ? val(state.battlefieldScale) : val,
     })),
   setWeatherActive: (val) =>
     set((state) => ({
@@ -987,9 +993,9 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       vehicleConfigs: {},
       originalVehicleConfigs: {},
       battlefieldData: {
-        firePoints: { distance: "100", direction: "Bắc" },
-        commandPost: { distance: "300", direction: "Bắc" },
-        reserveUnit: { distance: "200", direction: "Bắc" },
+        firePoints: { rawCoords: null, distance: "", direction: "Bắc" },
+        commandPost: { rawCoords: null, distance: "", direction: "Bắc" },
+        reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
       },
       weatherActive: false,
       weatherData: {
@@ -1038,10 +1044,11 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       selectedVehicles: [],
       vehicleConfigs: get().originalVehicleConfigs || {},
       battlefieldData: {
-        firePoints: { distance: "100", direction: "Bắc" },
-        commandPost: { distance: "300", direction: "Bắc" },
-        reserveUnit: { distance: "200", direction: "Bắc" },
+        firePoints: { rawCoords: null, distance: "", direction: "Bắc" },
+        commandPost: { rawCoords: null, distance: "", direction: "Bắc" },
+        reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
       },
+      battlefieldScale: 1,
       weatherActive: false,
       weatherData: {
         combatTime: "01.05.26",
@@ -1163,7 +1170,22 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         selectedVehicles: data.selectedVehicles ?? [],
         vehicleConfigs: data.vehicleConfigs ?? {},
         vehicleWeights: data.vehicleWeights ?? {},
-        battlefieldData: data.battlefieldData ?? state.battlefieldData,
+        battlefieldData: (() => {
+          const bd = data.battlefieldData ?? state.battlefieldData;
+          const rehydrate = (entry: any) =>
+            entry?.rawCoords
+              ? {
+                  ...entry,
+                  rawCoords: L.latLng(entry.rawCoords.lat, entry.rawCoords.lng),
+                }
+              : (entry ?? { rawCoords: null, distance: "", direction: "Bắc" });
+          return {
+            firePoints: rehydrate(bd.firePoints),
+            commandPost: rehydrate(bd.commandPost),
+            reserveUnit: rehydrate(bd.reserveUnit),
+          };
+        })(),
+        battlefieldScale: data.battlefieldScale ?? 1,
         weatherData: data.weatherData ?? state.weatherData,
         weatherActive: data.weatherActive ?? false,
         smokeTime: data.smokeTime ?? state.smokeTime,

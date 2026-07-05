@@ -469,7 +469,8 @@ export const RightSidebar = () => {
                                     <>
                                       <div className="flex justify-between pl-1">
                                         <span>
-                                          {p.smokeMethodData?.lineType === "Diện"
+                                          {p.smokeMethodData?.lineType ===
+                                          "Diện"
                                             ? "Số tuyến theo diện (N):"
                                             : "Số tuyến thẳng (N):"}
                                         </span>

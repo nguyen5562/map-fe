@@ -41,7 +41,8 @@ export const validateInputs = (
     smokeMethodData.lineType === "Vòng" &&
     (!targetDefenseData.diameter || !targetDefenseData.diameter.trim());
   const isLineTypeThangEmpty =
-    (smokeMethodData.lineType === "Thẳng" || smokeMethodData.lineType === "Diện") &&
+    (smokeMethodData.lineType === "Thẳng" ||
+      smokeMethodData.lineType === "Diện") &&
     (!targetDefenseData.width ||
       !targetDefenseData.width.trim() ||
       !targetDefenseData.length ||
@@ -69,12 +70,9 @@ export const validateInputs = (
   const isVehiclesEmpty = !selectedVehicles || selectedVehicles.length === 0;
 
   const isBattlefieldEmpty =
-    !battlefieldData.firePoints.distance ||
-    !battlefieldData.firePoints.distance.trim() ||
-    !battlefieldData.commandPost.distance ||
-    !battlefieldData.commandPost.distance.trim() ||
-    !battlefieldData.reserveUnit.distance ||
-    !battlefieldData.reserveUnit.distance.trim();
+    !battlefieldData.firePoints.rawCoords ||
+    !battlefieldData.commandPost.rawCoords ||
+    !battlefieldData.reserveUnit.rawCoords;
 
   const isWeatherEmpty =
     !weatherData.combatTime ||

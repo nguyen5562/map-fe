@@ -2,7 +2,10 @@ import { SVGOverlay } from "react-leaflet";
 import L from "leaflet";
 import type { VehicleConfig } from "../left-sidebar/SmokeVehiclePanel";
 import type { SmokeTimeRange } from "../left-sidebar/SmokeTimePanel";
-import type { TargetDefenseData, SmokeMethodData } from "../../context/SimulationContext";
+import type {
+  TargetDefenseData,
+  SmokeMethodData,
+} from "../../context/SimulationContext";
 
 export const UTM_FONT = "'UTM Helvetins', 'Times New Roman', Times, serif";
 

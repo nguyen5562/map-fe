@@ -27,6 +27,7 @@ export interface SimulationSessionData {
   vehicleConfigs: Record<string, VehicleConfig>;
   vehicleWeights: Record<string, number | "">;
   battlefieldData: BattlefieldData;
+  battlefieldScale?: number;
   weatherData: WeatherData;
   weatherActive: boolean;
   smokeTime: SmokeTimeRange;
@@ -73,6 +74,7 @@ export const getSessionSnapshot = (state: {
   vehicleConfigs: Record<string, VehicleConfig>;
   vehicleWeights: Record<string, number | "">;
   battlefieldData: BattlefieldData;
+  battlefieldScale: number;
   weatherData: WeatherData;
   weatherActive: boolean;
   smokeTime: SmokeTimeRange;
@@ -95,6 +97,7 @@ export const getSessionSnapshot = (state: {
   vehicleConfigs: { ...state.vehicleConfigs },
   vehicleWeights: { ...state.vehicleWeights },
   battlefieldData: { ...state.battlefieldData },
+  battlefieldScale: state.battlefieldScale,
   weatherData: { ...state.weatherData },
   weatherActive: state.weatherActive,
   smokeTime: { ...state.smokeTime },
