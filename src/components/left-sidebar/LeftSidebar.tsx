@@ -38,16 +38,61 @@ import { SessionPanel } from "./SessionPanel";
 import { useSimulation } from "../../context/SimulationContext";
 
 const TAB_DEFS = [
-  { id: "session",     label: "Phiên",  title: "Quản lý phiên làm việc",          icon: Layers    },
-  { id: "points",      label: "Điểm",   title: "Danh sách điểm mục tiêu",         icon: MapPin    },
-  { id: "calibration", label: "Chuẩn",  title: "Bước 1 - Hiệu chuẩn bản đồ",      icon: Crosshair },
-  { id: "method",      label: "Khói",   title: "Bước 2 - Phương pháp che khuất",  icon: Flame     },
-  { id: "defense",     label: "Phòng",  title: "Bước 3 - Phòng thủ mục tiêu",     icon: Shield    },
-  { id: "target",      label: "Tọa độ", title: "Bước 4 - Chọn tọa độ mục tiêu",   icon: Locate    },
-  { id: "weather",     label: "Tiết",   title: "Bước 5 - Thời tiết",              icon: CloudSun  },
-  { id: "smoketime",   label: "Gian",   title: "Bước 6 - Thời gian che khuất",    icon: Clock     },
-  { id: "vehicle",     label: "Xe",     title: "Bước 7 - Phương tiện che khuất",  icon: Truck     },
-  { id: "battlefield", label: "Địa",    title: "Bước 8 - Địa hình chiến trường",  icon: Mountain  },
+  {
+    id: "session",
+    label: "Phiên",
+    title: "Quản lý phiên làm việc",
+    icon: Layers,
+  },
+  {
+    id: "points",
+    label: "Điểm",
+    title: "Danh sách điểm mục tiêu",
+    icon: MapPin,
+  },
+  {
+    id: "calibration",
+    label: "Chuẩn",
+    title: "Bước 1 - Hiệu chuẩn bản đồ",
+    icon: Crosshair,
+  },
+  {
+    id: "method",
+    label: "Khói",
+    title: "Bước 2 - Phương pháp che khuất",
+    icon: Flame,
+  },
+  {
+    id: "defense",
+    label: "Phòng",
+    title: "Bước 3 - Phòng thủ mục tiêu",
+    icon: Shield,
+  },
+  {
+    id: "target",
+    label: "Tọa độ",
+    title: "Bước 4 - Chọn tọa độ mục tiêu",
+    icon: Locate,
+  },
+  { id: "weather", label: "Tiết", title: "Bước 5 - Thời tiết", icon: CloudSun },
+  {
+    id: "smoketime",
+    label: "Gian",
+    title: "Bước 6 - Thời gian che khuất",
+    icon: Clock,
+  },
+  {
+    id: "vehicle",
+    label: "Xe",
+    title: "Bước 7 - Phương tiện che khuất",
+    icon: Truck,
+  },
+  {
+    id: "battlefield",
+    label: "Địa",
+    title: "Bước 8 - Địa hình chiến trường",
+    icon: Mountain,
+  },
 ];
 
 export const LeftSidebar = () => {
@@ -74,7 +119,11 @@ export const LeftSidebar = () => {
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [isMapDropdownOpen, setIsMapDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
-  const [tooltipInfo, setTooltipInfo] = useState<{ title: string; x: number; y: number } | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<{
+    title: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Fetch sessions khi map thay đổi (chỉ load sessions của map đang chọn)
   useEffect(() => {
@@ -105,17 +154,28 @@ export const LeftSidebar = () => {
 
   const renderPanel = () => {
     switch (activeTab) {
-      case 0:  return <SessionPanel />;
-      case 1:  return <PointsListPanel />;
-      case 2:  return <CalibrationPanel />;
-      case 3:  return <SmokeMethodPanel />;
-      case 4:  return <TargetDefensePanel />;
-      case 5:  return <TargetPanel />;
-      case 6:  return <WeatherPanel />;
-      case 7:  return <SmokeTimePanel />;
-      case 8:  return <SmokeVehiclePanel />;
-      case 9:  return <BattlefieldPanel />;
-      default: return null;
+      case 0:
+        return <SessionPanel />;
+      case 1:
+        return <PointsListPanel />;
+      case 2:
+        return <CalibrationPanel />;
+      case 3:
+        return <SmokeMethodPanel />;
+      case 4:
+        return <TargetDefensePanel />;
+      case 5:
+        return <TargetPanel />;
+      case 6:
+        return <WeatherPanel />;
+      case 7:
+        return <SmokeTimePanel />;
+      case 8:
+        return <SmokeVehiclePanel />;
+      case 9:
+        return <BattlefieldPanel />;
+      default:
+        return null;
     }
   };
 
@@ -290,22 +350,27 @@ export const LeftSidebar = () => {
 
         {/* ── Tab Bar + Content Area ── */}
         <div className="flex flex-1 overflow-hidden">
-
           {/* Tab Bar */}
           <div className="w-12 flex-shrink-0 border-r border-slate-200 bg-slate-50/80 flex flex-col overflow-y-auto">
             {TAB_DEFS.map((tab, i) => {
               const TabIcon = tab.icon;
               const isActive = activeTab === i;
-              const isMapNotReady = !currentMap || currentMap.status !== "ready";
+              const isMapNotReady =
+                !currentMap || currentMap.status !== "ready";
               const isDimmed = i >= 2 && isMapNotReady;
-              const badge = i === 1 && pointsList.length > 0 ? pointsList.length : 0;
+              const badge =
+                i === 1 && pointsList.length > 0 ? pointsList.length : 0;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(i)}
                   onMouseEnter={(e) => {
                     const r = e.currentTarget.getBoundingClientRect();
-                    setTooltipInfo({ title: tab.title, x: r.right + 8, y: r.top + r.height / 2 });
+                    setTooltipInfo({
+                      title: tab.title,
+                      x: r.right + 8,
+                      y: r.top + r.height / 2,
+                    });
                   }}
                   onMouseLeave={() => setTooltipInfo(null)}
                   className={`relative w-full h-[40px] flex items-center justify-center transition-colors duration-150 select-none outline-none focus:outline-none ${
@@ -335,14 +400,15 @@ export const LeftSidebar = () => {
                 ? "opacity-50 pointer-events-none"
                 : ""
             } ${
-              activeTab >= 2 && selectedPointId !== null && editingPointId === null
+              activeTab >= 2 &&
+              selectedPointId !== null &&
+              editingPointId === null
                 ? "pointer-events-none opacity-80 select-none"
                 : ""
             }`}
           >
             {renderPanel()}
           </div>
-
         </div>
 
         {/* ── Sticky Action Footer ── */}
@@ -388,7 +454,11 @@ export const LeftSidebar = () => {
         createPortal(
           <div
             className="fixed z-[9999] pointer-events-none bg-slate-800 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap"
-            style={{ top: tooltipInfo.y, left: tooltipInfo.x, transform: "translateY(-50%)" }}
+            style={{
+              top: tooltipInfo.y,
+              left: tooltipInfo.x,
+              transform: "translateY(-50%)",
+            }}
           >
             {tooltipInfo.title}
             <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />

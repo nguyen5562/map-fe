@@ -127,6 +127,7 @@ export const DocumentsTab = ({
   const [renameFolderModalOpen, setRenameFolderModalOpen] = useState(false);
   const [renameFolderTarget, setRenameFolderTarget] = useState<{
     sectionId: string;
+    folderId?: string;
     oldName: string;
     newName: string;
   } | null>(null);
@@ -154,6 +155,7 @@ export const DocumentsTab = ({
   const [deleteTarget, setDeleteTarget] = useState<{
     type: "section" | "document" | "folder";
     id: string;
+    folderId?: string;
     folderName?: string;
     label: string;
     message: string;
@@ -491,18 +493,19 @@ export const DocumentsTab = ({
 
   const handleOpenRenameFolderModal = (
     sectionId: string,
+    folderId: string,
     oldName: string,
     e: React.MouseEvent,
   ) => {
     e.stopPropagation();
-    setRenameFolderTarget({ sectionId, oldName, newName: oldName });
+    setRenameFolderTarget({ sectionId, folderId, oldName, newName: oldName });
     setRenameFolderModalOpen(true);
   };
 
   const handleRenameFolderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!renameFolderTarget) return;
-    const { sectionId, oldName, newName } = renameFolderTarget;
+    const { sectionId, folderId, oldName, newName } = renameFolderTarget;
     const trimmed = newName.trim();
     if (!trimmed) {
       toast.error("Tên thư mục không được để trống.");
@@ -514,7 +517,11 @@ export const DocumentsTab = ({
     }
 
     try {
-      await documentService.renameFolder(sectionId, oldName, trimmed);
+      await documentService.renameFolder(
+        sectionId,
+        folderId || oldName,
+        trimmed,
+      );
       toast.success("Đổi tên thư mục thành công!");
       setRenameFolderModalOpen(false);
       loadDocuments();
@@ -580,14 +587,15 @@ export const DocumentsTab = ({
     label: string,
     message: string,
     folderName?: string,
+    folderId?: string,
   ) => {
-    setDeleteTarget({ type, id, label, message, folderName });
+    setDeleteTarget({ type, id, label, message, folderName, folderId });
     setDeleteModalOpen(true);
   };
 
   const executeDelete = async () => {
     if (!deleteTarget) return;
-    const { type, id, folderName } = deleteTarget;
+    const { type, id, folderName, folderId } = deleteTarget;
     setDeleteModalOpen(false);
     try {
       if (type === "section") {
@@ -597,10 +605,8 @@ export const DocumentsTab = ({
         await documentService.deleteDocument(id);
         toast.success("Xóa tài liệu thành công!");
       } else if (type === "folder") {
-        if (folderName) {
-          await documentService.deleteFolder(id, folderName);
-          toast.success(`Xóa thư mục "${folderName}" thành công!`);
-        }
+        await documentService.deleteFolder(id, folderId || folderName || "");
+        toast.success(`Xóa thư mục "${folderName}" thành công!`);
       }
       loadDocuments();
     } catch (err: any) {
@@ -610,12 +616,25 @@ export const DocumentsTab = ({
     }
   };
 
-  const handleDragStart = (sectionId: string, index: number) => {
-    dragItemRef.current = { sectionId, type: "item", index };
+  const handleDragStart = (
+    sectionId: string,
+    id: string,
+    folderId: string | null,
+  ) => {
+    dragItemRef.current = { sectionId, type: "item", id, folderId };
   };
 
-  const handleDragFolderStart = (sectionId: string, folderName: string) => {
-    dragItemRef.current = { sectionId, type: "folder", folderName };
+  const handleDragFolderStart = (
+    sectionId: string,
+    folderId: string,
+    folderName: string,
+  ) => {
+    dragItemRef.current = {
+      sectionId,
+      type: "folder",
+      id: folderId,
+      folderName,
+    };
   };
 
   const handleDragOver = (e: React.DragEvent, key: string) => {
@@ -623,7 +642,12 @@ export const DocumentsTab = ({
     setDragOverKey(key);
   };
 
-  const handleDrop = async (sectionId: string, dropIndex: number) => {
+  const handleDrop = async (
+    sectionId: string,
+    targetId: string,
+    targetType: "item" | "folder" | "root",
+    targetFolderId: string | null = null,
+  ) => {
     setDragOverKey(null);
     if (!dragItemRef.current) return;
     if (dragItemRef.current.sectionId !== sectionId) return;
@@ -632,85 +656,119 @@ export const DocumentsTab = ({
     if (!section) return;
 
     if (dragItemRef.current.type === "item") {
-      const dragIndex = dragItemRef.current.index;
-      if (dragIndex === dropIndex) return;
-      const draggedDoc = section.items[dragIndex];
-      const targetDoc = section.items[dropIndex];
+      const draggedDocId = dragItemRef.current.id;
+      const sourceFolderId = dragItemRef.current.folderId;
 
-      // Reorder items locally first (optimistic update)
-      setSections((prev: any[]) =>
-        prev.map((sec: any) => {
-          if (sec.id !== sectionId) return sec;
-          const items = [...sec.items];
-          const [moved] = items.splice(dragIndex, 1);
-          moved.folder = targetDoc ? targetDoc.folder : null;
-          items.splice(dropIndex, 0, moved);
-          return { ...sec, items };
-        }),
-      );
-
-      // Persist to backend
-      try {
-        if (draggedDoc && targetDoc && draggedDoc.folder !== targetDoc.folder) {
-          await documentService.updateDocument(draggedDoc.id, {
-            title: draggedDoc.title,
-            type: draggedDoc.type,
-            classified: draggedDoc.classified,
-            url: draggedDoc.url,
-            folder: targetDoc.folder || null,
-            sectionId: sectionId,
+      // Case 1: Thả vào thư mục
+      if (targetType === "folder") {
+        if (sourceFolderId === targetId) return;
+        try {
+          await documentService.updateDocument(draggedDocId, {
+            sectionId,
+            folderId: targetId,
           });
+          toast.success("Đã di chuyển tài liệu vào thư mục");
+          loadDocuments();
+        } catch (err) {
+          toast.error("Lỗi di chuyển tài liệu");
         }
-
-        const items = [...section.items];
-        const [moved] = items.splice(dragIndex, 1);
-        if (targetDoc) {
-          moved.folder = targetDoc.folder;
-        }
-        items.splice(dropIndex, 0, moved);
-        await documentService.reorderDocuments(
-          sectionId,
-          items.map((i: any) => i.id),
-        );
-        loadDocuments();
-      } catch (err) {
-        console.error("Lỗi lưu thứ tự tài liệu:", err);
-        loadDocuments(); // revert on error
       }
-    } else if (dragItemRef.current.type === "folder") {
-      const draggedFolderName = dragItemRef.current.folderName;
-      const targetDoc = section.items[dropIndex];
+      // Case 2: Thả vào tài liệu khác để đổi thứ tự
+      else if (targetType === "item") {
+        if (draggedDocId === targetId) return;
 
-      if (targetDoc && targetDoc.folder === draggedFolderName) {
-        dragItemRef.current = null;
-        return;
-      }
+        try {
+          // Cập nhật thư mục nếu đổi thư mục
+          if (sourceFolderId !== targetFolderId) {
+            await documentService.updateDocument(draggedDocId, {
+              sectionId,
+              folderId: targetFolderId || null,
+            });
+          }
 
-      try {
-        const folderDocs = section.items.filter(
-          (x: any) => x.folder === draggedFolderName,
-        );
-        const remainingDocs = section.items.filter(
-          (x: any) => x.folder !== draggedFolderName,
-        );
+          // Lấy tất cả danh sách ID cùng cấp để sắp xếp
+          let siblingIds: string[] = [];
+          if (targetFolderId) {
+            const targetFolder = section.folders.find(
+              (f: any) => f.id === targetFolderId,
+            );
+            siblingIds = targetFolder
+              ? targetFolder.items.map((i: any) => i.id)
+              : [];
+          } else {
+            const rootItemsList = [
+              ...(section.folders || []).map((f: any) => ({
+                id: f.id,
+                type: "folder",
+                order: f.order,
+              })),
+              ...(section.items || []).map((doc: any) => ({
+                id: doc.id,
+                type: "document",
+                order: doc.order,
+              })),
+            ].sort((a, b) => a.order - b.order);
+            siblingIds = rootItemsList.map((r: any) => r.id);
+          }
 
-        let newInsertIndex = remainingDocs.length;
-        if (targetDoc) {
-          newInsertIndex = remainingDocs.findIndex(
-            (x: any) => x.id === targetDoc.id,
-          );
+          const dragIdx = siblingIds.indexOf(draggedDocId);
+          const dropIdx = siblingIds.indexOf(targetId);
+
+          if (dropIdx !== -1) {
+            const newSiblingIds = [...siblingIds];
+            if (dragIdx !== -1) {
+              newSiblingIds.splice(dragIdx, 1);
+            }
+            const targetIdxInNew = newSiblingIds.indexOf(targetId);
+            newSiblingIds.splice(targetIdxInNew, 0, draggedDocId);
+
+            await documentService.reorderDocuments(sectionId, newSiblingIds);
+          }
+          loadDocuments();
+        } catch (err) {
+          console.error("Lỗi lưu thứ tự tài liệu:", err);
+          loadDocuments();
         }
+      }
+    }
+    // Case 3: Kéo thả thư mục để đổi thứ tự
+    else if (dragItemRef.current.type === "folder") {
+      const draggedFolderId = dragItemRef.current.id;
 
-        remainingDocs.splice(newInsertIndex, 0, ...folderDocs);
+      if (targetType === "folder") {
+        if (draggedFolderId === targetId) return;
 
-        await documentService.reorderDocuments(
-          sectionId,
-          remainingDocs.map((i: any) => i.id),
-        );
-        loadDocuments();
-      } catch (err) {
-        console.error("Lỗi di chuyển thư mục:", err);
-        loadDocuments();
+        try {
+          const rootItemsList = [
+            ...(section.folders || []).map((f: any) => ({
+              id: f.id,
+              type: "folder",
+              order: f.order,
+            })),
+            ...(section.items || []).map((doc: any) => ({
+              id: doc.id,
+              type: "document",
+              order: doc.order,
+            })),
+          ].sort((a, b) => a.order - b.order);
+
+          const siblingIds = rootItemsList.map((r: any) => r.id);
+          const dragIdx = siblingIds.indexOf(draggedFolderId);
+          const dropIdx = siblingIds.indexOf(targetId);
+
+          if (dragIdx !== -1 && dropIdx !== -1) {
+            const newSiblingIds = [...siblingIds];
+            const [moved] = newSiblingIds.splice(dragIdx, 1);
+            newSiblingIds.splice(dropIdx, 0, moved);
+
+            await documentService.reorderDocuments(sectionId, newSiblingIds);
+            toast.success("Đã đổi thứ tự thư mục");
+            loadDocuments();
+          }
+        } catch (err) {
+          console.error("Lỗi di chuyển thư mục:", err);
+          loadDocuments();
+        }
       }
     }
     dragItemRef.current = null;
@@ -899,7 +957,11 @@ export const DocumentsTab = ({
             {/* Items */}
             <div className="divide-y divide-slate-100">
               {(() => {
-                if (!section.items || section.items.length === 0) {
+                const foldersEmpty =
+                  !section.folders || section.folders.length === 0;
+                const itemsEmpty = !section.items || section.items.length === 0;
+
+                if (foldersEmpty && itemsEmpty) {
                   return (
                     <div className="p-4 text-center text-slate-400 text-xs italic">
                       Chưa có tài liệu trong mục này
@@ -907,53 +969,28 @@ export const DocumentsTab = ({
                   );
                 }
 
-                // Group items by folder
-                const folderGroups: Record<string, any[]> = {};
-                section.items.forEach((item: any) => {
-                  if (item.folder) {
-                    if (!folderGroups[item.folder]) {
-                      folderGroups[item.folder] = [];
-                    }
-                    folderGroups[item.folder].push(item);
-                  }
-                });
+                // Interleaved root elements
+                const rootElements = [
+                  ...(section.folders || []).map((f: any) => ({
+                    type: "folder" as const,
+                    id: f.id,
+                    name: f.name,
+                    order: f.order,
+                    folder: f,
+                  })),
+                  ...(section.items || []).map((doc: any) => ({
+                    type: "document" as const,
+                    id: doc.id,
+                    name: doc.title,
+                    order: doc.order,
+                    doc,
+                  })),
+                ].sort((a, b) => a.order - b.order);
 
-                const uiList: any[] = [];
-                const renderedFolders = new Set<string>();
-
-                section.items.forEach((item: any) => {
-                  if (item.folder) {
-                    if (!renderedFolders.has(item.folder)) {
-                      renderedFolders.add(item.folder);
-                      uiList.push({ type: "folder", name: item.folder });
-
-                      const collapseKey = `${section.id}-${item.folder}`;
-                      if (!collapsedFolders[collapseKey]) {
-                        folderGroups[item.folder].forEach((f: any) => {
-                          const origIdx = section.items.findIndex(
-                            (x: any) => x.id === f.id,
-                          );
-                          uiList.push({
-                            type: "item",
-                            item: f,
-                            originalIndex: origIdx,
-                            folderName: item.folder,
-                          });
-                        });
-                      }
-                    }
-                  } else {
-                    const origIdx = section.items.findIndex(
-                      (x: any) => x.id === item.id,
-                    );
-                    uiList.push({ type: "item", item, originalIndex: origIdx });
-                  }
-                });
-
-                return uiList.map((entry) => {
+                return rootElements.map((entry) => {
                   if (entry.type === "folder") {
-                    const folderName = entry.name;
-                    const collapseKey = `${section.id}-${folderName}`;
+                    const folder = entry.folder;
+                    const collapseKey = `${section.id}-${folder.id}`;
                     const isCollapsed = collapsedFolders[collapseKey];
                     const toggleCollapse = (e: React.MouseEvent) => {
                       e.stopPropagation();
@@ -963,176 +1000,294 @@ export const DocumentsTab = ({
                       }));
                     };
 
+                    const isFolderDragOver = dragOverKey === folder.id;
+
                     return (
                       <div
-                        key={`folder-${folderName}`}
-                        draggable
-                        onDragStart={() =>
-                          handleDragFolderStart(section.id, folderName)
-                        }
-                        onClick={toggleCollapse}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onDrop={async (e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (!dragItemRef.current) return;
-                          if (dragItemRef.current.sectionId !== section.id)
-                            return;
-
-                          if (dragItemRef.current.type === "item") {
-                            const dragIndex = dragItemRef.current.index;
-                            const draggedDoc = section.items[dragIndex];
-                            if (draggedDoc.folder === folderName) return;
-
-                            try {
-                              await documentService.updateDocument(
-                                draggedDoc.id,
-                                {
-                                  title: draggedDoc.title,
-                                  type: draggedDoc.type,
-                                  classified: draggedDoc.classified,
-                                  url: draggedDoc.url,
-                                  folder: folderName,
-                                  sectionId: section.id,
-                                },
-                              );
-                              toast.success(
-                                `Đã di chuyển tài liệu vào thư mục "${folderName}"`,
-                              );
-                              loadDocuments();
-                            } catch (err) {
-                              console.error(err);
-                              toast.error("Lỗi di chuyển tài liệu");
-                            }
-                          } else if (dragItemRef.current.type === "folder") {
-                            const draggedFolderName =
-                              dragItemRef.current.folderName;
-                            if (draggedFolderName === folderName) return;
-
-                            try {
-                              const folderDocs = section.items.filter(
-                                (x: any) => x.folder === draggedFolderName,
-                              );
-                              const remainingDocs = section.items.filter(
-                                (x: any) => x.folder !== draggedFolderName,
-                              );
-
-                              let newInsertIndex = remainingDocs.findIndex(
-                                (x: any) => x.folder === folderName,
-                              );
-                              if (newInsertIndex === -1) {
-                                newInsertIndex = remainingDocs.length;
-                              }
-
-                              remainingDocs.splice(
-                                newInsertIndex,
-                                0,
-                                ...folderDocs,
-                              );
-
-                              await documentService.reorderDocuments(
-                                section.id,
-                                remainingDocs.map((i: any) => i.id),
-                              );
-                              toast.success(
-                                `Đã đổi thứ tự thư mục "${draggedFolderName}" lên trước thư mục "${folderName}"`,
-                              );
-                              loadDocuments();
-                            } catch (err) {
-                              console.error("Lỗi sắp xếp thư mục:", err);
-                              loadDocuments();
-                            }
-                          }
-                          dragItemRef.current = null;
-                        }}
-                        className="flex items-center justify-between p-2.5 px-4 bg-slate-50/50 hover:bg-slate-100/50 border-b border-slate-100 cursor-grab active:cursor-grabbing select-none transition-colors"
+                        key={folder.id}
+                        className="divide-y divide-slate-100"
                       >
-                        <div className="flex items-center gap-2 text-slate-700">
-                          {isCollapsed ? (
-                            <ChevronRight
-                              size={13}
-                              className="text-slate-400"
-                            />
-                          ) : (
-                            <ChevronDown size={13} className="text-slate-400" />
-                          )}
-                          <Folder
-                            size={14}
-                            className="text-amber-500 fill-amber-500 shrink-0"
-                          />
-                          <span className="text-xs font-bold">
-                            {folderName}
-                          </span>
-                          <span className="text-[9px] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded-full">
-                            {folderGroups[folderName].length} tệp
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) =>
-                              handleOpenRenameFolderModal(
-                                section.id,
-                                folderName,
-                                e,
-                              )
+                        {/* Folder row */}
+                        <div
+                          draggable
+                          onDragStart={() =>
+                            handleDragFolderStart(
+                              section.id,
+                              folder.id,
+                              folder.name,
+                            )
+                          }
+                          onClick={toggleCollapse}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDragOver(e, folder.id);
+                          }}
+                          onDragLeave={() => setDragOverKey(null)}
+                          onDrop={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!dragItemRef.current) return;
+                            if (dragItemRef.current.sectionId !== section.id)
+                              return;
+
+                            if (dragItemRef.current.type === "item") {
+                              const draggedDocId = dragItemRef.current.id;
+                              if (dragItemRef.current.folderId === folder.id)
+                                return;
+
+                              try {
+                                await documentService.updateDocument(
+                                  draggedDocId,
+                                  {
+                                    folderId: folder.id,
+                                    sectionId: section.id,
+                                  },
+                                );
+                                toast.success(
+                                  `Đã di chuyển tài liệu vào thư mục "${folder.name}"`,
+                                );
+                                loadDocuments();
+                              } catch (err) {
+                                console.error(err);
+                                toast.error("Lỗi di chuyển tài liệu");
+                              }
+                            } else if (dragItemRef.current.type === "folder") {
+                              const draggedFolderId = dragItemRef.current.id;
+                              if (draggedFolderId === folder.id) return;
+
+                              try {
+                                const rootItemsList = [
+                                  ...(section.folders || []).map((f: any) => ({
+                                    id: f.id,
+                                    type: "folder",
+                                    order: f.order,
+                                  })),
+                                  ...(section.items || []).map((doc: any) => ({
+                                    id: doc.id,
+                                    type: "document",
+                                    order: doc.order,
+                                  })),
+                                ].sort((a, b) => a.order - b.order);
+
+                                const siblingIds = rootItemsList.map(
+                                  (r: any) => r.id,
+                                );
+                                const dragIdx =
+                                  siblingIds.indexOf(draggedFolderId);
+                                const dropIdx = siblingIds.indexOf(folder.id);
+
+                                if (dragIdx !== -1 && dropIdx !== -1) {
+                                  const newSiblingIds = [...siblingIds];
+                                  const [moved] = newSiblingIds.splice(
+                                    dragIdx,
+                                    1,
+                                  );
+                                  newSiblingIds.splice(dropIdx, 0, moved);
+
+                                  await documentService.reorderDocuments(
+                                    section.id,
+                                    newSiblingIds,
+                                  );
+                                  toast.success(`Đã di chuyển thư mục`);
+                                  loadDocuments();
+                                }
+                              } catch (err) {
+                                console.error(err);
+                                toast.error("Lỗi di chuyển thư mục");
+                              }
                             }
-                            className="p-1 text-slate-405 hover:text-emerald-600 hover:bg-slate-200/60 rounded transition-colors"
-                            title="Đổi tên thư mục"
-                          >
-                            <Edit size={12} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              requestDelete(
-                                "folder",
-                                section.id,
-                                folderName,
-                                `Bạn có chắc chắn muốn xóa thư mục "${folderName}" cùng toàn bộ tài liệu bên trong? Hành động này không thể hoàn tác.`,
-                                folderName,
-                              );
-                            }}
-                            className="p-1 text-slate-405 hover:text-red-505 hover:bg-red-50 rounded transition-colors"
-                            title="Xóa thư mục"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                            dragItemRef.current = null;
+                            setDragOverKey(null);
+                          }}
+                          className={`flex items-center justify-between p-2.5 px-4 cursor-grab active:cursor-grabbing select-none transition-colors border-b border-slate-100 ${
+                            isFolderDragOver
+                              ? "bg-emerald-50 border-t-2 border-t-emerald-400"
+                              : "bg-slate-50/50 hover:bg-slate-100/50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 text-slate-700">
+                            {isCollapsed ? (
+                              <ChevronRight
+                                size={13}
+                                className="text-slate-400"
+                              />
+                            ) : (
+                              <ChevronDown
+                                size={13}
+                                className="text-slate-400"
+                              />
+                            )}
+                            <Folder
+                              size={14}
+                              className="text-amber-500 fill-amber-500 shrink-0"
+                            />
+                            <span className="text-xs font-bold">
+                              {folder.name}
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded-full">
+                              {folder.items.length} tệp
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) =>
+                                handleOpenRenameFolderModal(
+                                  section.id,
+                                  folder.id,
+                                  folder.name,
+                                  e,
+                                )
+                              }
+                              className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-200/60 rounded transition-colors"
+                              title="Đổi tên thư mục"
+                            >
+                              <Edit size={12} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                requestDelete(
+                                  "folder",
+                                  folder.id,
+                                  folder.name,
+                                  `Bạn có chắc chắn muốn xóa thư mục "${folder.name}" cùng toàn bộ tài liệu bên trong? Hành động này không thể hoàn tác.`,
+                                  folder.name,
+                                  folder.id,
+                                );
+                              }}
+                              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="Xóa thư mục"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
+
+                        {/* Folder documents */}
+                        {!isCollapsed &&
+                          folder.items.map((item: any) => {
+                            const badge = FILE_BADGE[item.type] || {
+                              label: (item.type || "file").toUpperCase(),
+                              color:
+                                "bg-slate-100 text-slate-650 border border-slate-200",
+                            };
+                            const icon = TYPE_ICON[item.type] || (
+                              <FileText size={10} />
+                            );
+                            const isItemDragOver = dragOverKey === item.id;
+
+                            return (
+                              <div
+                                key={item.id}
+                                draggable
+                                onDragStart={() =>
+                                  handleDragStart(
+                                    section.id,
+                                    item.id,
+                                    folder.id,
+                                  )
+                                }
+                                onDragOver={(e) => handleDragOver(e, item.id)}
+                                onDragLeave={() => setDragOverKey(null)}
+                                onDrop={() =>
+                                  handleDrop(
+                                    section.id,
+                                    item.id,
+                                    "item",
+                                    folder.id,
+                                  )
+                                }
+                                onDragEnd={() => {
+                                  setDragOverKey(null);
+                                  dragItemRef.current = null;
+                                }}
+                                className={`flex items-center justify-between p-3 px-4 pl-9 transition-colors select-none border-b border-slate-100 last:border-b-0 ${
+                                  isItemDragOver
+                                    ? "bg-emerald-50 border-t-2 border-t-emerald-400"
+                                    : "hover:bg-slate-50"
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400 transition-colors shrink-0">
+                                    <GripVertical size={14} />
+                                  </div>
+                                  <span
+                                    className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
+                                  >
+                                    {icon}
+                                    {badge.label}
+                                  </span>
+                                  <span
+                                    className="text-xs font-semibold text-slate-700 truncate"
+                                    title={item.title}
+                                  >
+                                    {item.title}
+                                  </span>
+                                  {item.classified && (
+                                    <span className="bg-rose-50 text-rose-650 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border border-rose-100 flex items-center gap-1 shrink-0">
+                                      <Lock size={9} /> MẬT
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0 ml-4">
+                                  <button
+                                    onClick={() =>
+                                      handleOpenDocModal(section.id, item)
+                                    }
+                                    className="p-1 text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                  >
+                                    <Edit size={11} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      requestDelete(
+                                        "document",
+                                        item.id,
+                                        item.title,
+                                        "Bạn có chắc chắn muốn xóa tài liệu này?",
+                                      )
+                                    }
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
                       </div>
                     );
                   }
 
-                  const { item, originalIndex, folderName } = entry;
+                  // Root document
+                  const item = entry.doc;
                   const badge = FILE_BADGE[item.type] || {
                     label: (item.type || "file").toUpperCase(),
                     color:
                       "bg-slate-100 text-slate-650 border border-slate-200",
                   };
                   const icon = TYPE_ICON[item.type] || <FileText size={10} />;
-                  const dndKey = `${section.id}-${originalIndex}`;
-                  const isDragOver = dragOverKey === dndKey;
+                  const isItemDragOver = dragOverKey === item.id;
 
                   return (
                     <div
                       key={item.id}
                       draggable
                       onDragStart={() =>
-                        handleDragStart(section.id, originalIndex)
+                        handleDragStart(section.id, item.id, null)
                       }
-                      onDragOver={(e) => handleDragOver(e, dndKey)}
+                      onDragOver={(e) => handleDragOver(e, item.id)}
                       onDragLeave={() => setDragOverKey(null)}
-                      onDrop={() => handleDrop(section.id, originalIndex)}
+                      onDrop={() =>
+                        handleDrop(section.id, item.id, "item", null)
+                      }
                       onDragEnd={() => {
                         setDragOverKey(null);
                         dragItemRef.current = null;
                       }}
                       className={`flex items-center justify-between p-3 px-4 transition-colors select-none ${
-                        folderName ? "pl-9 bg-slate-50/20" : ""
-                      } ${
-                        isDragOver
+                        isItemDragOver
                           ? "bg-emerald-50 border-t-2 border-t-emerald-400"
                           : "hover:bg-slate-50"
                       }`}
@@ -1154,7 +1309,7 @@ export const DocumentsTab = ({
                           {item.title}
                         </span>
                         {item.classified && (
-                          <span className="bg-rose-50 text-rose-650 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border border-rose-100 flex items-center gap-1 shrink-0">
+                          <span className="bg-rose-50 text-rose-655 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border border-rose-100 flex items-center gap-1 shrink-0">
                             <Lock size={9} /> MẬT
                           </span>
                         )}

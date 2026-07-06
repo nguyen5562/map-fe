@@ -57,17 +57,26 @@ export const documentService = {
     );
     return response.data;
   },
-  renameFolder: async (sectionId: string, oldName: string, newName: string) => {
+  renameFolder: async (
+    sectionId: string,
+    folderId: string,
+    newName: string,
+    oldName?: string,
+  ) => {
     const response = await api.put(
       `${API_ROUTES.DOCUMENTS}/sections/${sectionId}/folders/rename`,
-      { oldName, newName },
+      { folderId, oldName, newName },
     );
     return response.data;
   },
-  deleteFolder: async (sectionId: string, folderName: string) => {
+  deleteFolder: async (
+    sectionId: string,
+    folderId: string,
+    folderName?: string,
+  ) => {
     const response = await api.delete(
       `${API_ROUTES.DOCUMENTS}/sections/${sectionId}/folders/delete`,
-      { params: { folderName } },
+      { params: { folderId, folderName } },
     );
     return response.data;
   },

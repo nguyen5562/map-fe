@@ -242,7 +242,9 @@ export const BattlefieldPanel = () => {
                 {/* Level selector - only for commandPost */}
                 {key === "commandPost" && (
                   <div className="flex flex-col gap-1.5 pt-1 border-t border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-medium">Cấp chỉ huy</span>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Cấp chỉ huy
+                    </span>
                     <div className="flex gap-1">
                       {(["squad", "platoon", "company"] as const).map((lvl) => (
                         <button
@@ -254,7 +256,11 @@ export const BattlefieldPanel = () => {
                               : "bg-white text-slate-500 border-slate-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600"
                           }`}
                         >
-                          {lvl === "squad" ? "Tiểu đội" : lvl === "platoon" ? "Trung đội" : "Đại đội"}
+                          {lvl === "squad"
+                            ? "Tiểu đội"
+                            : lvl === "platoon"
+                              ? "Trung đội"
+                              : "Đại đội"}
                         </button>
                       ))}
                     </div>

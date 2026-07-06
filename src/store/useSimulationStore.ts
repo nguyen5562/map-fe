@@ -1188,7 +1188,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           };
         })(),
         battlefieldScale: data.battlefieldScale ?? 1,
-        commandPostLevel: ((data.commandPostLevel ?? "squad") as "squad" | "platoon" | "company"),
+        commandPostLevel: (data.commandPostLevel ?? "squad") as
+          | "squad"
+          | "platoon"
+          | "company",
         weatherData: data.weatherData ?? state.weatherData,
         weatherActive: data.weatherActive ?? false,
         smokeTime: data.smokeTime ?? state.smokeTime,

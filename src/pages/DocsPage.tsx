@@ -58,6 +58,14 @@ type DocItem = {
   classified?: boolean;
   url?: string;
   folder?: string | null;
+  folderId?: string | null;
+};
+
+type FolderItem = {
+  id: string;
+  name: string;
+  order: number;
+  items: DocItem[];
 };
 
 type Section = {
@@ -65,6 +73,7 @@ type Section = {
   roman: string;
   title: string;
   subtitle: string;
+  folders: FolderItem[];
   items: DocItem[];
 };
 
@@ -271,13 +280,27 @@ export default function DocsPage() {
         // Filter out videos from items, and exclude sections that become empty
         const filtered = (data || [])
           .filter((sec: any) => sec.type !== "video")
-          .map((sec: any) => ({
-            ...sec,
-            items: (sec.items || []).filter(
+          .map((sec: any) => {
+            const folders = (sec.folders || [])
+              .map((f: any) => ({
+                ...f,
+                items: (f.items || []).filter(
+                  (item: any) => item.type !== "video",
+                ),
+              }))
+              .filter((f: any) => f.items.length > 0);
+
+            const items = (sec.items || []).filter(
               (item: any) => item.type !== "video",
-            ),
-          }))
-          .filter((sec: any) => sec.items.length > 0);
+            );
+
+            return {
+              ...sec,
+              folders,
+              items,
+            };
+          })
+          .filter((sec: any) => sec.folders.length > 0 || sec.items.length > 0);
 
         setSections(filtered);
         if (filtered && filtered.length > 0) {
@@ -299,13 +322,27 @@ export default function DocsPage() {
 
   // Filtered sections and items based on search query
   const filteredSections = sections
-    .map((sec) => ({
-      ...sec,
-      items: sec.items.filter((item) =>
+    .map((sec) => {
+      const folders = sec.folders
+        .map((f) => ({
+          ...f,
+          items: f.items.filter((item) =>
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
+        }))
+        .filter((f) => f.items.length > 0);
+
+      const items = sec.items.filter((item) =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-    }))
-    .filter((sec) => sec.items.length > 0);
+      );
+
+      return {
+        ...sec,
+        folders,
+        items,
+      };
+    })
+    .filter((sec) => sec.folders.length > 0 || sec.items.length > 0);
 
   return (
     <div className="min-h-[calc(100vh-48px)] bg-slate-50/70">
@@ -555,9 +592,14 @@ export default function DocsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      {section.items?.length > 0 && (
+                      {(section.folders.length > 0 ||
+                        section.items.length > 0) && (
                         <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                          {section.items.length} tài liệu
+                          {section.folders.reduce(
+                            (acc, f) => acc + f.items.length,
+                            0,
+                          ) + section.items.length}{" "}
+                          tài liệu
                         </span>
                       )}
                       <ChevronRight
@@ -576,143 +618,140 @@ export default function DocsPage() {
                     }`}
                   >
                     <div className="border-t border-slate-100">
-                      {section.items && section.items.length > 0 ? (
+                      {section.folders.length > 0 ||
+                      section.items.length > 0 ? (
                         <div className="divide-y divide-slate-100">
-                          {(() => {
-                            const folderGroups: Record<string, any[]> = {};
-                            section.items.forEach((item: any) => {
-                              if (item.folder) {
-                                if (!folderGroups[item.folder]) {
-                                  folderGroups[item.folder] = [];
-                                }
-                                folderGroups[item.folder].push(item);
-                              }
-                            });
+                          {/* Render folders */}
+                          {section.folders.map((folder) => {
+                            const collapseKey = `${section.id}-${folder.id}`;
+                            const isCollapsed = collapsedFolders[collapseKey];
+                            const toggleCollapse = (e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              setCollapsedFolders((prev) => ({
+                                ...prev,
+                                [collapseKey]: !prev[collapseKey],
+                              }));
+                            };
 
-                            const uiList: any[] = [];
-                            const renderedFolders = new Set<string>();
-
-                            section.items.forEach((item: any) => {
-                              if (item.folder) {
-                                if (!renderedFolders.has(item.folder)) {
-                                  renderedFolders.add(item.folder);
-                                  uiList.push({
-                                    type: "folder",
-                                    name: item.folder,
-                                  });
-
-                                  const collapseKey = `${section.id}-${item.folder}`;
-                                  if (!collapsedFolders[collapseKey]) {
-                                    folderGroups[item.folder].forEach(
-                                      (f: any) => {
-                                        uiList.push({
-                                          type: "item",
-                                          item: f,
-                                          folderName: item.folder,
-                                        });
-                                      },
-                                    );
-                                  }
-                                }
-                              } else {
-                                uiList.push({ type: "item", item });
-                              }
-                            });
-
-                            return uiList.map((entry) => {
-                              if (entry.type === "folder") {
-                                const folderName = entry.name;
-                                const collapseKey = `${section.id}-${folderName}`;
-                                const isCollapsed =
-                                  collapsedFolders[collapseKey];
-                                const toggleCollapse = (
-                                  e: React.MouseEvent,
-                                ) => {
-                                  e.stopPropagation();
-                                  setCollapsedFolders((prev) => ({
-                                    ...prev,
-                                    [collapseKey]: !prev[collapseKey],
-                                  }));
-                                };
-
-                                return (
-                                  <div
-                                    key={`folder-${folderName}`}
-                                    onClick={toggleCollapse}
-                                    className="flex items-center justify-between p-2.5 px-5 bg-slate-50/50 hover:bg-slate-100/50 border-b border-slate-100 cursor-pointer select-none transition-colors"
-                                  >
-                                    <div className="flex items-center gap-2 text-slate-700">
-                                      {isCollapsed ? (
-                                        <ChevronRight
-                                          size={13}
-                                          className="text-slate-400"
-                                        />
-                                      ) : (
-                                        <ChevronDown
-                                          size={13}
-                                          className="text-slate-400"
-                                        />
-                                      )}
-                                      <Folder
-                                        size={14}
-                                        className="text-amber-500 fill-amber-500 shrink-0"
-                                      />
-                                      <span className="text-xs font-bold">
-                                        {folderName}
-                                      </span>
-                                      <span className="text-[9px] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded-full">
-                                        {folderGroups[folderName].length} tệp
-                                      </span>
-                                    </div>
-                                  </div>
-                                );
-                              }
-
-                              const { item, folderName } = entry;
-                              const badge =
-                                FILE_BADGE[item.type] || FILE_BADGE.other;
-                              return (
+                            return (
+                              <div
+                                key={folder.id}
+                                className="divide-y divide-slate-100"
+                              >
+                                {/* Folder header */}
                                 <div
-                                  key={item.id}
-                                  onClick={() => {
-                                    if (item.url) setActiveDoc(item);
-                                  }}
-                                  className={`flex items-center justify-between px-5 py-3.5 ${
-                                    folderName ? "pl-10 bg-slate-50/10" : ""
-                                  } ${
-                                    item.url
-                                      ? "hover:bg-emerald-50/40 cursor-pointer"
-                                      : "cursor-default"
-                                  } transition-colors group`}
+                                  onClick={toggleCollapse}
+                                  className="flex items-center justify-between p-2.5 px-5 bg-slate-50/50 hover:bg-slate-100/50 border-b border-slate-100 cursor-pointer select-none transition-colors"
                                 >
-                                  <div className="flex items-center gap-3">
-                                    <span
-                                      className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
-                                    >
-                                      {TYPE_ICON[item.type] || TYPE_ICON.other}
-                                      {badge.label}
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                      <p className="text-sm font-medium text-slate-700">
-                                        {item.title}
-                                      </p>
-                                      {item.classified && (
-                                        <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
-                                          <Lock size={9} /> MẬT
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {item.url && (
-                                    <ExternalLink
-                                      size={13}
-                                      className="text-emerald-600 hover:text-emerald-700 shrink-0 ml-4 transition-colors"
+                                  <div className="flex items-center gap-2 text-slate-700">
+                                    {isCollapsed ? (
+                                      <ChevronRight
+                                        size={13}
+                                        className="text-slate-400"
+                                      />
+                                    ) : (
+                                      <ChevronDown
+                                        size={13}
+                                        className="text-slate-400"
+                                      />
+                                    )}
+                                    <Folder
+                                      size={14}
+                                      className="text-amber-500 fill-amber-500 shrink-0"
                                     />
-                                  )}
+                                    <span className="text-xs font-bold">
+                                      {folder.name}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.2 rounded-full">
+                                      {folder.items.length} tệp
+                                    </span>
+                                  </div>
                                 </div>
-                              );
-                            });
-                          })()}
+
+                                {/* Folder documents */}
+                                {!isCollapsed &&
+                                  folder.items.map((item) => {
+                                    const badge =
+                                      FILE_BADGE[item.type] || FILE_BADGE.other;
+                                    return (
+                                      <div
+                                        key={item.id}
+                                        onClick={() => {
+                                          if (item.url) setActiveDoc(item);
+                                        }}
+                                        className="flex items-center justify-between px-5 py-3.5 pl-10 bg-slate-50/10 hover:bg-emerald-50/40 cursor-pointer transition-colors group border-b border-slate-100 last:border-b-0"
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <span
+                                            className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
+                                          >
+                                            {TYPE_ICON[item.type] ||
+                                              TYPE_ICON.other}
+                                            {badge.label}
+                                          </span>
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-sm font-medium text-slate-700">
+                                              {item.title}
+                                            </p>
+                                            {item.classified && (
+                                              <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
+                                                <Lock size={9} /> MẬT
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {item.url && (
+                                          <ExternalLink
+                                            size={13}
+                                            className="text-emerald-600 hover:text-emerald-700 shrink-0 ml-4 transition-colors"
+                                          />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            );
+                          })}
+
+                          {/* Render root documents */}
+                          {section.items.map((item) => {
+                            const badge =
+                              FILE_BADGE[item.type] || FILE_BADGE.other;
+                            return (
+                              <div
+                                key={item.id}
+                                onClick={() => {
+                                  if (item.url) setActiveDoc(item);
+                                }}
+                                className="flex items-center justify-between px-5 py-3.5 hover:bg-emerald-50/40 cursor-pointer transition-colors group"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold w-[72px] py-0.5 rounded-md ${badge.color} shrink-0`}
+                                  >
+                                    {TYPE_ICON[item.type] || TYPE_ICON.other}
+                                    {badge.label}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-slate-700">
+                                      {item.title}
+                                    </p>
+                                    {item.classified && (
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 uppercase">
+                                        <Lock size={9} /> MẬT
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {item.url && (
+                                  <ExternalLink
+                                    size={13}
+                                    className="text-emerald-600 hover:text-emerald-700 shrink-0 ml-4 transition-colors"
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 px-5 py-5 text-slate-400">
