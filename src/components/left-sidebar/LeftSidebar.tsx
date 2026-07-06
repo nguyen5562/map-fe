@@ -329,7 +329,7 @@ export const LeftSidebar = () => {
               <MapIcon size={24} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-800">
+              <h1 className="text-base font-bold text-slate-800 whitespace-nowrap">
                 THIẾT LẬP CÁC THÔNG SỐ TÍNH TOÁN
               </h1>
               <p className="text-sm font-medium flex items-center gap-1">

@@ -215,10 +215,37 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       smokeTime: typeof val === "function" ? val(state.smokeTime) : val,
     })),
   setSmokeMethodData: (val) =>
-    set((state) => ({
-      smokeMethodData:
-        typeof val === "function" ? val(state.smokeMethodData) : val,
-    })),
+    set((state) => {
+      const nextMethodData =
+        typeof val === "function" ? val(state.smokeMethodData) : val;
+      const prevLineType = state.smokeMethodData.lineType;
+      const nextLineType = nextMethodData.lineType;
+
+      let nextTargetData = { ...state.targetDefenseData };
+      if (prevLineType !== nextLineType) {
+        if (nextLineType === "Vòng") {
+          const dVal = parseFloat(nextTargetData.diameter);
+          nextTargetData.area = !isNaN(dVal)
+            ? Number(
+                ((Math.PI * Math.pow(dVal / 2, 2)) / 10000).toFixed(4),
+              ).toString()
+            : "";
+        } else {
+          // "Thẳng" hoặc "Diện"
+          const lVal = parseFloat(nextTargetData.length);
+          const wVal = parseFloat(nextTargetData.width);
+          nextTargetData.area =
+            !isNaN(lVal) && !isNaN(wVal)
+              ? Number(((lVal * wVal) / 10000).toFixed(4)).toString()
+              : "";
+        }
+      }
+
+      return {
+        smokeMethodData: nextMethodData,
+        targetDefenseData: nextTargetData,
+      };
+    }),
   setSelectedVehicles: (val) =>
     set((state) => ({
       selectedVehicles:
