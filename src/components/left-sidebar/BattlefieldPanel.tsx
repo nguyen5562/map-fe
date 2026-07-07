@@ -16,6 +16,7 @@ export type PositionEntry = {
   rawCoords: L.LatLng | null;
   distance: string; // metres, computed from center
   direction: string; // compass label
+  bufferColor?: string;
 };
 
 export type BattlefieldData = {
@@ -56,10 +57,10 @@ const FIELD_CONFIG: {
   {
     key: "firePoints",
     label: "Vị trí điểm hỏa",
-    // Hình 1: hình chữ nhật ngang + cột zíc zắc quay bên phải (chỉ viền đen)
+    // Hình 1: hình chữ nhật ngang + cột zíc zắc quay bên phải (chỉ viền đỏ)
     symbolSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="20" viewBox="0 0 52 40">
-      <rect x="2" y="2" width="48" height="26" rx="1" fill="none" stroke="#000000" stroke-width="3"/>
-      <path d="M 26,28 L 26,33 L 31,33 L 31,38" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="2" y="2" width="48" height="26" rx="1" fill="none" stroke="#ff0000" stroke-width="3"/>
+      <path d="M 26,28 L 26,33 L 31,33 L 31,38" fill="none" stroke="#ff0000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`,
     selectingKey: "firePoints",
   },
@@ -105,6 +106,7 @@ export const BattlefieldPanel = () => {
   const setIsSelectingFor = useSimulation((s) => s.setIsSelectingFor);
   const commandPostLevel = useSimulation((s) => s.commandPostLevel);
   const setCommandPostLevel = useSimulation((s) => s.setCommandPostLevel);
+  const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
   const [showPanel, setShowPanel] = useState(true);
 
   return (
@@ -163,7 +165,7 @@ export const BattlefieldPanel = () => {
           </div>
 
           {FIELD_CONFIG.map(({ key, label, selectingKey }) => {
-            const entry = battlefieldData[key];
+            const entry = battlefieldData[key] as PositionEntry;
             const isSelecting = isSelectingFor === selectingKey;
             const hasCoords = entry.rawCoords !== null;
 
@@ -238,6 +240,52 @@ export const BattlefieldPanel = () => {
                     </span>
                   </div>
                 )}
+
+                {/* Màu đệm của riêng ký hiệu này */}
+                <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Màu đệm (viền)
+                  </span>
+                  <div className="grid grid-cols-6 gap-1 justify-items-center">
+                    {[
+                      { value: "none", label: "Không", class: "bg-slate-100 border-slate-300" },
+                      { value: "#ef4444", label: "Đỏ", class: "bg-[#ef4444]" },
+                      { value: "#f97316", label: "Cam", class: "bg-[#f97316]" },
+                      { value: "#eab308", label: "Vàng", class: "bg-[#eab308]" },
+                      { value: "#84cc16", label: "Lá mạ", class: "bg-[#84cc16]" },
+                      { value: "#22c55e", label: "Lá cây", class: "bg-[#22c55e]" },
+                      { value: "#0d9488", label: "Teal", class: "bg-[#0d9488]" },
+                      { value: "#06b6d4", label: "Xanh lơ", class: "bg-[#06b6d4]" },
+                      { value: "#3b82f6", label: "Xanh biển", class: "bg-[#3b82f6]" },
+                      { value: "#a855f7", label: "Tím", class: "bg-[#a855f7]" },
+                      { value: "#ec4899", label: "Hồng", class: "bg-[#ec4899]" },
+                      { value: "#6b7280", label: "Xám", class: "bg-[#6b7280]" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        title={opt.label}
+                        onClick={() =>
+                          setBattlefieldData({
+                            ...battlefieldData,
+                            [key]: {
+                              ...entry,
+                              bufferColor: opt.value,
+                            },
+                          })
+                        }
+                        className={`w-5 h-5 rounded-full ${opt.class} border transition-all relative flex items-center justify-center ${
+                          (entry.bufferColor || "none") === opt.value
+                            ? "border-slate-800 scale-110 shadow-sm ring-1 ring-offset-0.5 ring-slate-400"
+                            : "border-slate-200 hover:scale-105"
+                        }`}
+                      >
+                        {(entry.bufferColor || "none") === opt.value && (
+                          <span className={`w-1 h-1 rounded-full ${opt.value === "#ffffff" ? "bg-black" : "bg-white"}`} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Level selector - only for commandPost */}
                 {key === "commandPost" && (

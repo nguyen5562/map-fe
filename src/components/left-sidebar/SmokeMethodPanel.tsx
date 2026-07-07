@@ -113,6 +113,51 @@ export const SmokeMethodPanel = () => {
             </div>
           </div>
 
+          {/* Màu đệm tuyến khói */}
+          <div className="bg-slate-50/50 rounded-lg border border-slate-200 p-2.5 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700">
+                Màu đệm (viền)
+              </span>
+            </div>
+            <div className="grid grid-cols-6 gap-1.5 justify-items-center">
+              {[
+                { value: "none", label: "Không", class: "bg-slate-100 border-slate-300" },
+                { value: "#ef4444", label: "Đỏ", class: "bg-[#ef4444]" },
+                { value: "#f97316", label: "Cam", class: "bg-[#f97316]" },
+                { value: "#eab308", label: "Vàng", class: "bg-[#eab308]" },
+                { value: "#84cc16", label: "Lá mạ", class: "bg-[#84cc16]" },
+                { value: "#22c55e", label: "Lá cây", class: "bg-[#22c55e]" },
+                { value: "#0d9488", label: "Teal", class: "bg-[#0d9488]" },
+                { value: "#06b6d4", label: "Xanh lơ", class: "bg-[#06b6d4]" },
+                { value: "#3b82f6", label: "Xanh biển", class: "bg-[#3b82f6]" },
+                { value: "#a855f7", label: "Tím", class: "bg-[#a855f7]" },
+                { value: "#ec4899", label: "Hồng", class: "bg-[#ec4899]" },
+                { value: "#6b7280", label: "Xám", class: "bg-[#6b7280]" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  title={opt.label}
+                  onClick={() =>
+                    setSmokeMethodData({
+                      ...smokeMethodData,
+                      bufferColor: opt.value,
+                    })
+                  }
+                  className={`w-6 h-6 rounded-full ${opt.class} border transition-all relative flex items-center justify-center ${
+                    (smokeMethodData.bufferColor || "none") === opt.value
+                      ? "border-slate-800 scale-110 shadow-sm ring-1 ring-offset-0.5 ring-slate-400"
+                      : "border-slate-200 hover:scale-105"
+                  }`}
+                >
+                  {(smokeMethodData.bufferColor || "none") === opt.value && (
+                    <span className={`w-1 h-1 rounded-full ${opt.value === "#ffffff" ? "bg-black" : "bg-white"}`} />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Diện tích */}
           <div>
             {(() => {

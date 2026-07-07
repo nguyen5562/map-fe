@@ -411,6 +411,7 @@ function SimulationInner() {
                 center={battlefieldData.firePoints.rawCoords}
                 type="firePoints"
                 scaleX={scale.x}
+                bufferColor={battlefieldData.firePoints.bufferColor}
               />
             )}
             {isCalibrated && battlefieldData.reserveUnit.rawCoords && (
@@ -418,6 +419,7 @@ function SimulationInner() {
                 center={battlefieldData.reserveUnit.rawCoords}
                 type="reserveUnit"
                 scaleX={scale.x}
+                bufferColor={battlefieldData.reserveUnit.bufferColor}
               />
             )}
             {isCalibrated && battlefieldData.commandPost.rawCoords && (
@@ -426,6 +428,7 @@ function SimulationInner() {
                 type="commandPost"
                 scaleX={scale.x}
                 commandPostLevel={commandPostLevel}
+                bufferColor={battlefieldData.commandPost.bufferColor}
               />
             )}
 
@@ -443,6 +446,7 @@ function SimulationInner() {
                         center={L.latLng(bfData.firePoints.rawCoords.lat, bfData.firePoints.rawCoords.lng)}
                         type="firePoints"
                         scaleX={scale.x}
+                        bufferColor={bfData.firePoints.bufferColor || bfData.bufferColor}
                         onClick={() => onSelectPoint(p.id)}
                       />
                     )}
@@ -451,6 +455,7 @@ function SimulationInner() {
                         center={L.latLng(bfData.reserveUnit.rawCoords.lat, bfData.reserveUnit.rawCoords.lng)}
                         type="reserveUnit"
                         scaleX={scale.x}
+                        bufferColor={bfData.reserveUnit.bufferColor || bfData.bufferColor}
                         onClick={() => onSelectPoint(p.id)}
                       />
                     )}
@@ -460,6 +465,7 @@ function SimulationInner() {
                         type="commandPost"
                         scaleX={scale.x}
                         commandPostLevel={p.commandPostLevel || commandPostLevel}
+                        bufferColor={bfData.commandPost.bufferColor || bfData.bufferColor}
                         onClick={() => onSelectPoint(p.id)}
                       />
                     )}
@@ -479,6 +485,7 @@ function SimulationInner() {
                   smokeLineLength={smokeLineLength}
                   lineType={smokeMethodData.lineType}
                   lineRole={smokeMethodData.lineRole}
+                  bufferColor={smokeMethodData.bufferColor}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
@@ -578,6 +585,7 @@ function SimulationInner() {
                     smokeLineLength={p.smokeLineLength ?? 700}
                     lineType={p.smokeMethodData?.lineType ?? "Thẳng"}
                     lineRole={p.smokeMethodData?.lineRole ?? "Chính"}
+                    bufferColor={p.smokeMethodData?.bufferColor}
                     onClick={() => onSelectPoint(p.id)}
                   />
                   {p.results && (
