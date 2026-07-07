@@ -429,6 +429,44 @@ function SimulationInner() {
               />
             )}
 
+            {/* Saved Points Battlefield Position Markers */}
+            {isCalibrated &&
+              pointsList.map((p) => {
+                if (p.id === selectedPointId) return null; // Already rendered by active/draft state above
+                const bfData = p.battlefieldData;
+                if (!bfData) return null;
+
+                return (
+                  <React.Fragment key={`bf-saved-${p.id}`}>
+                    {bfData.firePoints?.rawCoords && (
+                      <BattlefieldMarker
+                        center={L.latLng(bfData.firePoints.rawCoords.lat, bfData.firePoints.rawCoords.lng)}
+                        type="firePoints"
+                        scaleX={scale.x}
+                        onClick={() => onSelectPoint(p.id)}
+                      />
+                    )}
+                    {bfData.reserveUnit?.rawCoords && (
+                      <BattlefieldMarker
+                        center={L.latLng(bfData.reserveUnit.rawCoords.lat, bfData.reserveUnit.rawCoords.lng)}
+                        type="reserveUnit"
+                        scaleX={scale.x}
+                        onClick={() => onSelectPoint(p.id)}
+                      />
+                    )}
+                    {bfData.commandPost?.rawCoords && (
+                      <BattlefieldMarker
+                        center={L.latLng(bfData.commandPost.rawCoords.lat, bfData.commandPost.rawCoords.lng)}
+                        type="commandPost"
+                        scaleX={scale.x}
+                        commandPostLevel={p.commandPostLevel || commandPostLevel}
+                        onClick={() => onSelectPoint(p.id)}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+
             {/* Click Marker */}
             {clickedRaw &&
               editingPointId === null &&

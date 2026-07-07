@@ -137,9 +137,8 @@ export function GasLabel({
     }
   }
 
-  // Chuyển đổi từ mét sang km, hiển thị tối đa 2 chữ số thập phân (ví dụ 700m -> 0.7km, 1250m -> 1.25km)
   const lengthInKm = Number((displayedLength / 1000).toFixed(2));
-  const line1 = `${results.totalVehicles} ${mainVid || ""} - ${lengthInKm}km`;
+  const line1 = `${results.totalVehicles} ${mainVid || ""} - ${lengthInKm}`;
 
   const fromH = pad(smokeTime.fromH || "0");
   const fromM = pad(smokeTime.fromM || "0");

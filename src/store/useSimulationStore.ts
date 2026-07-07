@@ -1455,10 +1455,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             return defaults;
           }
         })(),
-        battlefieldScale: hasUnsavedPoint ? (data.battlefieldScale ?? 1) : 1,
-        commandPostLevel: (hasUnsavedPoint
-          ? (data.commandPostLevel ?? "squad")
-          : "squad") as "squad" | "platoon" | "company",
+        battlefieldScale: data.battlefieldScale ?? 1,
+        commandPostLevel: (data.commandPostLevel ?? "squad") as "squad" | "platoon" | "company",
         weatherData: {
           combatTime: "01.05.26",
           windDirection: "Tây Bắc",
