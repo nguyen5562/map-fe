@@ -8,6 +8,56 @@ import type { SimulationStoreState } from "../types/simulation";
 import { convertRawToReal, convertRealToRaw } from "../utils/calibrationMath";
 import { getSessionSnapshot } from "../types/simulationSession";
 
+const DIRECTIONS = [
+  "Bắc",
+  "Đông Bắc",
+  "Đông",
+  "Đông Nam",
+  "Nam",
+  "Tây Nam",
+  "Tây",
+  "Tây Bắc",
+];
+
+const angleToDirectionLocal = (angleDeg: number): string => {
+  const a = ((angleDeg % 360) + 360) % 360;
+  const idx = Math.round(a / 45) % 8;
+  return DIRECTIONS[idx];
+};
+
+const recalculateBattlefieldData = (
+  battlefieldData: any,
+  currentRealCoords: { x: number; y: number } | null,
+  rawToReal: (lng: number, lat: number) => { x: number; y: number } | null
+) => {
+  if (!currentRealCoords) return battlefieldData;
+  const keys = ["firePoints", "commandPost", "reserveUnit"] as const;
+  const updated = { ...battlefieldData };
+  for (const key of keys) {
+    const entry = battlefieldData[key];
+    if (entry && entry.rawCoords) {
+      const real = rawToReal(entry.rawCoords.lng, entry.rawCoords.lat);
+      let distance = "";
+      let direction = "Bắc";
+      if (real) {
+        const dx = real.x - currentRealCoords.x;
+        const dy = real.y - currentRealCoords.y;
+        const dist = Math.round(Math.sqrt(dx * dx + dy * dy));
+        distance = String(dist);
+        const mathAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const compassAngle = 90 - mathAngle;
+        direction = angleToDirectionLocal(compassAngle);
+      }
+      updated[key] = {
+        ...entry,
+        distance,
+        direction,
+      };
+    }
+  }
+  return updated;
+};
+
 const captureCurrentStateAsDraft = (state: any) => {
   return {
     coords: state.clickedRaw,
@@ -82,7 +132,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   },
   battlefieldScale: 1,
   commandPostLevel: "squad" as const,
-  weatherActive: false,
+  weatherActive: true,
   weatherData: {
     combatTime: "01.05.26",
     windDirection: "Tây Bắc",
@@ -147,7 +197,12 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     const { selectedPointId, editingPointId, drafts } = get();
 
     if (editingPointId !== null) {
-      set({ clickedRaw, currentRealCoords });
+      const updatedBattlefieldData = recalculateBattlefieldData(
+        get().battlefieldData,
+        currentRealCoords,
+        get().rawToReal
+      );
+      set({ clickedRaw, currentRealCoords, battlefieldData: updatedBattlefieldData });
     } else {
       if (selectedPointId !== null) {
         const draft = drafts["new"];
@@ -173,14 +228,156 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             vehicleWeights: draft.vehicleWeights || {},
           });
         } else {
+          const realToRaw = get().realToRaw;
+          let defaultBattlefieldData = {
+            firePoints: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc" },
+            commandPost: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc" },
+            reserveUnit: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc" },
+          };
+          if (currentRealCoords) {
+            const raw_firePoints = realToRaw(currentRealCoords.x, currentRealCoords.y + 500);
+            const raw_commandPost = realToRaw(currentRealCoords.x - 500, currentRealCoords.y - 500);
+            const raw_reserveUnit = realToRaw(currentRealCoords.x + 500, currentRealCoords.y - 500);
+            defaultBattlefieldData = {
+              firePoints: {
+                rawCoords: raw_firePoints,
+                distance: "500",
+                direction: "Bắc",
+              },
+              commandPost: {
+                rawCoords: raw_commandPost,
+                distance: "707",
+                direction: "Tây Nam",
+              },
+              reserveUnit: {
+                rawCoords: raw_reserveUnit,
+                distance: "707",
+                direction: "Đông Nam",
+              },
+            };
+          }
           set({
             clickedRaw,
             currentRealCoords,
             selectedPointId: null,
+            targetDefenseData: {
+              targetType: "Trận địa hỏa lực",
+              length: "500",
+              width: "300",
+              diameter: "500",
+              area: "15",
+              coverageMultiplier: "10",
+            },
+            smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
+            smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
+            selectedVehicles: [],
+            vehicleConfigs: get().originalVehicleConfigs || {},
+            battlefieldScale: 1,
+            weatherActive: true,
+            weatherData: {
+              combatTime: "01.05.26",
+              windDirection: "Tây Bắc",
+              windAngle: 315,
+              secondaryWindDirection: "Tây",
+              secondaryWindAngle: 270,
+              beta: 0,
+              alpha: 90,
+              alphaDirection: "right" as const,
+              speed: 5,
+              rainfall: 5,
+              tkkMin: 28,
+              tkkMax: 35,
+              tmdMin: 30,
+              tmdMax: 37,
+              humidity: 70,
+            },
+            smokeLineLength: 700,
+            reserveCoefficient: 1.2,
+            vehicleWeights: {},
+            battlefieldData: defaultBattlefieldData,
           });
         }
       } else {
-        set({ clickedRaw, currentRealCoords });
+        if (get().clickedRaw === null) {
+          const realToRaw = get().realToRaw;
+          let defaultBattlefieldData = {
+            firePoints: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc" },
+            commandPost: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc" },
+            reserveUnit: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc" },
+          };
+          if (currentRealCoords) {
+            const raw_firePoints = realToRaw(currentRealCoords.x, currentRealCoords.y + 500);
+            const raw_commandPost = realToRaw(currentRealCoords.x - 500, currentRealCoords.y - 500);
+            const raw_reserveUnit = realToRaw(currentRealCoords.x + 500, currentRealCoords.y - 500);
+            defaultBattlefieldData = {
+              firePoints: {
+                rawCoords: raw_firePoints,
+                distance: "500",
+                direction: "Bắc",
+              },
+              commandPost: {
+                rawCoords: raw_commandPost,
+                distance: "707",
+                direction: "Tây Nam",
+              },
+              reserveUnit: {
+                rawCoords: raw_reserveUnit,
+                distance: "707",
+                direction: "Đông Nam",
+              },
+            };
+          }
+          set({
+            clickedRaw,
+            currentRealCoords,
+            battlefieldData: defaultBattlefieldData,
+            targetDefenseData: {
+              targetType: "Trận địa hỏa lực",
+              length: "500",
+              width: "300",
+              diameter: "500",
+              area: "15",
+              coverageMultiplier: "10",
+            },
+            smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
+            smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
+            selectedVehicles: [],
+            vehicleConfigs: get().originalVehicleConfigs || {},
+            battlefieldScale: 1,
+            weatherActive: true,
+            weatherData: {
+              combatTime: "01.05.26",
+              windDirection: "Tây Bắc",
+              windAngle: 315,
+              secondaryWindDirection: "Tây",
+              secondaryWindAngle: 270,
+              beta: 0,
+              alpha: 90,
+              alphaDirection: "right" as const,
+              speed: 5,
+              rainfall: 5,
+              tkkMin: 28,
+              tkkMax: 35,
+              tmdMin: 30,
+              tmdMax: 37,
+              humidity: 70,
+            },
+            smokeLineLength: 700,
+            reserveCoefficient: 1.2,
+            vehicleWeights: {},
+          });
+        } else {
+          const updatedBattlefieldData = recalculateBattlefieldData(
+            get().battlefieldData,
+            currentRealCoords,
+            get().rawToReal
+          );
+          set({
+            clickedRaw,
+            currentRealCoords,
+            battlefieldData: updatedBattlefieldData,
+          });
+        }
       }
     }
   },
@@ -465,6 +662,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           reserveCoefficient: get().reserveCoefficient,
           vehicleConfigs,
           vehicleWeights: get().vehicleWeights,
+          battlefieldScale: get().battlefieldScale,
+          commandPostLevel: get().commandPostLevel,
         },
         toast,
       )
@@ -883,6 +1082,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             reserveCoefficient: get().reserveCoefficient,
             vehicleConfigs,
             vehicleWeights: get().vehicleWeights,
+            battlefieldScale: get().battlefieldScale,
+            commandPostLevel: get().commandPostLevel,
           },
           toast,
         )
@@ -1026,7 +1227,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         commandPost: { rawCoords: null, distance: "", direction: "Bắc" },
         reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
       },
-      weatherActive: false,
+      weatherActive: true,
       weatherData: {
         combatTime: "01.05.26",
         windDirection: "Tây Bắc",
@@ -1078,7 +1279,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
       },
       battlefieldScale: 1,
-      weatherActive: false,
+      weatherActive: true,
       weatherData: {
         combatTime: "01.05.26",
         windDirection: "Tây Bắc",
@@ -1166,64 +1367,128 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       const session = await simulationSessionService.getById(id);
       const { data } = session;
 
-      // Fallback & Merge: lấy initialState làm base để đảm bảo không bị undefined
-      // với các field mới được thêm sau này
+      const unsavedDraft = data.drafts?.["new"];
+      const hasUnsavedPoint = !!unsavedDraft || !!data.clickedRaw;
+
+      const nextP1 = data.p1 ?? state.p1;
+      const nextP2 = data.p2 ?? state.p2;
+      const nextScale = data.scale ?? state.scale;
+      const nextIsCalibrated = !!(
+        nextP1?.rawX &&
+        nextP1?.rawY &&
+        nextP2?.rawX &&
+        nextP2?.rawY
+      );
+
+      const rawCoords = unsavedDraft
+        ? unsavedDraft.coords
+        : data.clickedRaw;
+      const clickedRawObj = rawCoords
+        ? L.latLng(rawCoords.lat, rawCoords.lng)
+        : null;
+
+      const currentRealCoords = clickedRawObj
+        ? convertRawToReal(clickedRawObj.lng, clickedRawObj.lat, nextIsCalibrated, nextP1, nextScale)
+        : null;
+
+      const source = unsavedDraft || data;
+
       set({
         // Calibration
-        p1: data.p1 ?? state.p1,
-        p2: data.p2 ?? state.p2,
-        scale: data.scale ?? state.scale,
-        isCalibrated: !!(
-          data.p1?.rawX &&
-          data.p1?.rawY &&
-          data.p2?.rawX &&
-          data.p2?.rawY
-        ),
+        p1: nextP1,
+        p2: nextP2,
+        scale: nextScale,
+        isCalibrated: nextIsCalibrated,
         // Points
         pointsList: data.pointsList ?? [],
-        clickedRaw: data.clickedRaw
-          ? L.latLng(data.clickedRaw.lat, data.clickedRaw.lng)
-          : null,
-        currentRealCoords: data.currentRealCoords ?? null,
-        selectedPointId: data.pointsList?.length
-          ? (data.pointsList[data.pointsList.length - 1]?.id ?? null)
-          : null,
+        clickedRaw: clickedRawObj,
+        currentRealCoords,
+        selectedPointId: null, // load mặc định vào cái tạo điểm mới luôn
         editingPointId: null,
         drafts: data.drafts ?? {},
         results: data.pointsList?.length
           ? aggregateResults(data.pointsList)
           : null,
-        // Form data
-        targetDefenseData: data.targetDefenseData ?? state.targetDefenseData,
-        smokeMethodData: data.smokeMethodData ?? state.smokeMethodData,
-        selectedVehicles: data.selectedVehicles ?? [],
-        vehicleConfigs: data.vehicleConfigs ?? {},
-        vehicleWeights: data.vehicleWeights ?? {},
+        // Form data: load from data if hasUnsavedPoint, else reset to defaults
+        targetDefenseData: {
+          targetType: "Trận địa hỏa lực",
+          length: "500",
+          width: "300",
+          diameter: "500",
+          area: "15",
+          coverageMultiplier: "10",
+          ...(hasUnsavedPoint ? (source.targetDefenseData ?? {}) : {}),
+        },
+        smokeMethodData: {
+          lineType: "Thẳng",
+          lineRole: "Chính",
+          ...(hasUnsavedPoint ? (source.smokeMethodData ?? {}) : {}),
+        },
+        selectedVehicles: hasUnsavedPoint ? (source.selectedVehicles ?? []) : [],
+        vehicleConfigs: {
+          ...(state.originalVehicleConfigs || {}),
+          ...(hasUnsavedPoint ? (source.vehicleConfigs ?? {}) : {}),
+        },
+        vehicleWeights: hasUnsavedPoint ? (source.vehicleWeights ?? {}) : {},
         battlefieldData: (() => {
-          const bd = data.battlefieldData ?? state.battlefieldData;
-          const rehydrate = (entry: any) =>
-            entry?.rawCoords
-              ? {
-                  ...entry,
-                  rawCoords: L.latLng(entry.rawCoords.lat, entry.rawCoords.lng),
-                }
-              : (entry ?? { rawCoords: null, distance: "", direction: "Bắc" });
-          return {
-            firePoints: rehydrate(bd.firePoints),
-            commandPost: rehydrate(bd.commandPost),
-            reserveUnit: rehydrate(bd.reserveUnit),
+          const defaults = {
+            firePoints: { rawCoords: null, distance: "", direction: "Bắc" },
+            commandPost: { rawCoords: null, distance: "", direction: "Bắc" },
+            reserveUnit: { rawCoords: null, distance: "", direction: "Bắc" },
           };
+          if (hasUnsavedPoint) {
+            const bd = source.battlefieldData ?? {};
+            const rehydrate = (entry: any, defaultEntry: any) =>
+              entry?.rawCoords
+                ? {
+                    ...defaultEntry,
+                    ...entry,
+                    rawCoords: L.latLng(entry.rawCoords.lat, entry.rawCoords.lng),
+                  }
+                : (entry ?? defaultEntry);
+            return {
+              firePoints: rehydrate(bd.firePoints, defaults.firePoints),
+              commandPost: rehydrate(bd.commandPost, defaults.commandPost),
+              reserveUnit: rehydrate(bd.reserveUnit, defaults.reserveUnit),
+            };
+          } else {
+            return defaults;
+          }
         })(),
-        battlefieldScale: data.battlefieldScale ?? 1,
-        commandPostLevel: (data.commandPostLevel ?? "squad") as
-          | "squad"
-          | "platoon"
-          | "company",
-        weatherData: data.weatherData ?? state.weatherData,
-        weatherActive: data.weatherActive ?? false,
-        smokeTime: data.smokeTime ?? state.smokeTime,
-        smokeLineLength: data.smokeLineLength ?? 700,
-        reserveCoefficient: data.reserveCoefficient ?? 1.2,
+        battlefieldScale: hasUnsavedPoint ? (data.battlefieldScale ?? 1) : 1,
+        commandPostLevel: (hasUnsavedPoint
+          ? (data.commandPostLevel ?? "squad")
+          : "squad") as "squad" | "platoon" | "company",
+        weatherData: {
+          combatTime: "01.05.26",
+          windDirection: "Tây Bắc",
+          windAngle: 315,
+          secondaryWindDirection: "Tây",
+          secondaryWindAngle: 270,
+          beta: 0,
+          alpha: 90,
+          alphaDirection: "right" as const,
+          speed: 5,
+          rainfall: 5,
+          tkkMin: 28,
+          tkkMax: 35,
+          tmdMin: 30,
+          tmdMax: 37,
+          humidity: 70,
+          ...(hasUnsavedPoint ? (source.weatherData ?? {}) : {}),
+        },
+        weatherActive: true,
+        smokeTime: {
+          fromH: "06",
+          fromM: "00",
+          toH: "06",
+          toM: "15",
+          ...(hasUnsavedPoint ? (source.smokeTime ?? {}) : {}),
+        },
+        smokeLineLength: hasUnsavedPoint ? (source.smokeLineLength ?? 700) : 700,
+        reserveCoefficient: hasUnsavedPoint
+          ? (source.reserveCoefficient ?? 1.2)
+          : 1.2,
       });
 
       // Fetch bản đồ tương ứng nếu mapId có giá trị

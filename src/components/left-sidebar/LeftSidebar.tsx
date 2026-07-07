@@ -41,13 +41,13 @@ const TAB_DEFS = [
   {
     id: "session",
     label: "Phiên",
-    title: "Quản lý phiên làm việc",
+    title: "Quản lý các phương án",
     icon: Layers,
   },
   {
     id: "points",
     label: "Điểm",
-    title: "Danh sách điểm mục tiêu",
+    title: "Danh sách trận địa khói",
     icon: MapPin,
   },
   {
@@ -59,7 +59,7 @@ const TAB_DEFS = [
   {
     id: "method",
     label: "Khói",
-    title: "Bước 2 - Phương pháp che khuất",
+    title: "Bước 2 - Phương pháp phát khói",
     icon: Flame,
   },
   {
@@ -71,7 +71,7 @@ const TAB_DEFS = [
   {
     id: "target",
     label: "Tọa độ",
-    title: "Bước 4 - Chọn tọa độ mục tiêu",
+    title: "Bước 4 - Chọn tọa độ trận địa khói",
     icon: Locate,
   },
   { id: "weather", label: "Tiết", title: "Bước 5 - Thời tiết", icon: CloudSun },
@@ -84,13 +84,13 @@ const TAB_DEFS = [
   {
     id: "vehicle",
     label: "Xe",
-    title: "Bước 7 - Phương tiện che khuất",
+    title: "Bước 7 - Phương tiện phát khói",
     icon: Truck,
   },
   {
     id: "battlefield",
     label: "Địa",
-    title: "Bước 8 - Địa hình chiến trường",
+    title: "Bước 8 - Cấu trúc trận địa khói",
     icon: Mountain,
   },
 ];

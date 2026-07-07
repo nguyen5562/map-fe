@@ -56,7 +56,7 @@ export const PointsListPanel = () => {
       </button>
 
       {showPanel && (
-        <div className="px-4 pb-3 pt-2 space-y-2 max-h-[160px] overflow-y-auto">
+        <div className="px-4 pb-3 pt-2 space-y-2">
           {pointsList.length === 0 ? (
             <p className="text-xs text-slate-400 italic py-2 text-center">
               Chưa có điểm nào được lưu. Click bản đồ và bấm "Điểm kế tiếp".
@@ -97,9 +97,9 @@ export const PointsListPanel = () => {
                         />
                       </div>
                     ) : (
-                      <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5 group">
+                      <p className="text-xs font-bold text-slate-700 flex items-center justify-between gap-1.5 group w-full">
                         <span
-                          className="cursor-pointer hover:underline flex items-center gap-1"
+                          className="cursor-pointer hover:underline flex items-center gap-1 flex-1 min-w-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             startEdit(p, idx);
@@ -110,13 +110,13 @@ export const PointsListPanel = () => {
                             size={12}
                             className="text-emerald-600 shrink-0"
                           />
-                          <span>{p.name || `Điểm ${idx + 1}`}</span>
+                          <span className="break-words">{p.name || `Điểm ${idx + 1}`}</span>
                           <Edit
                             size={10}
                             className="opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity ml-1 shrink-0"
                           />
                         </span>
-                        <span className="text-[10px] font-normal text-slate-400 shrink-0">
+                        <span className="text-[10px] font-normal text-slate-400 shrink-0 ml-2">
                           ({methodType} - {vehicleName})
                         </span>
                       </p>

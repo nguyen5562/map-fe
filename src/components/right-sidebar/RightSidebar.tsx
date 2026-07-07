@@ -226,7 +226,7 @@ export const RightSidebar = () => {
                             </>
                           )}
                           <ResultRow
-                            label="Số PT phát khối trên 1 điểm (a = T/t)"
+                            label="Số PT phát khói trên 1 điểm (a = T/t)"
                             value={vres.pointVehicles}
                             unit={vUnit}
                           />
@@ -277,19 +277,13 @@ export const RightSidebar = () => {
                     )}
 
                     <ResultRow
-                      label="Số PT phát khối trên 1 điểm (a = T/t)"
+                      label="Số PT phát khói trên 1 điểm (a = T/t)"
                       value={selectedPoint.results.pointVehicles}
                       unit={countUnit}
                       icon={<Crosshair size={14} />}
                     />
                   </>
                 )}
-
-                <div className="flex items-center justify-center pt-2">
-                  <span className="text-slate-300 font-bold tracking-widest text-sm">
-                    ✦ ✦ ✦
-                  </span>
-                </div>
               </div>
 
               {/* 2. TỔNG SỐ PTPK CẦN SỬ DỤNG */}
