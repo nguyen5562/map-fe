@@ -508,7 +508,7 @@ function SimulationInner() {
                 ? Number(p.smokeLineLength)
                 : 700;
               const rawWidth = (actualLength * 1.25) / Math.abs(scale.x);
-              const rawHeight = rawWidth * (70 / 250);
+              const rawHeight = rawWidth * (120 / 250);
 
               // Nếu đang chỉnh sửa điểm này và người dùng click vị trí mới, dùng clickedRaw làm vị trí tạm
               const isEditing = p.id === editingPointId;
@@ -542,15 +542,15 @@ function SimulationInner() {
                 const dateLabel = parseCombatDate(p.weatherData?.combatTime);
                 const line2String = `${fromH}.${fromM}÷${toH}.${toM} - ${dateLabel}`;
 
-                const w1 = estimateTextWidth(line1, 17);
-                const w2 = estimateTextWidth(line2String, 15);
+                const w1 = estimateTextWidth(line1, 28);
+                const w2 = estimateTextWidth(line2String, 28);
                 const maxW = Math.max(w1, w2);
 
                 const halfLine = (maxW + 12) / 2;
                 const halfLineLng = (halfLine / 250) * rawWidth;
 
-                // y=32 trong 70px height (viewBox của SVG)
-                const dividerLat = labelCenter.lat + (3 / 70) * rawHeight;
+                // y=50 trong 110px height (viewBox của SVG)
+                const dividerLat = labelCenter.lat + (5 / 120) * rawHeight;
 
                 const isLabelToRight = labelCenter.lng >= markerCoords.lng;
                 const dividerLng = isLabelToRight

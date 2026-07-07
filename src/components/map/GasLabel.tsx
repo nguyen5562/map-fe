@@ -11,7 +11,7 @@ export const UTM_FONT = "'UTM Helvetins', 'Times New Roman', Times, serif";
 
 // ViewBox dimensions — khớp chiều ngang với GasMarker (250px wide)
 const VB_W = 250;
-const VB_H = 70; // 2 dòng text + separator
+const VB_H = 120; // 2 dòng text + separator (tăng từ 110 lên 120 cho cả 2 dòng cùng to 28px)
 
 type Props = {
   center: L.LatLng;
@@ -138,7 +138,7 @@ export function GasLabel({
   }
 
   const lengthInKm = Number((displayedLength / 1000).toFixed(2));
-  const line1 = `${results.totalVehicles} ${mainVid || ""} - ${lengthInKm}`;
+  const line1 = `${results.totalVehicles}${mainVid || ""}-${lengthInKm}`;
 
   const fromH = pad(smokeTime.fromH || "0");
   const fromM = pad(smokeTime.fromM || "0");
@@ -146,11 +146,11 @@ export function GasLabel({
   const toM = pad(smokeTime.toM || "0");
   const dateLabel = parseCombatDate(combatTime);
 
-  const line2String = `${fromH}.${fromM}÷${toH}.${toM} - ${dateLabel}`;
+  const line2String = `${fromH}.${fromM}÷${toH}.${toM}-${dateLabel}`;
 
   // Tính chiều rộng text của cả 2 dòng, lấy cái lớn nhất
-  const w1 = estimateTextWidth(line1, 17);
-  const w2 = estimateTextWidth(line2String, 15);
+  const w1 = estimateTextWidth(line1, 28);
+  const w2 = estimateTextWidth(line2String, 28);
   const maxW = Math.max(w1, w2);
 
   // Đường gạch ngang chỉ dài hơn text dài nhất 12px (mỗi bên thò ra 6px)
@@ -175,7 +175,7 @@ export function GasLabel({
         >
           <feMorphology
             operator="dilate"
-            radius="1.5"
+            radius="2.5"
             in="SourceAlpha"
             result="expanded"
           />
@@ -196,12 +196,14 @@ export function GasLabel({
       {/* Dòng 1: "4 HPK-2.5" */}
       <text
         x={VB_W / 2}
-        y={22}
+        y={38}
         textAnchor="middle"
         fontFamily={UTM_FONT}
-        fontSize={17}
+        fontSize={28}
         fontWeight="bold"
         fill="#0f172a"
+        stroke="#0f172a"
+        strokeWidth={0.8}
         filter="url(#gas-label-outline)"
         style={{ letterSpacing: "0.5px" }}
       >
@@ -211,22 +213,24 @@ export function GasLabel({
       {/* Đường kẻ ngang chia 2 dòng, dài theo text */}
       <line
         x1={x1}
-        y1={32}
+        y1={55}
         x2={x2}
-        y2={32}
+        y2={55}
         stroke="#0f172a"
-        strokeWidth={1.5}
+        strokeWidth={3.0}
       />
 
       {/* Dòng 2: "10.00÷11.00 - 01.05" */}
       <text
         x={VB_W / 2}
-        y={56}
+        y={96}
         textAnchor="middle"
         fontFamily={UTM_FONT}
-        fontSize={15}
+        fontSize={28}
         fontWeight="bold"
         fill="#0f172a"
+        stroke="#0f172a"
+        strokeWidth={0.8}
         filter="url(#gas-label-outline)"
         direction="ltr"
         style={{ letterSpacing: "0.5px", unicodeBidi: "isolate" }}

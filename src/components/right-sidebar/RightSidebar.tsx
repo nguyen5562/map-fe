@@ -184,7 +184,7 @@ export const RightSidebar = () => {
 
                 {selectedPoint.results.vehicleBreakdown ? (
                   Object.entries(selectedPoint.results.vehicleBreakdown).map(
-                    ([vid, vres]: [string, any]) => {
+                    ([vid, vres]: [string, any], idx) => {
                       const vConfig =
                         selectedPoint.vehicleConfigs?.[vid] ||
                         vehicleConfigs[vid];
@@ -192,7 +192,7 @@ export const RightSidebar = () => {
                       return (
                         <div
                           key={vid}
-                          className="border-t border-slate-100 pt-2 mt-2 first:border-0 first:pt-0 first:mt-0"
+                          className={idx === 0 ? "" : "border-t border-slate-100 pt-2 mt-2"}
                         >
                           <div className="text-[11.5px] font-bold text-slate-650 mb-1">
                             • {vConfig?.name || vid} ({vres.weight}%)
