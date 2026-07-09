@@ -28,7 +28,7 @@ const angleToDirectionLocal = (angleDeg: number): string => {
 const recalculateBattlefieldData = (
   battlefieldData: any,
   currentRealCoords: { x: number; y: number } | null,
-  rawToReal: (lng: number, lat: number) => { x: number; y: number } | null
+  rawToReal: (lng: number, lat: number) => { x: number; y: number } | null,
 ) => {
   if (!currentRealCoords) return battlefieldData;
   const keys = ["firePoints", "commandPost", "reserveUnit"] as const;
@@ -120,15 +120,42 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     area: "15",
     coverageMultiplier: "10",
   },
-  smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
-  smokeMethodData: { lineType: "Thẳng", lineRole: "Chính", bufferColor: "none" },
+  smokeTime: {
+    fromH: "06",
+    fromM: "00",
+    toH: "06",
+    toM: "15",
+    duration: "",
+    customTemplate: "",
+    mode: "range",
+  },
+  smokeMethodData: {
+    lineType: "Thẳng",
+    lineRole: "Chính",
+    bufferColor: "none",
+  },
   selectedVehicles: [],
   vehicleConfigs: {},
   originalVehicleConfigs: {},
   battlefieldData: {
-    firePoints: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
-    commandPost: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
-    reserveUnit: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
+    firePoints: {
+      rawCoords: null,
+      distance: "",
+      direction: "Bắc",
+      bufferColor: "none",
+    },
+    commandPost: {
+      rawCoords: null,
+      distance: "",
+      direction: "Bắc",
+      bufferColor: "none",
+    },
+    reserveUnit: {
+      rawCoords: null,
+      distance: "",
+      direction: "Bắc",
+      bufferColor: "none",
+    },
   },
   battlefieldScale: 1,
   commandPostLevel: "squad" as const,
@@ -200,9 +227,13 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       const updatedBattlefieldData = recalculateBattlefieldData(
         get().battlefieldData,
         currentRealCoords,
-        get().rawToReal
+        get().rawToReal,
       );
-      set({ clickedRaw, currentRealCoords, battlefieldData: updatedBattlefieldData });
+      set({
+        clickedRaw,
+        currentRealCoords,
+        battlefieldData: updatedBattlefieldData,
+      });
     } else {
       if (selectedPointId !== null) {
         const draft = drafts["new"];
@@ -230,14 +261,38 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         } else {
           const realToRaw = get().realToRaw;
           let defaultBattlefieldData = {
-            firePoints: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc", bufferColor: "none" },
-            commandPost: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc", bufferColor: "none" },
-            reserveUnit: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc", bufferColor: "none" },
+            firePoints: {
+              rawCoords: null as L.LatLng | null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
+            commandPost: {
+              rawCoords: null as L.LatLng | null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
+            reserveUnit: {
+              rawCoords: null as L.LatLng | null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
           };
           if (currentRealCoords) {
-            const raw_firePoints = realToRaw(currentRealCoords.x, currentRealCoords.y + 500);
-            const raw_commandPost = realToRaw(currentRealCoords.x - 500, currentRealCoords.y - 500);
-            const raw_reserveUnit = realToRaw(currentRealCoords.x + 500, currentRealCoords.y - 500);
+            const raw_firePoints = realToRaw(
+              currentRealCoords.x,
+              currentRealCoords.y + 500,
+            );
+            const raw_commandPost = realToRaw(
+              currentRealCoords.x - 500,
+              currentRealCoords.y - 500,
+            );
+            const raw_reserveUnit = realToRaw(
+              currentRealCoords.x + 500,
+              currentRealCoords.y - 500,
+            );
             defaultBattlefieldData = {
               firePoints: {
                 rawCoords: raw_firePoints,
@@ -271,8 +326,20 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
               area: "15",
               coverageMultiplier: "10",
             },
-            smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
-            smokeMethodData: { lineType: "Thẳng", lineRole: "Chính", bufferColor: "none" },
+            smokeTime: {
+              fromH: "06",
+              fromM: "00",
+              toH: "06",
+              toM: "15",
+              duration: "",
+              customTemplate: "",
+              mode: "range",
+            },
+            smokeMethodData: {
+              lineType: "Thẳng",
+              lineRole: "Chính",
+              bufferColor: "none",
+            },
             selectedVehicles: [],
             vehicleConfigs: get().originalVehicleConfigs || {},
             battlefieldScale: 1,
@@ -304,14 +371,38 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         if (get().clickedRaw === null) {
           const realToRaw = get().realToRaw;
           let defaultBattlefieldData = {
-            firePoints: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc", bufferColor: "none" },
-            commandPost: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc", bufferColor: "none" },
-            reserveUnit: { rawCoords: null as L.LatLng | null, distance: "", direction: "Bắc", bufferColor: "none" },
+            firePoints: {
+              rawCoords: null as L.LatLng | null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
+            commandPost: {
+              rawCoords: null as L.LatLng | null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
+            reserveUnit: {
+              rawCoords: null as L.LatLng | null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
           };
           if (currentRealCoords) {
-            const raw_firePoints = realToRaw(currentRealCoords.x, currentRealCoords.y + 500);
-            const raw_commandPost = realToRaw(currentRealCoords.x - 500, currentRealCoords.y - 500);
-            const raw_reserveUnit = realToRaw(currentRealCoords.x + 500, currentRealCoords.y - 500);
+            const raw_firePoints = realToRaw(
+              currentRealCoords.x,
+              currentRealCoords.y + 500,
+            );
+            const raw_commandPost = realToRaw(
+              currentRealCoords.x - 500,
+              currentRealCoords.y - 500,
+            );
+            const raw_reserveUnit = realToRaw(
+              currentRealCoords.x + 500,
+              currentRealCoords.y - 500,
+            );
             defaultBattlefieldData = {
               firePoints: {
                 rawCoords: raw_firePoints,
@@ -345,8 +436,20 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
               area: "15",
               coverageMultiplier: "10",
             },
-            smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
-            smokeMethodData: { lineType: "Thẳng", lineRole: "Chính", bufferColor: "none" },
+            smokeTime: {
+              fromH: "06",
+              fromM: "00",
+              toH: "06",
+              toM: "15",
+              duration: "",
+              customTemplate: "",
+              mode: "range",
+            },
+            smokeMethodData: {
+              lineType: "Thẳng",
+              lineRole: "Chính",
+              bufferColor: "none",
+            },
             selectedVehicles: [],
             vehicleConfigs: get().originalVehicleConfigs || {},
             battlefieldScale: 1,
@@ -376,7 +479,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           const updatedBattlefieldData = recalculateBattlefieldData(
             get().battlefieldData,
             currentRealCoords,
-            get().rawToReal
+            get().rawToReal,
           );
           set({
             clickedRaw,
@@ -784,24 +887,74 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
 
   onDeletePoint: (id) => {
     const updated = get().pointsList.filter((p) => p.id !== id);
-    let nextEditingPointId = get().editingPointId;
-    if (id === nextEditingPointId) {
-      nextEditingPointId = null;
-    }
     const updatedDrafts = { ...get().drafts };
     delete updatedDrafts[id];
 
-    set({
-      pointsList: updated,
-      editingPointId: nextEditingPointId,
-      drafts: updatedDrafts,
-    });
+    const isActive = id === get().selectedPointId || id === get().editingPointId;
 
-    if (updated.length === 0) {
-      set({ results: null, selectedPointId: null, editingPointId: null });
+    if (isActive) {
+      // Reset to "new point" mode and clear battlefield markers in one single state update only if deleting the active point
+      set({
+        pointsList: updated,
+        editingPointId: null,
+        drafts: updatedDrafts,
+        selectedPointId: null,
+        clickedRaw: null,
+        currentRealCoords: null,
+        battlefieldData: {
+          firePoints: {
+            rawCoords: null,
+            distance: "",
+            direction: "Bắc",
+            bufferColor: "none",
+          },
+          commandPost: {
+            rawCoords: null,
+            distance: "",
+            direction: "Bắc",
+            bufferColor: "none",
+          },
+          reserveUnit: {
+            rawCoords: null,
+            distance: "",
+            direction: "Bắc",
+            bufferColor: "none",
+          },
+        },
+        targetDefenseData: {
+          targetType: "Trận địa hỏa lực",
+          length: "500",
+          width: "300",
+          diameter: "500",
+          area: "15",
+          coverageMultiplier: "10",
+        },
+        smokeTime: {
+          fromH: "06",
+          fromM: "00",
+          toH: "06",
+          toM: "15",
+          duration: "",
+          customTemplate: "",
+          mode: "range",
+        },
+        smokeMethodData: {
+          lineType: "Thẳng",
+          lineRole: "Chính",
+          bufferColor: "none",
+        },
+        selectedVehicles: [],
+        vehicleConfigs: get().originalVehicleConfigs || {},
+        vehicleWeights: {},
+        results: updated.length === 0 ? null : aggregateResults(updated),
+      });
     } else {
-      const lastPoint = updated[updated.length - 1];
-      set({ results: lastPoint.results, selectedPointId: lastPoint.id });
+      // If deleting a non-active point, just update pointsList, drafts, and aggregate results, keeping active session untouched
+      set({
+        pointsList: updated,
+        drafts: updatedDrafts,
+        results: updated.length === 0 ? null : aggregateResults(updated),
+      });
     }
   },
 
@@ -984,7 +1137,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
   },
 
   onClearUnsavedPoint: () => {
-    const { drafts } = get();
+    const { drafts, pointsList } = get();
     let updatedDrafts = { ...drafts };
     delete updatedDrafts["new"];
 
@@ -992,6 +1145,54 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
       clickedRaw: null,
       currentRealCoords: null,
       drafts: updatedDrafts,
+      selectedPointId: null,
+      editingPointId: null,
+      battlefieldData: {
+        firePoints: {
+          rawCoords: null,
+          distance: "",
+          direction: "Bắc",
+          bufferColor: "none",
+        },
+        commandPost: {
+          rawCoords: null,
+          distance: "",
+          direction: "Bắc",
+          bufferColor: "none",
+        },
+        reserveUnit: {
+          rawCoords: null,
+          distance: "",
+          direction: "Bắc",
+          bufferColor: "none",
+        },
+      },
+      targetDefenseData: {
+        targetType: "Trận địa hỏa lực",
+        length: "500",
+        width: "300",
+        diameter: "500",
+        area: "15",
+        coverageMultiplier: "10",
+      },
+      smokeTime: {
+        fromH: "06",
+        fromM: "00",
+        toH: "06",
+        toM: "15",
+        duration: "",
+        customTemplate: "",
+        mode: "range",
+      },
+      smokeMethodData: {
+        lineType: "Thẳng",
+        lineRole: "Chính",
+        bufferColor: "none",
+      },
+      selectedVehicles: [],
+      vehicleConfigs: get().originalVehicleConfigs || {},
+      vehicleWeights: {},
+      results: pointsList.length === 0 ? null : aggregateResults(pointsList),
     });
   },
 
@@ -1223,15 +1424,38 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         area: "15",
         coverageMultiplier: "10",
       },
-      smokeTime: { fromH: "", fromM: "", toH: "", toM: "" },
+      smokeTime: {
+        fromH: "",
+        fromM: "",
+        toH: "",
+        toM: "",
+        duration: "",
+        customTemplate: "",
+        mode: "range",
+      },
       smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
       selectedVehicles: [],
       vehicleConfigs: {},
       originalVehicleConfigs: {},
       battlefieldData: {
-        firePoints: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
-        commandPost: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
-        reserveUnit: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
+        firePoints: {
+          rawCoords: null,
+          distance: "",
+          direction: "Bắc",
+          bufferColor: "none",
+        },
+        commandPost: {
+          rawCoords: null,
+          distance: "",
+          direction: "Bắc",
+          bufferColor: "none",
+        },
+        reserveUnit: {
+          rawCoords: null,
+          distance: "",
+          direction: "Bắc",
+          bufferColor: "none",
+        },
       },
       weatherActive: true,
       weatherData: {
@@ -1275,7 +1499,15 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         area: "15",
         coverageMultiplier: "10",
       },
-      smokeTime: { fromH: "06", fromM: "00", toH: "06", toM: "15" },
+      smokeTime: {
+        fromH: "06",
+        fromM: "00",
+        toH: "06",
+        toM: "15",
+        duration: "",
+        customTemplate: "",
+        mode: "range",
+      },
       smokeMethodData: { lineType: "Thẳng", lineRole: "Chính" },
       selectedVehicles: [],
       vehicleConfigs: get().originalVehicleConfigs || {},
@@ -1386,15 +1618,19 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         nextP2?.rawY
       );
 
-      const rawCoords = unsavedDraft
-        ? unsavedDraft.coords
-        : data.clickedRaw;
+      const rawCoords = unsavedDraft ? unsavedDraft.coords : data.clickedRaw;
       const clickedRawObj = rawCoords
         ? L.latLng(rawCoords.lat, rawCoords.lng)
         : null;
 
       const currentRealCoords = clickedRawObj
-        ? convertRawToReal(clickedRawObj.lng, clickedRawObj.lat, nextIsCalibrated, nextP1, nextScale)
+        ? convertRawToReal(
+            clickedRawObj.lng,
+            clickedRawObj.lat,
+            nextIsCalibrated,
+            nextP1,
+            nextScale,
+          )
         : null;
 
       const source = unsavedDraft || data;
@@ -1431,7 +1667,9 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           bufferColor: "none",
           ...(hasUnsavedPoint ? (source.smokeMethodData ?? {}) : {}),
         },
-        selectedVehicles: hasUnsavedPoint ? (source.selectedVehicles ?? []) : [],
+        selectedVehicles: hasUnsavedPoint
+          ? (source.selectedVehicles ?? [])
+          : [],
         vehicleConfigs: {
           ...(state.originalVehicleConfigs || {}),
           ...(hasUnsavedPoint ? (source.vehicleConfigs ?? {}) : {}),
@@ -1439,9 +1677,24 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         vehicleWeights: hasUnsavedPoint ? (source.vehicleWeights ?? {}) : {},
         battlefieldData: (() => {
           const defaults = {
-            firePoints: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
-            commandPost: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
-            reserveUnit: { rawCoords: null, distance: "", direction: "Bắc", bufferColor: "none" },
+            firePoints: {
+              rawCoords: null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
+            commandPost: {
+              rawCoords: null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
+            reserveUnit: {
+              rawCoords: null,
+              distance: "",
+              direction: "Bắc",
+              bufferColor: "none",
+            },
           };
           if (hasUnsavedPoint) {
             const bd = source.battlefieldData ?? {};
@@ -1450,7 +1703,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
                 ? {
                     ...defaultEntry,
                     ...entry,
-                    rawCoords: L.latLng(entry.rawCoords.lat, entry.rawCoords.lng),
+                    rawCoords: L.latLng(
+                      entry.rawCoords.lat,
+                      entry.rawCoords.lng,
+                    ),
                   }
                 : (entry ?? defaultEntry);
             return {
@@ -1463,7 +1719,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           }
         })(),
         battlefieldScale: data.battlefieldScale ?? 1,
-        commandPostLevel: (data.commandPostLevel ?? "squad") as "squad" | "platoon" | "company",
+        commandPostLevel: (data.commandPostLevel ?? "squad") as
+          | "squad"
+          | "platoon"
+          | "company",
         weatherData: {
           combatTime: "01.05.26",
           windDirection: "Tây Bắc",
@@ -1488,9 +1747,14 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           fromM: "00",
           toH: "06",
           toM: "15",
+          duration: "",
+          customTemplate: "",
+          mode: "range",
           ...(hasUnsavedPoint ? (source.smokeTime ?? {}) : {}),
         },
-        smokeLineLength: hasUnsavedPoint ? (source.smokeLineLength ?? 700) : 700,
+        smokeLineLength: hasUnsavedPoint
+          ? (source.smokeLineLength ?? 700)
+          : 700,
         reserveCoefficient: hasUnsavedPoint
           ? (source.reserveCoefficient ?? 1.2)
           : 1.2,

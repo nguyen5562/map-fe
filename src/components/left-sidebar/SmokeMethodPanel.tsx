@@ -122,7 +122,11 @@ export const SmokeMethodPanel = () => {
             </div>
             <div className="grid grid-cols-6 gap-1.5 justify-items-center">
               {[
-                { value: "none", label: "Không", class: "bg-slate-100 border-slate-300" },
+                {
+                  value: "none",
+                  label: "Không",
+                  class: "bg-slate-100 border-slate-300",
+                },
                 { value: "#ef4444", label: "Đỏ", class: "bg-[#ef4444]" },
                 { value: "#f97316", label: "Cam", class: "bg-[#f97316]" },
                 { value: "#eab308", label: "Vàng", class: "bg-[#eab308]" },
@@ -151,7 +155,9 @@ export const SmokeMethodPanel = () => {
                   }`}
                 >
                   {(smokeMethodData.bufferColor || "none") === opt.value && (
-                    <span className={`w-1 h-1 rounded-full ${opt.value === "#ffffff" ? "bg-black" : "bg-white"}`} />
+                    <span
+                      className={`w-1 h-1 rounded-full ${opt.value === "#ffffff" ? "bg-black" : "bg-white"}`}
+                    />
                   )}
                 </button>
               ))}

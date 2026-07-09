@@ -33,7 +33,8 @@ export function BattlefieldMarker({
     [center.lat + rawH / 2, center.lng + rawW / 2],
   ];
 
-  const finalBufferColor = bufferColor !== "none" ? lightenHexColor(bufferColor, 30) : "none";
+  const finalBufferColor =
+    bufferColor !== "none" ? lightenHexColor(bufferColor, 30) : "none";
 
   return (
     <SVGOverlay
@@ -45,19 +46,23 @@ export function BattlefieldMarker({
       {type === "firePoints" && (
         <FirePointSymbol
           bufferColor={finalBufferColor}
-          uniqueId={`fp-${center.lat}-${center.lng}`.replace(/[^a-zA-Z0-9]/g, "")}
+          uniqueId={`fp-${center.lat}-${center.lng}`.replace(
+            /[^a-zA-Z0-9]/g,
+            "",
+          )}
         />
       )}
       {type === "reserveUnit" && (
-        <ReserveUnitSymbol
-          bufferColor={finalBufferColor}
-        />
+        <ReserveUnitSymbol bufferColor={finalBufferColor} />
       )}
       {type === "commandPost" && (
         <CommandPostSymbol
           level={commandPostLevel}
           bufferColor={finalBufferColor}
-          uniqueId={`cp-${center.lat}-${center.lng}`.replace(/[^a-zA-Z0-9]/g, "")}
+          uniqueId={`cp-${center.lat}-${center.lng}`.replace(
+            /[^a-zA-Z0-9]/g,
+            "",
+          )}
         />
       )}
     </SVGOverlay>
@@ -86,13 +91,7 @@ function FirePointSymbol({
           {/* Vẽ viền trong (inner border) cho hình chữ nhật kín */}
           <defs>
             <clipPath id={`clip-${uniqueId}`}>
-              <rect
-                x="20"
-                y="20"
-                width="80"
-                height="34"
-                rx="2"
-              />
+              <rect x="20" y="20" width="80" height="34" rx="2" />
             </clipPath>
           </defs>
           <g clipPath={`url(#clip-${uniqueId})`}>
@@ -149,11 +148,7 @@ function FirePointSymbol({
 
 // ── Hình 2: Bộ phận dự bị, bảo đảm ──────────────────────────────────────────
 // Hai chữ V cạnh nhau viền đen (kích thước lớn 110px ngang, H và + ngang tầm với đỉnh trái dấu căn).
-function ReserveUnitSymbol({
-  bufferColor = "none",
-}: {
-  bufferColor?: string;
-}) {
+function ReserveUnitSymbol({ bufferColor = "none" }: { bufferColor?: string }) {
   const leftColor = "#ff0000"; // Red for medical tick
   const rightColor = "#000000"; // Black for technical tick
 
@@ -217,13 +212,7 @@ function ReserveUnitSymbol({
         vectorEffect={VE}
       />
       {/* Crossbar of H */}
-      <line
-        x1="74"
-        y1="30"
-        x2="82"
-        y2="30"
-        vectorEffect={VE}
-      />
+      <line x1="74" y1="30" x2="82" y2="30" vectorEffect={VE} />
     </g>
   );
 
@@ -388,13 +377,7 @@ function CommandPostSymbol({
           strokeLinecap="round"
           vectorEffect={VE}
         />
-        <line
-          x1="25"
-          y1="50"
-          x2="35"
-          y2="50"
-          vectorEffect={VE}
-        />
+        <line x1="25" y1="50" x2="35" y2="50" vectorEffect={VE} />
 
         {/* --- RIGHT TRIANGLE (empty, with stem above apex) --- */}
         <polygon

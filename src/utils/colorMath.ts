@@ -7,7 +7,10 @@ export function lightenHexColor(hex: string, percent: number = 75): string {
   if (hex === "none" || !hex) return "none";
   let cleanHex = hex.replace(/^#/, "");
   if (cleanHex.length === 3) {
-    cleanHex = cleanHex.split("").map((c) => c + c).join("");
+    cleanHex = cleanHex
+      .split("")
+      .map((c) => c + c)
+      .join("");
   }
   if (cleanHex.length !== 6) return hex; // Fallback if invalid
 

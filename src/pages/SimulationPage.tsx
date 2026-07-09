@@ -38,8 +38,7 @@ import {
 import {
   estimateTextWidth,
   getMainVehicleId,
-  parseCombatDate,
-  pad,
+  formatSmokeTimeLabel,
 } from "../components/map/GasLabel";
 import { LeftSidebar } from "../components/left-sidebar";
 import { RightSidebar } from "../components/right-sidebar";
@@ -406,72 +405,100 @@ function SimulationInner() {
             )}
 
             {/* Battlefield Position Markers - Military SVG Symbols */}
-            {isCalibrated && battlefieldData.firePoints.rawCoords && (
-              <BattlefieldMarker
-                center={battlefieldData.firePoints.rawCoords}
-                type="firePoints"
-                scaleX={scale.x}
-                bufferColor={battlefieldData.firePoints.bufferColor}
-              />
-            )}
-            {isCalibrated && battlefieldData.reserveUnit.rawCoords && (
-              <BattlefieldMarker
-                center={battlefieldData.reserveUnit.rawCoords}
-                type="reserveUnit"
-                scaleX={scale.x}
-                bufferColor={battlefieldData.reserveUnit.bufferColor}
-              />
-            )}
-            {isCalibrated && battlefieldData.commandPost.rawCoords && (
-              <BattlefieldMarker
-                center={battlefieldData.commandPost.rawCoords}
-                type="commandPost"
-                scaleX={scale.x}
-                commandPostLevel={commandPostLevel}
-                bufferColor={battlefieldData.commandPost.bufferColor}
-              />
-            )}
-
-            {/* Saved Points Battlefield Position Markers */}
-            {isCalibrated &&
-              pointsList.map((p) => {
-                if (p.id === selectedPointId) return null; // Already rendered by active/draft state above
-                const bfData = p.battlefieldData;
-                if (!bfData) return null;
-
-                return (
-                  <React.Fragment key={`bf-saved-${p.id}`}>
-                    {bfData.firePoints?.rawCoords && (
+            {isCalibrated && (
+              <>
+                {/* 1. Active / Draft Battlefield Position Markers (only when no point is selected) */}
+                {!selectedPointId && (
+                  <>
+                    {battlefieldData.firePoints.rawCoords && (
                       <BattlefieldMarker
-                        center={L.latLng(bfData.firePoints.rawCoords.lat, bfData.firePoints.rawCoords.lng)}
+                        center={battlefieldData.firePoints.rawCoords}
                         type="firePoints"
                         scaleX={scale.x}
-                        bufferColor={bfData.firePoints.bufferColor || bfData.bufferColor}
-                        onClick={() => onSelectPoint(p.id)}
+                        bufferColor={battlefieldData.firePoints.bufferColor}
                       />
                     )}
-                    {bfData.reserveUnit?.rawCoords && (
+                    {battlefieldData.reserveUnit.rawCoords && (
                       <BattlefieldMarker
-                        center={L.latLng(bfData.reserveUnit.rawCoords.lat, bfData.reserveUnit.rawCoords.lng)}
+                        center={battlefieldData.reserveUnit.rawCoords}
                         type="reserveUnit"
                         scaleX={scale.x}
-                        bufferColor={bfData.reserveUnit.bufferColor || bfData.bufferColor}
-                        onClick={() => onSelectPoint(p.id)}
+                        bufferColor={battlefieldData.reserveUnit.bufferColor}
                       />
                     )}
-                    {bfData.commandPost?.rawCoords && (
+                    {battlefieldData.commandPost.rawCoords && (
                       <BattlefieldMarker
-                        center={L.latLng(bfData.commandPost.rawCoords.lat, bfData.commandPost.rawCoords.lng)}
+                        center={battlefieldData.commandPost.rawCoords}
                         type="commandPost"
                         scaleX={scale.x}
-                        commandPostLevel={p.commandPostLevel || commandPostLevel}
-                        bufferColor={bfData.commandPost.bufferColor || bfData.bufferColor}
-                        onClick={() => onSelectPoint(p.id)}
+                        commandPostLevel={commandPostLevel}
+                        bufferColor={battlefieldData.commandPost.bufferColor}
                       />
                     )}
-                  </React.Fragment>
-                );
-              })}
+                  </>
+                )}
+
+                {/* 2. Saved & Selected Points Battlefield Position Markers */}
+                {pointsList.map((p) => {
+                  const isSelected = p.id === selectedPointId;
+                  // Use active store coordinates if selected, otherwise use saved coordinates
+                  const bfData = isSelected ? battlefieldData : p.battlefieldData;
+                  if (!bfData) return null;
+
+                  const cpLevel = isSelected
+                    ? commandPostLevel
+                    : (p.commandPostLevel || commandPostLevel);
+
+                  return (
+                    <React.Fragment key={`bf-${p.id}`}>
+                      {bfData.firePoints?.rawCoords && (
+                        <BattlefieldMarker
+                          center={L.latLng(
+                            bfData.firePoints.rawCoords.lat,
+                            bfData.firePoints.rawCoords.lng,
+                          )}
+                          type="firePoints"
+                          scaleX={scale.x}
+                          bufferColor={
+                            bfData.firePoints.bufferColor || bfData.bufferColor
+                          }
+                          onClick={() => onSelectPoint(p.id)}
+                        />
+                      )}
+                      {bfData.reserveUnit?.rawCoords && (
+                        <BattlefieldMarker
+                          center={L.latLng(
+                            bfData.reserveUnit.rawCoords.lat,
+                            bfData.reserveUnit.rawCoords.lng,
+                          )}
+                          type="reserveUnit"
+                          scaleX={scale.x}
+                          bufferColor={
+                            bfData.reserveUnit.bufferColor || bfData.bufferColor
+                          }
+                          onClick={() => onSelectPoint(p.id)}
+                        />
+                      )}
+                      {bfData.commandPost?.rawCoords && (
+                        <BattlefieldMarker
+                          center={L.latLng(
+                            bfData.commandPost.rawCoords.lat,
+                            bfData.commandPost.rawCoords.lng,
+                          )}
+                          type="commandPost"
+                          scaleX={scale.x}
+                          commandPostLevel={cpLevel}
+                          bufferColor={
+                            bfData.commandPost.bufferColor || bfData.bufferColor
+                          }
+                          onClick={() => onSelectPoint(p.id)}
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </>
+            )}
 
             {/* Click Marker */}
             {clickedRaw &&
@@ -542,12 +569,10 @@ function SimulationInner() {
                   : "";
                 const line1 = `${p.results.totalVehicles} ${mainVehicleName}`;
 
-                const fromH = pad(p.smokeTime.fromH || "0");
-                const fromM = pad(p.smokeTime.fromM || "0");
-                const toH = pad(p.smokeTime.toH || "0");
-                const toM = pad(p.smokeTime.toM || "0");
-                const dateLabel = parseCombatDate(p.weatherData?.combatTime);
-                const line2String = `${fromH}.${fromM}÷${toH}.${toM} - ${dateLabel}`;
+                const line2String = formatSmokeTimeLabel(
+                  p.smokeTime,
+                  p.weatherData?.combatTime,
+                );
 
                 const w1 = estimateTextWidth(line1, 28);
                 const w2 = estimateTextWidth(line2String, 28);

@@ -35,13 +35,19 @@ export const performCalculation = (inputs: {
   const alpha = Number(inputs.weatherData.alpha); // góc α (°)
   const v = Number(inputs.weatherData.speed); // tốc độ gió (m/s)
 
-  // --- T: thời gian cần thả khói (phút) = toTime - fromTime ---
-  const fromMin =
-    Number(inputs.smokeTime.fromH || 0) * 60 +
-    Number(inputs.smokeTime.fromM || 0);
-  const toMin =
-    Number(inputs.smokeTime.toH || 0) * 60 + Number(inputs.smokeTime.toM || 0);
-  const T = Math.max(0, toMin - fromMin); // phút
+  // --- T: thời gian cần thả khói (phút) ---
+  let T = 0;
+  if (inputs.smokeTime.mode === "duration") {
+    T = parseFloat(inputs.smokeTime.duration || "0") || 0;
+  } else {
+    const fromMin =
+      Number(inputs.smokeTime.fromH || 0) * 60 +
+      Number(inputs.smokeTime.fromM || 0);
+    const toMin =
+      Number(inputs.smokeTime.toH || 0) * 60 +
+      Number(inputs.smokeTime.toM || 0);
+    T = Math.max(0, toMin - fromMin); // phút
+  }
 
   const vehicleBreakdown: Record<
     string,

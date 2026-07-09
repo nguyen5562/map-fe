@@ -110,7 +110,9 @@ export const PointsListPanel = () => {
                             size={12}
                             className="text-emerald-600 shrink-0"
                           />
-                          <span className="break-words">{p.name || `Điểm ${idx + 1}`}</span>
+                          <span className="break-words">
+                            {p.name || `Điểm ${idx + 1}`}
+                          </span>
                           <Edit
                             size={10}
                             className="opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity ml-1 shrink-0"

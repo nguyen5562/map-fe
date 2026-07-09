@@ -1,5 +1,6 @@
 import { SVGOverlay } from "react-leaflet";
 import L from "leaflet";
+import { Fragment } from "react";
 import type { VehicleConfig } from "../left-sidebar/SmokeVehiclePanel";
 import type { SmokeTimeRange } from "../left-sidebar/SmokeTimePanel";
 import type {
@@ -52,6 +53,58 @@ export const parseCombatDate = (combatTime?: string): string => {
     return raw.slice(0, 5);
   }
   return raw;
+};
+
+/** Định dạng thời gian hiển thị */
+export const formatSmokeTimeLabel = (
+  smokeTime: SmokeTimeRange,
+  combatTime?: string,
+): string => {
+  const fromH = pad(smokeTime.fromH || "0");
+  const fromM = pad(smokeTime.fromM || "0");
+  const toH = pad(smokeTime.toH || "0");
+  const toM = pad(smokeTime.toM || "0");
+  const dateLabel = parseCombatDate(combatTime);
+
+  let T = 0;
+  if (smokeTime.mode === "duration") {
+    T = parseFloat(smokeTime.duration || "0") || 0;
+  } else {
+    const fromMin =
+      Number(smokeTime.fromH || 0) * 60 + Number(smokeTime.fromM || 0);
+    const toMin = Number(smokeTime.toH || 0) * 60 + Number(smokeTime.toM || 0);
+    T = Math.max(0, toMin - fromMin);
+  }
+
+  const defaultTemplate =
+    smokeTime.mode === "duration"
+      ? "{phút} phút - {ngày}"
+      : "{từ}÷{đến}-{ngày}";
+
+  const template = (smokeTime.customTemplate || "").trim() || defaultTemplate;
+
+  let formatted = template;
+
+  const replacements: Record<string, string> = {
+    "{từ}": smokeTime.mode === "duration" ? "" : `${fromH}.${fromM}`,
+    "{đến}": smokeTime.mode === "duration" ? "" : `${toH}.${toM}`,
+    "{phút}": `${T}`,
+    "{ngày}": dateLabel,
+    "{tư}": smokeTime.mode === "duration" ? "" : `${fromH}.${fromM}`,
+    "{den}": smokeTime.mode === "duration" ? "" : `${toH}.${toM}`,
+    "{phut}": `${T}`,
+    "{ngay}": dateLabel,
+  };
+
+  Object.entries(replacements).forEach(([placeholder, value]) => {
+    const regex = new RegExp(
+      placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "gi",
+    );
+    formatted = formatted.replace(regex, value);
+  });
+
+  return formatted;
 };
 
 /** Lấy vehicle id chính: 1 vehicle → lấy luôn, nhiều → weight cao nhất */
@@ -140,13 +193,7 @@ export function GasLabel({
   const lengthInKm = Number((displayedLength / 1000).toFixed(2));
   const line1 = `${results.totalVehicles}${mainVid || ""}-${lengthInKm}`;
 
-  const fromH = pad(smokeTime.fromH || "0");
-  const fromM = pad(smokeTime.fromM || "0");
-  const toH = pad(smokeTime.toH || "0");
-  const toM = pad(smokeTime.toM || "0");
-  const dateLabel = parseCombatDate(combatTime);
-
-  const line2String = `${fromH}.${fromM}÷${toH}.${toM}-${dateLabel}`;
+  const line2String = formatSmokeTimeLabel(smokeTime, combatTime);
 
   // Tính chiều rộng text của cả 2 dòng, lấy cái lớn nhất
   const w1 = estimateTextWidth(line1, 28);
@@ -236,9 +283,14 @@ export function GasLabel({
         style={{ letterSpacing: "0.5px", unicodeBidi: "isolate" }}
       >
         {/* Dùng tspan cho ÷ vì UTM Helvetins không có glyph này */}
-        <tspan fontFamily={UTM_FONT}>{`${fromH}.${fromM}`}</tspan>
-        <tspan fontFamily="'Times New Roman', Times, serif">&#247;</tspan>
-        <tspan fontFamily={UTM_FONT}>{`${toH}.${toM} - ${dateLabel}`}</tspan>
+        {line2String.split("÷").map((part, index) => (
+          <Fragment key={index}>
+            {index > 0 && (
+              <tspan fontFamily="'Times New Roman', Times, serif">&#247;</tspan>
+            )}
+            <tspan fontFamily={UTM_FONT}>{part}</tspan>
+          </Fragment>
+        ))}
       </text>
     </SVGOverlay>
   );

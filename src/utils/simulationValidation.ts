@@ -64,11 +64,15 @@ export const validateInputs = (
   } else {
     // "Thẳng" hoặc "Diện"
     if (!targetDefenseData.width || !targetDefenseData.width.trim()) {
-      toast?.error("Vui lòng nhập kích thước chính diện hướng gió (R) cho mục tiêu!");
+      toast?.error(
+        "Vui lòng nhập kích thước chính diện hướng gió (R) cho mục tiêu!",
+      );
       return false;
     }
     if (!targetDefenseData.length || !targetDefenseData.length.trim()) {
-      toast?.error("Vui lòng nhập kích thước dọc theo hướng gió (L) cho mục tiêu!");
+      toast?.error(
+        "Vui lòng nhập kích thước dọc theo hướng gió (L) cho mục tiêu!",
+      );
       return false;
     }
   }
@@ -78,20 +82,51 @@ export const validateInputs = (
     return false;
   }
 
-  if (!targetDefenseData.coverageMultiplier || !targetDefenseData.coverageMultiplier.trim()) {
+  if (
+    !targetDefenseData.coverageMultiplier ||
+    !targetDefenseData.coverageMultiplier.trim()
+  ) {
     toast?.error("Vui lòng nhập yêu cầu diện tích màn khói cần bao phủ!");
     return false;
   }
 
   // 2. Kiểm tra thời gian thả khói (Smoke Time)
-  if (!smokeTime.fromH || !smokeTime.fromH.trim() || !smokeTime.fromM || !smokeTime.fromM.trim()) {
-    toast?.error("Vui lòng nhập đầy đủ thời gian bắt đầu thả khói (giờ, phút)!");
-    return false;
-  }
+  if (smokeTime.mode === "duration") {
+    if (
+      !smokeTime.duration ||
+      !smokeTime.duration.trim() ||
+      isNaN(Number(smokeTime.duration)) ||
+      Number(smokeTime.duration) <= 0
+    ) {
+      toast?.error(
+        "Vui lòng nhập thời gian phát khói hợp lệ (số phút lớn hơn 0)!",
+      );
+      return false;
+    }
+  } else {
+    if (
+      !smokeTime.fromH ||
+      !smokeTime.fromH.trim() ||
+      !smokeTime.fromM ||
+      !smokeTime.fromM.trim()
+    ) {
+      toast?.error(
+        "Vui lòng nhập đầy đủ thời gian bắt đầu thả khói (giờ, phút)!",
+      );
+      return false;
+    }
 
-  if (!smokeTime.toH || !smokeTime.toH.trim() || !smokeTime.toM || !smokeTime.toM.trim()) {
-    toast?.error("Vui lòng nhập đầy đủ thời gian kết thúc thả khói (giờ, phút)!");
-    return false;
+    if (
+      !smokeTime.toH ||
+      !smokeTime.toH.trim() ||
+      !smokeTime.toM ||
+      !smokeTime.toM.trim()
+    ) {
+      toast?.error(
+        "Vui lòng nhập đầy đủ thời gian kết thúc thả khói (giờ, phút)!",
+      );
+      return false;
+    }
   }
 
   // 3. Kiểm tra phương tiện thả khói được chọn (Selected Vehicles)
@@ -153,7 +188,9 @@ export const validateInputs = (
     weatherData.alpha === null ||
     isNaN(Number(weatherData.alpha))
   ) {
-    toast?.error("Vui lòng nhập góc lệch hướng gió α hợp lệ trong phần khí tượng!");
+    toast?.error(
+      "Vui lòng nhập góc lệch hướng gió α hợp lệ trong phần khí tượng!",
+    );
     return false;
   }
 
@@ -192,7 +229,9 @@ export const validateInputs = (
     weatherData.tkkMax === null ||
     isNaN(Number(weatherData.tkkMax))
   ) {
-    toast?.error("Vui lòng nhập đầy đủ nhiệt độ không khí (Tkk Min và Tkk Max) trong phần khí tượng!");
+    toast?.error(
+      "Vui lòng nhập đầy đủ nhiệt độ không khí (Tkk Min và Tkk Max) trong phần khí tượng!",
+    );
     return false;
   }
 
@@ -206,7 +245,9 @@ export const validateInputs = (
     weatherData.tmdMax === null ||
     isNaN(Number(weatherData.tmdMax))
   ) {
-    toast?.error("Vui lòng nhập đầy đủ nhiệt độ mặt đất (Tmd Min và Tmd Max) trong phần khí tượng!");
+    toast?.error(
+      "Vui lòng nhập đầy đủ nhiệt độ mặt đất (Tmd Min và Tmd Max) trong phần khí tượng!",
+    );
     return false;
   }
 
@@ -246,7 +287,9 @@ export const validateInputs = (
       config.l === null ||
       isNaN(Number(config.l))
     ) {
-      toast?.error(`Vui lòng nhập chiều dài màn khói (l) cho phương tiện ${vname}!`);
+      toast?.error(
+        `Vui lòng nhập chiều dài màn khói (l) cho phương tiện ${vname}!`,
+      );
       return false;
     }
     if (
@@ -255,7 +298,9 @@ export const validateInputs = (
       config.r === null ||
       isNaN(Number(config.r))
     ) {
-      toast?.error(`Vui lòng nhập chiều rộng màn khói (r) cho phương tiện ${vname}!`);
+      toast?.error(
+        `Vui lòng nhập chiều rộng màn khói (r) cho phương tiện ${vname}!`,
+      );
       return false;
     }
     if (
@@ -264,7 +309,9 @@ export const validateInputs = (
       config.t === null ||
       isNaN(Number(config.t))
     ) {
-      toast?.error(`Vui lòng nhập thời gian tạo màn khói (t) cho phương tiện ${vname}!`);
+      toast?.error(
+        `Vui lòng nhập thời gian tạo màn khói (t) cho phương tiện ${vname}!`,
+      );
       return false;
     }
   }
@@ -281,7 +328,9 @@ export const validateInputs = (
         isNaN(Number(w)) ||
         Number(w) <= 0
       ) {
-        toast?.error(`Vui lòng nhập phần trăm đóng góp hợp lệ (> 0) cho phương tiện ${vname}!`);
+        toast?.error(
+          `Vui lòng nhập phần trăm đóng góp hợp lệ (> 0) cho phương tiện ${vname}!`,
+        );
         return false;
       }
     }
@@ -299,13 +348,15 @@ export const validateInputs = (
   }
 
   // 10. Kiểm tra tính hợp lệ thời gian thả khói (Smoke Time logic)
-  const from = Number(smokeTime.fromH) * 60 + Number(smokeTime.fromM || 0);
-  const to = Number(smokeTime.toH) * 60 + Number(smokeTime.toM || 0);
-  if (to <= from) {
-    toast?.error(
-      "Thời gian thả khói không hợp lệ (Thời gian đến phải lớn hơn thời gian từ)!",
-    );
-    return false;
+  if (smokeTime.mode !== "duration") {
+    const from = Number(smokeTime.fromH) * 60 + Number(smokeTime.fromM || 0);
+    const to = Number(smokeTime.toH) * 60 + Number(smokeTime.toM || 0);
+    if (to <= from) {
+      toast?.error(
+        "Thời gian thả khói không hợp lệ (Thời gian đến phải lớn hơn thời gian từ)!",
+      );
+      return false;
+    }
   }
 
   // 11. Kiểm tra cấu trúc trận địa khói (Battlefield Config)
@@ -316,7 +367,9 @@ export const validateInputs = (
     isNaN(Number(battlefieldScale)) ||
     Number(battlefieldScale) < 0.1
   ) {
-    toast?.error("Vui lòng nhập tỉ lệ kích thước ký hiệu hợp lệ (từ 0.1 trở lên)!");
+    toast?.error(
+      "Vui lòng nhập tỉ lệ kích thước ký hiệu hợp lệ (từ 0.1 trở lên)!",
+    );
     return false;
   }
 

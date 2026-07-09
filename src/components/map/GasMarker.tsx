@@ -32,7 +32,10 @@ export function GasMarker({
     [center.lat + rawHeight / 2, center.lng + rawWidth / 2],
   ];
 
-  const uniqueId = `gas-${center.lat}-${center.lng}`.replace(/[^a-zA-Z0-9]/g, "");
+  const uniqueId = `gas-${center.lat}-${center.lng}`.replace(
+    /[^a-zA-Z0-9]/g,
+    "",
+  );
   const SW_MAIN = 4;
   const VE = "non-scaling-stroke";
   const strokeColor = "#000000";
@@ -53,7 +56,13 @@ export function GasMarker({
   );
 
   const renderAreaArrows = (stroke: string, sw: number) => (
-    <g stroke={stroke} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <g
+      stroke={stroke}
+      strokeWidth={sw}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {/* ^ trái — apex cạnh trên (y=88), chân xuống (y=108) */}
       <path d="M 81.67,108 L 91.67,88 L 101.67,108" vectorEffect={VE} />
       {/* ^ phải */}
@@ -79,7 +88,13 @@ export function GasMarker({
   );
 
   const renderCircleArrows = (stroke: string, sw: number) => (
-    <g stroke={stroke} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <g
+      stroke={stroke}
+      strokeWidth={sw}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {/* Râu trên: apex tại (125,50), chân tại (115,70) và (135,70) */}
       <path d="M 115,70 L 125,50 L 135,70" vectorEffect={VE} />
       {/* Râu dưới: apex tại (125,200), chân tại (115,180) và (135,180) */}
@@ -92,7 +107,13 @@ export function GasMarker({
   );
 
   const renderStraightLine = (stroke: string, sw: number) => (
-    <g stroke={stroke} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <g
+      stroke={stroke}
+      strokeWidth={sw}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {/* Đường ngang chính */}
       <line
         x1="25"
@@ -128,7 +149,8 @@ export function GasMarker({
       >
         {/* 1. LỚP ĐỆM (Màu đệm) vẽ bên dưới */}
         {(() => {
-          const finalBufferColor = bufferColor !== "none" ? lightenHexColor(bufferColor, 30) : "none";
+          const finalBufferColor =
+            bufferColor !== "none" ? lightenHexColor(bufferColor, 30) : "none";
           if (finalBufferColor === "none") return null;
           return (
             <g>
