@@ -33,6 +33,8 @@ export interface SimulationSessionData {
   weatherActive: boolean;
   smokeTime: SmokeTimeRange;
   smokeLineLength: number | "";
+  smokeLineDiameter?: number | "";
+  smokeLineWidth?: number | "";
   reserveCoefficient: number | "";
   drafts: Record<string, any>;
 }
@@ -81,6 +83,8 @@ export const getSessionSnapshot = (state: {
   weatherActive: boolean;
   smokeTime: SmokeTimeRange;
   smokeLineLength: number | "";
+  smokeLineDiameter: number | "";
+  smokeLineWidth: number | "";
   reserveCoefficient: number | "";
   drafts: Record<string, any>;
 }): SimulationSessionData => ({
@@ -105,6 +109,8 @@ export const getSessionSnapshot = (state: {
   weatherActive: state.weatherActive,
   smokeTime: { ...state.smokeTime },
   smokeLineLength: state.smokeLineLength,
+  smokeLineDiameter: state.smokeLineDiameter,
+  smokeLineWidth: state.smokeLineWidth,
   reserveCoefficient: state.reserveCoefficient,
   drafts: { ...state.drafts },
 });

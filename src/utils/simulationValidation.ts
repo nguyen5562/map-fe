@@ -16,6 +16,8 @@ export const validateInputs = (
     smokeTime: SmokeTimeRange;
     weatherData: WeatherData;
     smokeLineLength: number | "";
+    smokeLineDiameter: number | "";
+    smokeLineWidth: number | "";
     reserveCoefficient: number | "";
     vehicleConfigs: Record<string, VehicleConfig>;
     vehicleWeights: Record<string, number | "">;
@@ -32,6 +34,8 @@ export const validateInputs = (
     smokeTime,
     weatherData,
     smokeLineLength,
+    smokeLineDiameter,
+    smokeLineWidth,
     reserveCoefficient,
     vehicleConfigs,
     vehicleWeights,
@@ -251,15 +255,46 @@ export const validateInputs = (
     return false;
   }
 
-  // 6. Kiểm tra độ dài ký hiệu tuyến khói (Smoke Line Length)
-  if (
-    smokeLineLength === "" ||
-    smokeLineLength === undefined ||
-    smokeLineLength === null ||
-    isNaN(Number(smokeLineLength))
-  ) {
-    toast?.error("Vui lòng nhập độ dài ký hiệu tuyến khói!");
-    return false;
+  // 6. Kiểm tra độ dài/đường kính/kích thước ký hiệu tuyến khói
+  if (smokeMethodData.lineType === "Thẳng") {
+    if (
+      smokeLineLength === "" ||
+      smokeLineLength === undefined ||
+      smokeLineLength === null ||
+      isNaN(Number(smokeLineLength))
+    ) {
+      toast?.error("Vui lòng nhập độ dài ký hiệu tuyến khói!");
+      return false;
+    }
+  } else if (smokeMethodData.lineType === "Vòng") {
+    if (
+      smokeLineDiameter === "" ||
+      smokeLineDiameter === undefined ||
+      smokeLineDiameter === null ||
+      isNaN(Number(smokeLineDiameter))
+    ) {
+      toast?.error("Vui lòng nhập đường kính ký hiệu tuyến khói!");
+      return false;
+    }
+  } else if (smokeMethodData.lineType === "Diện") {
+    if (
+      smokeLineLength === "" ||
+      smokeLineLength === undefined ||
+      smokeLineLength === null ||
+      isNaN(Number(smokeLineLength))
+    ) {
+      toast?.error("Vui lòng nhập chiều dài ký hiệu tuyến khói!");
+      return false;
+    }
+    if (
+      smokeLineWidth === "" ||
+      smokeLineWidth === undefined ||
+      smokeLineWidth === null ||
+      isNaN(Number(smokeLineWidth))
+    ) {
+      toast?.error("Vui lòng nhập chiều rộng ký hiệu tuyến khói!");
+      return false;
+    }
   }
 
   // 7. Kiểm tra hệ số dự phòng (Reserve Coefficient)

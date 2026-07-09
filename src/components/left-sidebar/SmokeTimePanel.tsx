@@ -196,7 +196,7 @@ export const SmokeTimePanel = () => {
               onChange={(e) =>
                 setSmokeTime({ ...smokeTime, customTemplate: e.target.value })
               }
-              placeholder="Mặc định: {từ}÷{đến}-{ngày}"
+              placeholder="Tín hiệu thả khói"
               className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all"
             />
           </div>

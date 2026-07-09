@@ -22,6 +22,11 @@ export const TargetPanel = () => {
   const handleSearch = useSimulation((s) => s.handleSearch);
   const smokeLineLength = useSimulation((s) => s.smokeLineLength);
   const setSmokeLineLength = useSimulation((s) => s.setSmokeLineLength);
+  const smokeMethodData = useSimulation((s) => s.smokeMethodData);
+  const smokeLineDiameter = useSimulation((s) => s.smokeLineDiameter);
+  const setSmokeLineDiameter = useSimulation((s) => s.setSmokeLineDiameter);
+  const smokeLineWidth = useSimulation((s) => s.smokeLineWidth);
+  const setSmokeLineWidth = useSimulation((s) => s.setSmokeLineWidth);
   const [showPanel, setShowPanel] = useState(true);
   return (
     <div
@@ -81,31 +86,111 @@ export const TargetPanel = () => {
             </div>
           </div>
 
-          {/* Độ dài ký hiệu tuyến khói */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Ruler size={14} className="text-slate-500" />
-              <h3 className="text-xs font-bold text-slate-600">
-                Độ dài ký hiệu tuyến khói (m)
-              </h3>
+          {/* Kích thước ký hiệu tuyến khói */}
+          {smokeMethodData.lineType === "Thẳng" && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Ruler size={14} className="text-slate-500" />
+                <h3 className="text-xs font-bold text-slate-600">
+                  Độ dài ký hiệu tuyến khói (m)
+                </h3>
+              </div>
+              <Input
+                type="number"
+                value={smokeLineLength}
+                onChange={(e: any) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setSmokeLineLength("");
+                  } else {
+                    setSmokeLineLength(Number(val));
+                  }
+                }}
+                placeholder="700"
+              />
+              <p className="text-[10px] text-slate-400">
+                Mặc định: 700m. Thay đổi để điều chỉnh độ dài ký hiệu trên bản đồ.
+              </p>
             </div>
-            <Input
-              type="number"
-              value={smokeLineLength}
-              onChange={(e: any) => {
-                const val = e.target.value;
-                if (val === "") {
-                  setSmokeLineLength("");
-                } else {
-                  setSmokeLineLength(Number(val));
-                }
-              }}
-              placeholder="700"
-            />
-            <p className="text-[10px] text-slate-400">
-              Mặc định: 700m. Thay đổi để điều chỉnh độ dài ký hiệu trên bản đồ.
-            </p>
-          </div>
+          )}
+
+          {smokeMethodData.lineType === "Vòng" && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Ruler size={14} className="text-slate-500" />
+                <h3 className="text-xs font-bold text-slate-600">
+                  Đường kính ký hiệu tuyến khói (m)
+                </h3>
+              </div>
+              <Input
+                type="number"
+                value={smokeLineDiameter}
+                onChange={(e: any) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setSmokeLineDiameter("");
+                  } else {
+                    setSmokeLineDiameter(Number(val));
+                  }
+                }}
+                placeholder="700"
+              />
+              <p className="text-[10px] text-slate-400">
+                Mặc định: 700m. Thay đổi để điều chỉnh đường kính ký hiệu trên bản đồ.
+              </p>
+            </div>
+          )}
+
+          {smokeMethodData.lineType === "Diện" && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Ruler size={14} className="text-slate-500" />
+                  <h3 className="text-xs font-bold text-slate-600">
+                    Chiều dài ký hiệu tuyến khói (m)
+                  </h3>
+                </div>
+                <Input
+                  type="number"
+                  value={smokeLineLength}
+                  onChange={(e: any) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setSmokeLineLength("");
+                    } else {
+                      setSmokeLineLength(Number(val));
+                    }
+                  }}
+                  placeholder="700"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Ruler size={14} className="text-slate-500" />
+                  <h3 className="text-xs font-bold text-slate-600">
+                    Chiều rộng ký hiệu tuyến khói (m)
+                  </h3>
+                </div>
+                <Input
+                  type="number"
+                  value={smokeLineWidth}
+                  onChange={(e: any) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setSmokeLineWidth("");
+                    } else {
+                      setSmokeLineWidth(Number(val));
+                    }
+                  }}
+                  placeholder="300"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400">
+                Mặc định: 700m x 300m. Thay đổi để điều chỉnh kích thước ký hiệu diện tích trên bản đồ.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <h3 className="text-xs font-bold text-slate-600">

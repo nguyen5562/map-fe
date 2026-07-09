@@ -7,6 +7,8 @@ export function GasMarker({
   angle,
   scaleX,
   smokeLineLength = 700,
+  smokeLineDiameter = 700,
+  smokeLineWidth = 300,
   lineType = "Thẳng",
   lineRole = "Chính",
   bufferColor = "none",
@@ -16,15 +18,24 @@ export function GasMarker({
   angle: number;
   scaleX: number;
   smokeLineLength?: number | "";
+  smokeLineDiameter?: number | "";
+  smokeLineWidth?: number | "";
   lineType?: string;
   lineRole?: string;
   bufferColor?: string;
   onClick?: () => void;
 }) {
-  // Tính chiều rộng overlay dựa trên độ dài tuyến khói (mét).
-  // SVG viewBox 250, line từ 25→225 (200px = 80%), nên overlay = length / 0.8
-  const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
-  const rawWidth = (actualLength * 1.25) / Math.abs(scaleX);
+  // Tính chiều rộng overlay dựa trên loại tuyến khói.
+  // Tuyến thẳng: SVG width 250px, line dài 200px (80%), nên overlay = length / 0.8 = length * 1.25
+  // Tuyến vòng: SVG width 250px, circle đường kính 150px (60%), nên overlay = diameter / 0.6 = diameter * 1.6666667
+  let rawWidth = 0;
+  if (lineType === "Vòng") {
+    const actualDiameter = smokeLineDiameter ? Number(smokeLineDiameter) : 700;
+    rawWidth = (actualDiameter * 1.6666667) / Math.abs(scaleX);
+  } else {
+    const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
+    rawWidth = (actualLength * 1.25) / Math.abs(scaleX);
+  }
   const rawHeight = rawWidth; // Hình vuông để tránh bị clip khi xoay
 
   const bounds: L.LatLngBoundsExpression = [
@@ -40,13 +51,21 @@ export function GasMarker({
   const VE = "non-scaling-stroke";
   const strokeColor = "#000000";
 
+  // Tính chiều cao hình chữ nhật cho tuyến diện (độ dài thực địa tương đương 200px của chiều dài)
+  const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
+  const actualWidth = smokeLineWidth ? Number(smokeLineWidth) : 300;
+  const rectHeightInSvg = actualLength > 0 ? (200 * actualWidth) / actualLength : 75;
+
+  const yTop = 125 - rectHeightInSvg / 2;
+  const yBottom = 125 + rectHeightInSvg / 2;
+
   // Helper render functions
   const renderAreaRect = (stroke: string, sw: number) => (
     <rect
       x="25"
-      y="88"
+      y={yTop}
       width="200"
-      height="75"
+      height={rectHeightInSvg}
       fill="none"
       stroke={stroke}
       strokeWidth={sw}
@@ -63,14 +82,14 @@ export function GasMarker({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {/* ^ trái — apex cạnh trên (y=88), chân xuống (y=108) */}
-      <path d="M 81.67,108 L 91.67,88 L 101.67,108" vectorEffect={VE} />
+      {/* ^ trái — apex cạnh trên (yTop), chân xuống (yTop + 20) */}
+      <path d={`M 81.67,${yTop + 20} L 91.67,${yTop} L 101.67,${yTop + 20}`} vectorEffect={VE} />
       {/* ^ phải */}
-      <path d="M 148.33,108 L 158.33,88 L 168.33,108" vectorEffect={VE} />
-      {/* V trái — apex cạnh dưới (y=163), chân lên (y=143) */}
-      <path d="M 81.67,143 L 91.67,163 L 101.67,143" vectorEffect={VE} />
+      <path d={`M 148.33,${yTop + 20} L 158.33,${yTop} L 168.33,${yTop + 20}`} vectorEffect={VE} />
+      {/* V trái — apex cạnh dưới (yBottom), chân lên (yBottom - 20) */}
+      <path d={`M 81.67,${yBottom - 20} L 91.67,${yBottom} L 101.67,${yBottom - 20}`} vectorEffect={VE} />
       {/* V phải */}
-      <path d="M 148.33,143 L 158.33,163 L 168.33,143" vectorEffect={VE} />
+      <path d={`M 148.33,${yBottom - 20} L 158.33,${yBottom} L 168.33,${yBottom - 20}`} vectorEffect={VE} />
     </g>
   );
 
@@ -136,7 +155,7 @@ export function GasMarker({
 
   return (
     <SVGOverlay
-      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${lineType}-${lineRole}-${bufferColor}`}
+      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${smokeLineDiameter}-${smokeLineWidth}-${lineType}-${lineRole}-${bufferColor}`}
       bounds={bounds}
       attributes={{ viewBox: "0 0 250 250" }}
       eventHandlers={onClick ? { click: onClick } : undefined}
@@ -159,7 +178,7 @@ export function GasMarker({
                   {/* Viền trong cho rect kín */}
                   <defs>
                     <clipPath id={`clip-rect-${uniqueId}`}>
-                      <rect x="25" y="88" width="200" height="75" />
+                      <rect x="25" y={yTop} width="200" height={rectHeightInSvg} />
                     </clipPath>
                   </defs>
                   <g clipPath={`url(#clip-rect-${uniqueId})`}>

@@ -101,6 +101,8 @@ function getLeaderLineIntersection(
   angleDegrees: number,
   rawWidth: number,
   lineType: string,
+  smokeLineLength?: number | "",
+  smokeLineWidth?: number | "",
 ): L.LatLng {
   // Fallback check to avoid any issues with scale/NaN
   if (!rawWidth || isNaN(rawWidth)) {
@@ -128,7 +130,16 @@ function getLeaderLineIntersection(
 
   // Rectangle dimensions relative to 250 viewBox unit of the SVG overlay
   const wHalf = 0.4 * rawWidth; // 100/250 * rawWidth
-  const hHalf = (lineType === "Diện" ? 0.15 : 0.02) * rawWidth; // 37.5/250 or 5/250
+  let hHalf = 0.02 * rawWidth; // 5/250
+  if (lineType === "Diện") {
+    const len = smokeLineLength ? Number(smokeLineLength) : 700;
+    const wid = smokeLineWidth ? Number(smokeLineWidth) : 300;
+    if (len > 0) {
+      hHalf = 0.4 * (wid / len) * rawWidth;
+    } else {
+      hHalf = 0.15 * rawWidth;
+    }
+  }
 
   // GasMarker rotates the SVG by (angle + 180) degrees.
   const angleRad = ((angleDegrees + 180) * Math.PI) / 180;
@@ -179,7 +190,11 @@ function SimulationInner() {
   const weatherData = useSimulation((s) => s.weatherData);
   const pointsList = useSimulation((s) => s.pointsList);
   const smokeLineLength = useSimulation((s) => s.smokeLineLength);
+  const smokeLineDiameter = useSimulation((s) => s.smokeLineDiameter);
+  const smokeLineWidth = useSimulation((s) => s.smokeLineWidth);
   const smokeMethodData = useSimulation((s) => s.smokeMethodData);
+  const smokeTime = useSimulation((s) => s.smokeTime);
+  const selectedVehicles = useSimulation((s) => s.selectedVehicles);
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
   const editingPointId = useSimulation((s) => s.editingPointId);
   const selectedPointId = useSimulation((s) => s.selectedPointId);
@@ -510,6 +525,8 @@ function SimulationInner() {
                   angle={smokeAngleComputed}
                   scaleX={scale.x}
                   smokeLineLength={smokeLineLength}
+                  smokeLineDiameter={smokeLineDiameter}
+                  smokeLineWidth={smokeLineWidth}
                   lineType={smokeMethodData.lineType}
                   lineRole={smokeMethodData.lineRole}
                   bufferColor={smokeMethodData.bufferColor}
@@ -538,16 +555,41 @@ function SimulationInner() {
               const compWindAngle = baseDirAngle - 180 + pBetaVal;
               const compSmokeAngle = compWindAngle + pSmokeOffset;
 
-              const actualLength = p.smokeLineLength
-                ? Number(p.smokeLineLength)
-                : 700;
-              const rawWidth = (actualLength * 1.25) / Math.abs(scale.x);
-              const rawHeight = rawWidth * (120 / 250);
+
 
               // Nếu đang chỉnh sửa điểm này và người dùng click vị trí mới, dùng clickedRaw làm vị trí tạm
               const isEditing = p.id === editingPointId;
               const markerCoords =
                 isEditing && clickedRaw ? clickedRaw : p.coords;
+
+              const activeLineType = isEditing
+                ? (smokeMethodData?.lineType ?? "Thẳng")
+                : (p.smokeMethodData?.lineType ?? "Thẳng");
+              const activeLength = isEditing
+                ? (smokeLineLength ?? 700)
+                : (p.smokeLineLength ?? 700);
+              const activeDiameter = isEditing
+                ? (smokeLineDiameter ?? 700)
+                : (p.smokeLineDiameter ?? 700);
+              const activeWidth = isEditing
+                ? (smokeLineWidth ?? 300)
+                : (p.smokeLineWidth ?? 300);
+              const activeLineRole = isEditing
+                ? (smokeMethodData?.lineRole ?? "Chính")
+                : (p.smokeMethodData?.lineRole ?? "Chính");
+              const activeBufferColor = isEditing
+                ? smokeMethodData?.bufferColor
+                : p.smokeMethodData?.bufferColor;
+
+              let rawWidth = 0;
+              if (activeLineType === "Vòng") {
+                const actualDiameter = activeDiameter ? Number(activeDiameter) : 700;
+                rawWidth = (actualDiameter * 1.6666667) / Math.abs(scale.x);
+              } else {
+                const actualLength = activeLength ? Number(activeLength) : 700;
+                rawWidth = (actualLength * 1.25) / Math.abs(scale.x);
+              }
+              const rawHeight = rawWidth * (120 / 250);
 
               const labelLat =
                 p.labelCoords?.lat ?? markerCoords.lat + rawHeight * 0.7;
@@ -558,20 +600,31 @@ function SimulationInner() {
 
               let leaderLinePoints: L.LatLngExpression[] = [];
               if (p.results) {
+                const activeSelectedVehicles = isEditing
+                  ? selectedVehicles
+                  : (p.selectedVehicles ?? []);
+                const activeVehicleConfigs = isEditing
+                  ? vehicleConfigs
+                  : (p.vehicleConfigs || vehicleConfigs);
+                const activeCombatTime = isEditing
+                  ? (weatherData?.combatTime)
+                  : (p.weatherData?.combatTime);
+                const activeSmokeTime = isEditing
+                  ? smokeTime
+                  : p.smokeTime;
+
                 const mainVid = getMainVehicleId(
-                  p.selectedVehicles ?? [],
+                  activeSelectedVehicles,
                   p.results.vehicleBreakdown,
                 );
                 const mainVehicleName = mainVid
-                  ? (p.vehicleConfigs?.[mainVid]?.name ??
-                    vehicleConfigs[mainVid]?.name ??
-                    mainVid)
+                  ? (activeVehicleConfigs?.[mainVid]?.name ?? mainVid)
                   : "";
                 const line1 = `${p.results.totalVehicles} ${mainVehicleName}`;
 
                 const line2String = formatSmokeTimeLabel(
-                  p.smokeTime,
-                  p.weatherData?.combatTime,
+                  activeSmokeTime,
+                  activeCombatTime,
                 );
 
                 const w1 = estimateTextWidth(line1, 28);
@@ -595,7 +648,9 @@ function SimulationInner() {
                   labelAnchor,
                   compSmokeAngle,
                   rawWidth,
-                  p.smokeMethodData?.lineType ?? "Thẳng",
+                  activeLineType,
+                  activeLength,
+                  activeWidth,
                 );
 
                 leaderLinePoints = [intersectionPoint, labelAnchor];
@@ -607,10 +662,12 @@ function SimulationInner() {
                     center={markerCoords}
                     angle={compSmokeAngle}
                     scaleX={scale.x}
-                    smokeLineLength={p.smokeLineLength ?? 700}
-                    lineType={p.smokeMethodData?.lineType ?? "Thẳng"}
-                    lineRole={p.smokeMethodData?.lineRole ?? "Chính"}
-                    bufferColor={p.smokeMethodData?.bufferColor}
+                    smokeLineLength={activeLength}
+                    smokeLineDiameter={activeDiameter}
+                    smokeLineWidth={activeWidth}
+                    lineType={activeLineType}
+                    lineRole={activeLineRole}
+                    bufferColor={activeBufferColor}
                     onClick={() => onSelectPoint(p.id)}
                   />
                   {p.results && (
@@ -628,15 +685,17 @@ function SimulationInner() {
                         key={`label-${p.id}-${labelCenter.lat}-${labelCenter.lng}`}
                         center={labelCenter}
                         results={p.results}
-                        smokeTime={p.smokeTime}
-                        vehicleConfigs={p.vehicleConfigs || vehicleConfigs}
-                        selectedVehicles={p.selectedVehicles ?? []}
-                        combatTime={p.weatherData?.combatTime}
-                        smokeLineLength={p.smokeLineLength ?? 700}
+                        smokeTime={isEditing ? smokeTime : p.smokeTime}
+                        vehicleConfigs={isEditing ? vehicleConfigs : (p.vehicleConfigs || vehicleConfigs)}
+                        selectedVehicles={isEditing ? selectedVehicles : (p.selectedVehicles ?? [])}
+                        combatTime={isEditing ? weatherData?.combatTime : p.weatherData?.combatTime}
+                        smokeLineLength={activeLength}
+                        smokeLineDiameter={activeDiameter}
+                        smokeLineWidth={activeWidth}
                         scaleX={scale.x}
                         onClick={() => onSelectPoint(p.id)}
                         targetDefenseData={p.targetDefenseData}
-                        smokeMethodData={p.smokeMethodData}
+                        smokeMethodData={isEditing ? smokeMethodData : p.smokeMethodData}
                       />
                       {isSelected && (
                         <Marker

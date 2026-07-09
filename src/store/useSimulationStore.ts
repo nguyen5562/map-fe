@@ -69,6 +69,8 @@ const captureCurrentStateAsDraft = (state: any) => {
     smokeTime: { ...state.smokeTime },
     vehicleConfigs: { ...state.vehicleConfigs },
     smokeLineLength: state.smokeLineLength,
+    smokeLineDiameter: state.smokeLineDiameter,
+    smokeLineWidth: state.smokeLineWidth,
     reserveCoefficient: state.reserveCoefficient,
     vehicleWeights: { ...state.vehicleWeights },
   };
@@ -178,6 +180,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     humidity: 70,
   },
   smokeLineLength: 700,
+  smokeLineDiameter: 700,
+  smokeLineWidth: 300,
   reserveCoefficient: 1.2,
   vehicleWeights: {},
 
@@ -255,6 +259,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             vehicleConfigs:
               draft.vehicleConfigs || get().originalVehicleConfigs,
             smokeLineLength: draft.smokeLineLength ?? 700,
+            smokeLineDiameter: draft.smokeLineDiameter ?? 700,
+            smokeLineWidth: draft.smokeLineWidth ?? 300,
             reserveCoefficient: draft.reserveCoefficient ?? 1.2,
             vehicleWeights: draft.vehicleWeights || {},
           });
@@ -362,6 +368,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
               humidity: 70,
             },
             smokeLineLength: 700,
+            smokeLineDiameter: 700,
+            smokeLineWidth: 300,
             reserveCoefficient: 1.2,
             vehicleWeights: {},
             battlefieldData: defaultBattlefieldData,
@@ -472,6 +480,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
               humidity: 70,
             },
             smokeLineLength: 700,
+            smokeLineDiameter: 700,
+            smokeLineWidth: 300,
             reserveCoefficient: 1.2,
             vehicleWeights: {},
           });
@@ -585,6 +595,16 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     set((state) => ({
       smokeLineLength:
         typeof val === "function" ? val(state.smokeLineLength) : val,
+    })),
+  setSmokeLineDiameter: (val) =>
+    set((state) => ({
+      smokeLineDiameter:
+        typeof val === "function" ? val(state.smokeLineDiameter) : val,
+    })),
+  setSmokeLineWidth: (val) =>
+    set((state) => ({
+      smokeLineWidth:
+        typeof val === "function" ? val(state.smokeLineWidth) : val,
     })),
   setReserveCoefficient: (val) =>
     set((state) => ({
@@ -768,6 +788,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
           smokeTime,
           weatherData,
           smokeLineLength: get().smokeLineLength,
+          smokeLineDiameter: get().smokeLineDiameter,
+          smokeLineWidth: get().smokeLineWidth,
           reserveCoefficient: get().reserveCoefficient,
           vehicleConfigs,
           vehicleWeights: get().vehicleWeights,
@@ -814,6 +836,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeTime: { ...smokeTime },
             vehicleConfigs: { ...vehicleConfigs },
             smokeLineLength: get().smokeLineLength,
+            smokeLineDiameter: get().smokeLineDiameter,
+            smokeLineWidth: get().smokeLineWidth,
             reserveCoefficient: get().reserveCoefficient,
             vehicleWeights: { ...get().vehicleWeights },
             results: currentResults,
@@ -861,6 +885,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...smokeTime },
         vehicleConfigs: { ...vehicleConfigs },
         smokeLineLength: get().smokeLineLength,
+        smokeLineDiameter: get().smokeLineDiameter,
+        smokeLineWidth: get().smokeLineWidth,
         reserveCoefficient: get().reserveCoefficient,
         vehicleWeights: { ...get().vehicleWeights },
         results: currentResults,
@@ -999,6 +1025,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...point.smokeTime },
         vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
+        smokeLineDiameter: point.smokeLineDiameter ?? 700,
+        smokeLineWidth: point.smokeLineWidth ?? 300,
         reserveCoefficient: point.reserveCoefficient ?? 1.2,
         vehicleWeights: point.vehicleWeights || {},
         clickedRaw: null,
@@ -1052,6 +1080,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...draft.smokeTime },
         vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
+        smokeLineDiameter: draft.smokeLineDiameter ?? 700,
+        smokeLineWidth: draft.smokeLineWidth ?? 300,
         reserveCoefficient: draft.reserveCoefficient ?? 1.2,
         vehicleWeights: draft.vehicleWeights || {},
         clickedRaw: rawCoords,
@@ -1083,6 +1113,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...point.smokeTime },
         vehicleConfigs: point.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: point.smokeLineLength ?? 700,
+        smokeLineDiameter: point.smokeLineDiameter ?? 700,
+        smokeLineWidth: point.smokeLineWidth ?? 300,
         reserveCoefficient: point.reserveCoefficient ?? 1.2,
         vehicleWeights: point.vehicleWeights || {},
         clickedRaw: null,
@@ -1126,6 +1158,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...draft.smokeTime },
         vehicleConfigs: draft.vehicleConfigs || get().originalVehicleConfigs,
         smokeLineLength: draft.smokeLineLength ?? 700,
+        smokeLineDiameter: draft.smokeLineDiameter ?? 700,
+        smokeLineWidth: draft.smokeLineWidth ?? 300,
         reserveCoefficient: draft.reserveCoefficient ?? 1.2,
         vehicleWeights: draft.vehicleWeights || {},
         clickedRaw: rawCoords,
@@ -1286,6 +1320,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeTime,
             weatherData,
             smokeLineLength: get().smokeLineLength,
+            smokeLineDiameter: get().smokeLineDiameter,
+            smokeLineWidth: get().smokeLineWidth,
             reserveCoefficient: get().reserveCoefficient,
             vehicleConfigs,
             vehicleWeights: get().vehicleWeights,
@@ -1331,6 +1367,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeTime: { ...smokeTime },
             vehicleConfigs: { ...vehicleConfigs },
             smokeLineLength: get().smokeLineLength,
+            smokeLineDiameter: get().smokeLineDiameter,
+            smokeLineWidth: get().smokeLineWidth,
             reserveCoefficient: get().reserveCoefficient,
             vehicleWeights: { ...get().vehicleWeights },
             results: currentResults,
@@ -1364,6 +1402,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeTime: { ...smokeTime },
         vehicleConfigs: { ...vehicleConfigs },
         smokeLineLength: get().smokeLineLength,
+        smokeLineDiameter: get().smokeLineDiameter,
+        smokeLineWidth: get().smokeLineWidth,
         reserveCoefficient: get().reserveCoefficient,
         vehicleWeights: { ...get().vehicleWeights },
         results: currentResults,
@@ -1476,6 +1516,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         humidity: 70,
       },
       smokeLineLength: 700,
+      smokeLineDiameter: 700,
+      smokeLineWidth: 300,
       reserveCoefficient: 1.2,
       vehicleWeights: {},
     });
@@ -1536,6 +1578,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         humidity: 70,
       },
       smokeLineLength: 700,
+      smokeLineDiameter: 700,
+      smokeLineWidth: 300,
       reserveCoefficient: 1.2,
       vehicleWeights: {},
     });
@@ -1755,6 +1799,12 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineLength: hasUnsavedPoint
           ? (source.smokeLineLength ?? 700)
           : 700,
+        smokeLineDiameter: hasUnsavedPoint
+          ? (source.smokeLineDiameter ?? 700)
+          : 700,
+        smokeLineWidth: hasUnsavedPoint
+          ? (source.smokeLineWidth ?? 300)
+          : 300,
         reserveCoefficient: hasUnsavedPoint
           ? (source.reserveCoefficient ?? 1.2)
           : 1.2,

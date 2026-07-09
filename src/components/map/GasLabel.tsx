@@ -28,6 +28,8 @@ type Props = {
   selectedVehicles: string[];
   combatTime?: string;
   smokeLineLength?: number | "";
+  smokeLineDiameter?: number | "";
+  smokeLineWidth?: number | "";
   scaleX: number;
   onClick?: () => void;
   targetDefenseData?: TargetDefenseData;
@@ -150,6 +152,7 @@ export function GasLabel({
   selectedVehicles,
   combatTime,
   smokeLineLength = 700,
+  smokeLineDiameter = 700,
   scaleX,
   onClick,
   targetDefenseData,
@@ -158,8 +161,15 @@ export function GasLabel({
   if (!results || results.totalVehicles == null) return null;
 
   // Kích thước overlay — dùng cùng công thức với GasMarker
-  const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
-  const rawWidth = (actualLength * 1.25) / Math.abs(scaleX);
+  const lineType = smokeMethodData?.lineType || "Thẳng";
+  let rawWidth = 0;
+  if (lineType === "Vòng") {
+    const actualDiameter = smokeLineDiameter ? Number(smokeLineDiameter) : 700;
+    rawWidth = (actualDiameter * 1.6666667) / Math.abs(scaleX);
+  } else {
+    const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
+    rawWidth = (actualLength * 1.25) / Math.abs(scaleX);
+  }
   const rawHeight = rawWidth * (VB_H / VB_W); // Tỷ lệ khớp viewBox
 
   // Đặt nhãn căn giữa quanh tọa độ kéo thả (center)
@@ -177,9 +187,9 @@ export function GasLabel({
   const sqrtK = Math.sqrt(K);
   const R = parseFloat(targetDefenseData?.width || "0") || 0;
   const D = parseFloat(targetDefenseData?.diameter || "0") || 0;
-  const lineType = smokeMethodData?.lineType || "Thẳng";
 
-  let displayedLength = actualLength;
+  const actualLengthForCalc = smokeLineLength ? Number(smokeLineLength) : 700;
+  let displayedLength = actualLengthForCalc;
   if (lineType === "Vòng") {
     if (D > 0) {
       displayedLength = D * sqrtK;

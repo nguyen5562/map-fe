@@ -70,6 +70,8 @@ export interface SimulationStoreState {
   weatherActive: boolean;
   weatherData: WeatherData;
   smokeLineLength: number | "";
+  smokeLineDiameter: number | "";
+  smokeLineWidth: number | "";
   reserveCoefficient: number | "";
   vehicleWeights: Record<string, number | "">;
 
@@ -144,6 +146,12 @@ export interface SimulationStoreState {
     val: WeatherData | ((prev: WeatherData) => WeatherData),
   ) => void;
   setSmokeLineLength: (
+    val: number | "" | ((prev: number | "") => number | ""),
+  ) => void;
+  setSmokeLineDiameter: (
+    val: number | "" | ((prev: number | "") => number | ""),
+  ) => void;
+  setSmokeLineWidth: (
     val: number | "" | ((prev: number | "") => number | ""),
   ) => void;
   setReserveCoefficient: (
