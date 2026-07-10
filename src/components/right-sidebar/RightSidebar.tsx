@@ -14,6 +14,8 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useSimulation } from "../../context/SimulationContext";
+import { exportDocx } from "../../utils/docxExport";
+import { useToast } from "../../context/ToastContext";
 
 // ─── Helper: một hàng kết quả ─────────────────────────────────────────────────
 const ResultRow = ({
@@ -71,12 +73,18 @@ const getCountUnit = (config: any) => {
 };
 
 export const RightSidebar = () => {
+  const toast = useToast();
   const isOpen = useSimulation((s) => s.isRightSidebarOpen);
   const setIsOpen = useSimulation((s) => s.setIsRightSidebarOpen);
   const pointsList = useSimulation((s) => s.pointsList);
   const selectedPointId = useSimulation((s) => s.selectedPointId);
   const rawResults = useSimulation((s) => s.results);
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
+  const sessions = useSimulation((s) => s.sessions);
+  const activeSessionId = useSimulation((s) => s.activeSessionId);
+
+  const activeSession = sessions.find((sess) => sess.id === activeSessionId) ?? null;
+  const sessionName = activeSession?.name ?? "";
 
   const [activeTab, setActiveTab] = useState<"detail" | "summary">("detail");
 
@@ -618,6 +626,11 @@ export const RightSidebar = () => {
         <div className="p-3 border-t border-slate-200 bg-slate-50/80 space-y-2 flex-shrink-0">
           <div className="grid grid-cols-2 gap-2">
             <button
+              onClick={() => {
+                if (selectedPoint) {
+                  exportDocx(selectedPoint, sessionName, toast);
+                }
+              }}
               className="flex items-center justify-center gap-1.5 h-9 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
               disabled={!hasResults}
               title="Xuất báo cáo Word"
