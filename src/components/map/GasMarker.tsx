@@ -48,7 +48,7 @@ export function GasMarker({
     "",
   );
   const SW_MAIN = 4;
-  const VE = "non-scaling-stroke";
+  const VE = undefined;
   const strokeColor = "#000000";
 
   // Tính chiều cao hình chữ nhật cho tuyến diện (độ dài thực địa tương đương 200px của chiều dài)

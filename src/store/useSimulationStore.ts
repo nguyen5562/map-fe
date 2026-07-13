@@ -73,6 +73,8 @@ const captureCurrentStateAsDraft = (state: any) => {
     smokeLineWidth: state.smokeLineWidth,
     reserveCoefficient: state.reserveCoefficient,
     vehicleWeights: { ...state.vehicleWeights },
+    battlefieldScale: state.battlefieldScale,
+    commandPostLevel: state.commandPostLevel,
   };
 };
 
@@ -263,6 +265,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeLineWidth: draft.smokeLineWidth ?? 300,
             reserveCoefficient: draft.reserveCoefficient ?? 1.2,
             vehicleWeights: draft.vehicleWeights || {},
+            battlefieldScale: draft.battlefieldScale ?? 1,
+            commandPostLevel: draft.commandPostLevel ?? "squad",
           });
         } else {
           const realToRaw = get().realToRaw;
@@ -840,6 +844,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeLineWidth: get().smokeLineWidth,
             reserveCoefficient: get().reserveCoefficient,
             vehicleWeights: { ...get().vehicleWeights },
+            battlefieldScale: get().battlefieldScale,
+            commandPostLevel: get().commandPostLevel,
             results: currentResults,
           };
         }
@@ -889,6 +895,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineWidth: get().smokeLineWidth,
         reserveCoefficient: get().reserveCoefficient,
         vehicleWeights: { ...get().vehicleWeights },
+        battlefieldScale: get().battlefieldScale,
+        commandPostLevel: get().commandPostLevel,
         results: currentResults,
       };
 
@@ -1029,6 +1037,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineWidth: point.smokeLineWidth ?? 300,
         reserveCoefficient: point.reserveCoefficient ?? 1.2,
         vehicleWeights: point.vehicleWeights || {},
+        battlefieldScale: point.battlefieldScale ?? 1,
+        commandPostLevel: point.commandPostLevel ?? "squad",
         clickedRaw: null,
         currentRealCoords: null,
       });
@@ -1084,6 +1094,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineWidth: draft.smokeLineWidth ?? 300,
         reserveCoefficient: draft.reserveCoefficient ?? 1.2,
         vehicleWeights: draft.vehicleWeights || {},
+        battlefieldScale: draft.battlefieldScale ?? 1,
+        commandPostLevel: draft.commandPostLevel ?? "squad",
         clickedRaw: rawCoords,
         currentRealCoords: rawCoords
           ? get().rawToReal(rawCoords.lng, rawCoords.lat)
@@ -1117,6 +1129,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineWidth: point.smokeLineWidth ?? 300,
         reserveCoefficient: point.reserveCoefficient ?? 1.2,
         vehicleWeights: point.vehicleWeights || {},
+        battlefieldScale: point.battlefieldScale ?? 1,
+        commandPostLevel: point.commandPostLevel ?? "squad",
         clickedRaw: null,
         currentRealCoords: null,
       });
@@ -1162,6 +1176,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineWidth: draft.smokeLineWidth ?? 300,
         reserveCoefficient: draft.reserveCoefficient ?? 1.2,
         vehicleWeights: draft.vehicleWeights || {},
+        battlefieldScale: draft.battlefieldScale ?? 1,
+        commandPostLevel: draft.commandPostLevel ?? "squad",
         clickedRaw: rawCoords,
         currentRealCoords: rawCoords
           ? get().rawToReal(rawCoords.lng, rawCoords.lat)
@@ -1371,6 +1387,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             smokeLineWidth: get().smokeLineWidth,
             reserveCoefficient: get().reserveCoefficient,
             vehicleWeights: { ...get().vehicleWeights },
+            battlefieldScale: get().battlefieldScale,
+            commandPostLevel: get().commandPostLevel,
             results: currentResults,
           };
         }
@@ -1406,6 +1424,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineWidth: get().smokeLineWidth,
         reserveCoefficient: get().reserveCoefficient,
         vehicleWeights: { ...get().vehicleWeights },
+        battlefieldScale: get().battlefieldScale,
+        commandPostLevel: get().commandPostLevel,
         results: currentResults,
       };
 
@@ -1762,8 +1782,10 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             return defaults;
           }
         })(),
-        battlefieldScale: data.battlefieldScale ?? 1,
-        commandPostLevel: (data.commandPostLevel ?? "squad") as
+        battlefieldScale: hasUnsavedPoint ? (source.battlefieldScale ?? 1) : (data.battlefieldScale ?? 1),
+        commandPostLevel: (hasUnsavedPoint
+          ? (source.commandPostLevel ?? "squad")
+          : (data.commandPostLevel ?? "squad")) as
           | "squad"
           | "platoon"
           | "company",

@@ -71,7 +71,7 @@ export function BattlefieldMarker({
 
 // ── Style Configuration ──────────────────────────────────────────────────────
 const SW_THICK = 4.5;
-const VE = "non-scaling-stroke";
+const VE = undefined;
 const FILL_COLOR = "none";
 
 // ── Hình 1: Điểm hỏa ─────────────────────────────────────────────────────────
@@ -83,6 +83,9 @@ function FirePointSymbol({
   bufferColor: string;
   uniqueId: string;
 }) {
+  const swBufferOpen = SW_THICK + 6;
+  const swBufferClosed = SW_THICK + 12;
+
   return (
     <g>
       {/* 1. LỚP ĐỆM (Màu đệm) vẽ bên dưới */}
@@ -102,7 +105,7 @@ function FirePointSymbol({
               height="34"
               rx="2"
               fill="none"
-              strokeWidth={SW_THICK + 12} // Rất dày để làm viền trong rõ ràng
+              strokeWidth={swBufferClosed} // Rất dày để làm viền trong rõ ràng
               vectorEffect={VE}
             />
           </g>
@@ -112,7 +115,7 @@ function FirePointSymbol({
             <path
               d="M 60,54 L 60,64 L 76,64 L 76,76"
               fill="none"
-              strokeWidth={SW_THICK + 6} // Dày hơn để chồng lấp hoàn toàn, không bị đứt đoạn
+              strokeWidth={swBufferOpen} // Dày hơn để chồng lấp hoàn toàn, không bị đứt đoạn
               strokeLinecap="round"
               strokeLinejoin="round"
               vectorEffect={VE}
@@ -148,9 +151,14 @@ function FirePointSymbol({
 
 // ── Hình 2: Bộ phận dự bị, bảo đảm ──────────────────────────────────────────
 // Hai chữ V cạnh nhau viền đen (kích thước lớn 110px ngang, H và + ngang tầm với đỉnh trái dấu căn).
-function ReserveUnitSymbol({ bufferColor = "none" }: { bufferColor?: string }) {
+function ReserveUnitSymbol({
+  bufferColor = "none",
+}: {
+  bufferColor?: string;
+}) {
   const leftColor = "#ff0000"; // Red for medical tick
   const rightColor = "#000000"; // Black for technical tick
+  const swBufferOpen = SW_THICK + 6;
 
   const renderLeft = (stroke: string, sw: number) => (
     <g stroke={stroke} strokeWidth={sw}>
@@ -221,8 +229,8 @@ function ReserveUnitSymbol({ bufferColor = "none" }: { bufferColor?: string }) {
       {/* 1. LỚP ĐỆM (Màu đệm) vẽ dịch chuyển bên dưới */}
       {bufferColor !== "none" && (
         <g transform="translate(2, 2)">
-          {renderLeft(bufferColor, SW_THICK + 6)}
-          {renderRight(bufferColor, SW_THICK + 6)}
+          {renderLeft(bufferColor, swBufferOpen)}
+          {renderRight(bufferColor, swBufferOpen)}
         </g>
       )}
 
@@ -245,6 +253,8 @@ function CommandPostSymbol({
   uniqueId?: string;
 }) {
   const strokeColor = "#000000";
+  const swBufferOpen = SW_THICK + 6;
+  const swBufferClosed = SW_THICK + 12;
 
   return (
     <g>
@@ -266,7 +276,7 @@ function CommandPostSymbol({
             <polygon
               points="30,25 5,68 55,68"
               fill="none"
-              strokeWidth={SW_THICK + 12}
+              strokeWidth={swBufferClosed}
               strokeLinejoin="round"
               vectorEffect={VE}
             />
@@ -277,7 +287,7 @@ function CommandPostSymbol({
             <polygon
               points="90,25 65,68 115,68"
               fill="none"
-              strokeWidth={SW_THICK + 12}
+              strokeWidth={swBufferClosed}
               strokeLinejoin="round"
               vectorEffect={VE}
             />
@@ -291,7 +301,7 @@ function CommandPostSymbol({
               y1="42"
               x2="25"
               y2="58"
-              strokeWidth={SW_THICK + 6}
+              strokeWidth={swBufferOpen}
               strokeLinecap="round"
               vectorEffect={VE}
             />
@@ -300,7 +310,7 @@ function CommandPostSymbol({
               y1="42"
               x2="35"
               y2="58"
-              strokeWidth={SW_THICK + 6}
+              strokeWidth={swBufferOpen}
               strokeLinecap="round"
               vectorEffect={VE}
             />
@@ -309,7 +319,7 @@ function CommandPostSymbol({
               y1="50"
               x2="35"
               y2="50"
-              strokeWidth={SW_THICK + 6}
+              strokeWidth={swBufferOpen}
               vectorEffect={VE}
             />
 
@@ -319,7 +329,7 @@ function CommandPostSymbol({
               y1="9"
               x2="90"
               y2="25"
-              strokeWidth={SW_THICK + 6}
+              strokeWidth={swBufferOpen}
               strokeLinecap="round"
               vectorEffect={VE}
             />
@@ -331,7 +341,7 @@ function CommandPostSymbol({
                 y1="20"
                 x2="97"
                 y2="20"
-                strokeWidth={SW_THICK + 6}
+                strokeWidth={swBufferOpen}
                 strokeLinecap="round"
                 vectorEffect={VE}
               />
@@ -343,7 +353,7 @@ function CommandPostSymbol({
                 y1="14"
                 x2="97"
                 y2="14"
-                strokeWidth={SW_THICK + 6}
+                strokeWidth={swBufferOpen}
                 strokeLinecap="round"
                 vectorEffect={VE}
               />
