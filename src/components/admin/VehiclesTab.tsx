@@ -25,6 +25,7 @@ export const VehiclesTab = () => {
     t: "",
     materials: "",
     unit: "",
+    isCar: false,
   });
 
   // Delete modal state
@@ -61,6 +62,7 @@ export const VehiclesTab = () => {
         t: veh.t.toString(),
         materials: veh.materials || "",
         unit: veh.unit || "",
+        isCar: !!veh.isCar,
       });
     } else {
       setEditingVehicle(null);
@@ -73,6 +75,7 @@ export const VehiclesTab = () => {
         t: "",
         materials: "",
         unit: "",
+        isCar: false,
       });
     }
     setVehicleModalOpen(true);
@@ -220,7 +223,16 @@ export const VehiclesTab = () => {
                     <td className="p-4 font-mono font-bold text-slate-900">
                       {v.id}
                     </td>
-                    <td className="p-4 font-bold">{v.name}</td>
+                    <td className="p-4 font-bold">
+                      <div className="flex items-center gap-1.5">
+                        <span>{v.name}</span>
+                        {v.isCar && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                            Xe cơ động
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-4 text-slate-500 max-w-[200px] truncate">
                       {v.desc || "Không có"}
                     </td>
@@ -389,6 +401,22 @@ export const VehiclesTab = () => {
                     className="bg-white border-slate-300 text-slate-800 placeholder:text-slate-400 text-center"
                   />
                 </div>
+              </div>
+              <div className="flex items-center gap-2 py-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-650 font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={!!vehicleForm.isCar}
+                    onChange={(e: any) =>
+                      setVehicleForm({
+                        ...vehicleForm,
+                        isCar: e.target.checked,
+                      })
+                    }
+                    className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 w-4 h-4"
+                  />
+                  Là phương tiện cơ động (xe thả khói)
+                </label>
               </div>
               <div>
                 <label className="text-slate-650 font-semibold mb-1 block">

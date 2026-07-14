@@ -13,6 +13,7 @@ export function GasMarker({
   lineRole = "Chính",
   bufferColor = "none",
   onClick,
+  hasVehicle = false,
 }: {
   center: L.LatLng;
   angle: number;
@@ -24,6 +25,7 @@ export function GasMarker({
   lineRole?: string;
   bufferColor?: string;
   onClick?: () => void;
+  hasVehicle?: boolean;
 }) {
   // Tính chiều rộng overlay dựa trên loại tuyến khói.
   // Tuyến thẳng: SVG width 250px, line dài 200px (80%), nên overlay = length / 0.8 = length * 1.25
@@ -60,19 +62,55 @@ export function GasMarker({
   const yBottom = 125 + rectHeightInSvg / 2;
 
   // Helper render functions
-  const renderAreaRect = (stroke: string, sw: number) => (
-    <rect
-      x="25"
-      y={yTop}
-      width="200"
-      height={rectHeightInSvg}
-      fill="none"
-      stroke={stroke}
-      strokeWidth={sw}
-      vectorEffect={VE}
-      strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
-    />
-  );
+  const renderVehicle = (stroke: string, sw: number, fill: string = "none") => {
+    // Bù lại phép scale 0.08 của group xe để nét vẽ có độ dày thực tế đồng bộ với tuyến khói và BattlefieldMarker (nét chính ~4.5px)
+    const scaleFactor = sw / 0.08;
+    return (
+      <g stroke={stroke} fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <g transform="translate(0,598) rotate(-90)">
+          {/* thân mũi tên (mảnh hơn viền chai một chút: sw * 0.8) */}
+          <path d="M 255 320 L 255 160" fill="none" stroke={stroke} strokeWidth={scaleFactor * 0.8} />
+
+          {/* đầu mũi tên (chỉ giữ phần tam giác nhọn đầu mũi tên, cắt đuôi) */}
+          <path d="M 255 60 L 301 175 L 269 160 L 241 160 L 209 175 Z" fill={stroke} stroke="none" />
+
+          {/* khối chính có cạnh cong (độ dày nét sw) */}
+          <path d="
+            M 178 320
+            L 332 320
+            C 332 420, 360 470, 390 500
+            C 410 530, 430 545, 443 570
+            L 443 878
+            L 178 878
+            Z"
+            fill={fill} stroke={stroke} strokeWidth={scaleFactor} strokeLinejoin="round" />
+
+          {/* chữ H (giữ đứng, xoay ngược lại phép xoay của nhóm, nét sw * 1.1) */}
+          <path d="
+            M 275 622 L 275 748
+            M 275 685 L 345 685
+            M 345 622 L 345 748"
+            fill="none" stroke={stroke} strokeWidth={scaleFactor * 1.1} strokeLinecap="square" transform="rotate(90 310 685)" />
+        </g>
+      </g>
+    );
+  };
+
+  const renderAreaRect = (stroke: string, sw: number) => {
+    return (
+      <rect
+        x="25"
+        y={yTop}
+        width="200"
+        height={rectHeightInSvg}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={sw}
+        vectorEffect={VE}
+        strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
+      />
+    );
+  };
 
   const renderAreaArrows = (stroke: string, sw: number) => (
     <g
@@ -120,44 +158,46 @@ export function GasMarker({
       <path d="M 115,180 L 125,200 L 135,180" vectorEffect={VE} />
       {/* Râu trái: apex tại (50,125), chân tại (70,115) và (70,135) */}
       <path d="M 70,115 L 50,125 L 70,135" vectorEffect={VE} />
-      {/* Râu phải: apex tại (200,125), chân tại (180,115) và (180,135) */}
+      {/* Râu phải: apex tại (200,125), chân tại (180,115) and (180,135) */}
       <path d="M 180,115 L 200,125 L 180,135" vectorEffect={VE} />
     </g>
   );
 
-  const renderStraightLine = (stroke: string, sw: number) => (
-    <g
-      stroke={stroke}
-      strokeWidth={sw}
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {/* Đường ngang chính */}
-      <line
-        x1="25"
-        y1="125"
-        x2="225"
-        y2="125"
-        vectorEffect={VE}
-        strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
-      />
-      {/* Đầu chặn trái */}
-      <line x1="25" y1="115" x2="25" y2="135" vectorEffect={VE} />
-      {/* Đầu chặn phải */}
-      <line x1="225" y1="115" x2="225" y2="135" vectorEffect={VE} />
-      {/* Mũi tên V trái */}
-      <path d="M 81.67,105 L 91.67,125 L 101.67,105" vectorEffect={VE} />
-      {/* Mũi tên V phải */}
-      <path d="M 148.33,105 L 158.33,125 L 168.33,105" vectorEffect={VE} />
-    </g>
-  );
+  const renderStraightLine = (stroke: string, sw: number) => {
+    return (
+      <g
+        stroke={stroke}
+        strokeWidth={sw}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {/* Đường ngang chính */}
+        <line
+          x1="25"
+          y1="125"
+          x2="225"
+          y2="125"
+          vectorEffect={VE}
+          strokeDasharray={lineRole === "Dự bị" ? "25, 10" : undefined}
+        />
+        {/* Đầu chặn trái */}
+        <line x1="25" y1="115" x2="25" y2="135" vectorEffect={VE} />
+        {/* Đầu chặn phải */}
+        <line x1="225" y1="115" x2="225" y2="135" vectorEffect={VE} />
+        {/* Mũi tên V trái */}
+        <path d="M 81.67,105 L 91.67,125 L 101.67,105" vectorEffect={VE} />
+        {/* Mũi tên V phải */}
+        <path d="M 148.33,105 L 158.33,125 L 168.33,105" vectorEffect={VE} />
+      </g>
+    );
+  };
 
   return (
     <SVGOverlay
       key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${smokeLineDiameter}-${smokeLineWidth}-${lineType}-${lineRole}-${bufferColor}`}
       bounds={bounds}
-      attributes={{ viewBox: "0 0 250 250" }}
+      attributes={{ viewBox: "0 0 250 250", style: "overflow: visible;" }}
       eventHandlers={onClick ? { click: onClick } : undefined}
     >
       <g
@@ -181,6 +221,13 @@ export function GasMarker({
                       <rect x="25" y={yTop} width="200" height={rectHeightInSvg} />
                     </clipPath>
                   </defs>
+                  {hasVehicle && (
+                    <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+                      <g transform="translate(2, 2)">
+                        {renderVehicle(finalBufferColor, SW_MAIN + 6, "none")}
+                      </g>
+                    </g>
+                  )}
                   <g clipPath={`url(#clip-rect-${uniqueId})`}>
                     {renderAreaRect(finalBufferColor, SW_MAIN + 12)}
                   </g>
@@ -199,6 +246,13 @@ export function GasMarker({
                       <circle cx="125" cy="125" r="75" />
                     </clipPath>
                   </defs>
+                  {hasVehicle && (
+                    <g transform="translate(2, 2)">
+                      <g transform="translate(51, 97.56) scale(-0.08, 0.08)">
+                        {renderVehicle(finalBufferColor, SW_MAIN + 6, "none")}
+                      </g>
+                    </g>
+                  )}
                   <g clipPath={`url(#clip-circle-${uniqueId})`}>
                     {renderCircleRoute(finalBufferColor, SW_MAIN + 12)}
                   </g>
@@ -211,9 +265,18 @@ export function GasMarker({
 
               {lineType !== "Diện" && lineType !== "Vòng" && (
                 /* Nét đệm dịch chuyển cho toàn bộ tuyến thẳng */
-                <g transform="translate(2, 2)">
-                  {renderStraightLine(finalBufferColor, SW_MAIN + 6)}
-                </g>
+                <>
+                  {hasVehicle && (
+                    <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+                      <g transform="translate(2, 2)">
+                        {renderVehicle(finalBufferColor, SW_MAIN + 6, "none")}
+                      </g>
+                    </g>
+                  )}
+                  <g transform="translate(2, 2)">
+                    {renderStraightLine(finalBufferColor, SW_MAIN + 6)}
+                  </g>
+                </>
               )}
             </g>
           );
@@ -222,16 +285,33 @@ export function GasMarker({
         {/* 2. LỚP NÉT CHÍNH vẽ đè lên trên */}
         {lineType === "Diện" ? (
           <>
+            {hasVehicle && (
+              <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+                {renderVehicle(strokeColor, SW_MAIN, "none")}
+              </g>
+            )}
             {renderAreaRect(strokeColor, SW_MAIN)}
             {renderAreaArrows(strokeColor, SW_MAIN)}
           </>
         ) : lineType === "Vòng" ? (
           <>
+            {hasVehicle && (
+              <g transform="translate(51, 97.56) scale(-0.08, 0.08)">
+                {renderVehicle(strokeColor, SW_MAIN, "none")}
+              </g>
+            )}
             {renderCircleRoute(strokeColor, SW_MAIN)}
             {renderCircleArrows(strokeColor, SW_MAIN)}
           </>
         ) : (
-          renderStraightLine(strokeColor, SW_MAIN)
+          <>
+            {hasVehicle && (
+              <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+                {renderVehicle(strokeColor, SW_MAIN, "none")}
+              </g>
+            )}
+            {renderStraightLine(strokeColor, SW_MAIN)}
+          </>
         )}
       </g>
     </SVGOverlay>

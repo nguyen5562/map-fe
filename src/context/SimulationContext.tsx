@@ -117,6 +117,7 @@ export function SimulationProvider({
               t: Number(v.t),
               materials: v.materials || "",
               unit: v.unit || "cái",
+              isCar: !!v.isCar,
             };
           });
           useSimulationStore.setState({

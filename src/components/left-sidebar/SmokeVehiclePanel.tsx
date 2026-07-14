@@ -16,6 +16,7 @@ export type VehicleConfig = {
   t: number | ""; // smoke release time
   materials: string; // spec sheet consumables
   unit: string; // unit of consumption
+  isCar?: boolean;
 };
 
 const PREFERRED_ORDER = ["HPK-2.5", "TPK", "KH-1", "TDA-M", "KHOI_UNG_DUNG"];

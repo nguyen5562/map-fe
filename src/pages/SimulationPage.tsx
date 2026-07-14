@@ -530,6 +530,7 @@ function SimulationInner() {
                   lineType={smokeMethodData.lineType}
                   lineRole={smokeMethodData.lineRole}
                   bufferColor={smokeMethodData.bufferColor}
+                  hasVehicle={selectedVehicles.some((vid: string) => !!vehicleConfigs[vid]?.isCar)}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
@@ -656,6 +657,16 @@ function SimulationInner() {
                 leaderLinePoints = [intersectionPoint, labelAnchor];
               }
 
+              const activeSelectedVehicles = isEditing
+                ? selectedVehicles
+                : (p.selectedVehicles ?? []);
+              const activeVehicleConfigs = isEditing
+                ? vehicleConfigs
+                : (p.vehicleConfigs || vehicleConfigs);
+              const pointHasVehicle = activeSelectedVehicles.some(
+                (vid: string) => !!activeVehicleConfigs[vid]?.isCar
+              );
+
               return weatherActive ? (
                 <React.Fragment key={p.id}>
                   <GasMarker
@@ -669,6 +680,7 @@ function SimulationInner() {
                     lineRole={activeLineRole}
                     bufferColor={activeBufferColor}
                     onClick={() => onSelectPoint(p.id)}
+                    hasVehicle={pointHasVehicle}
                   />
                   {p.results && (
                     <>
