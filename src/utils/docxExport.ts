@@ -1,6 +1,7 @@
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
+import { toSlug } from "./string";
 
 interface VehicleConfig {
   id: string;
@@ -198,14 +199,16 @@ function mapPointToPlaceholders(selectedPoint: PointData, sessionName: string) {
 export async function exportDocx(
   selectedPoint: any,
   sessionName: string,
-  toast: { success: (msg: string) => void; error: (msg: string) => void }
+  toast: { success: (msg: string) => void; error: (msg: string) => void },
 ) {
   try {
     // Thêm timestamp để tránh lỗi trình duyệt cache file cũ
-    const response = await fetch(`/templates/ke_hoach_chien_dau_template.docx?t=${Date.now()}`);
+    const response = await fetch(
+      `/templates/ke_hoach_chien_dau_template.docx?t=${Date.now()}`,
+    );
     if (!response.ok) {
       throw new Error(
-        `Không thể tìm thấy file Word mẫu tại '/templates/ke_hoach_chien_dau_template.docx'. Hãy chắc chắn bạn đã đặt file ở đúng vị trí.`
+        `Không thể tìm thấy file Word mẫu tại '/templates/ke_hoach_chien_dau_template.docx'. Hãy chắc chắn bạn đã đặt file ở đúng vị trí.`,
       );
     }
 
@@ -218,9 +221,12 @@ export async function exportDocx(
         const file = zip.file(fileName);
         if (file) {
           const originalText = file.asText();
-          const cleanedText = originalText.replace(/\{\{(?:<[^>]+>|[^}])+?\}\}/g, (match) => {
-            return match.replace(/<[^>]+>/g, "");
-          });
+          const cleanedText = originalText.replace(
+            /\{\{(?:<[^>]+>|[^}])+?\}\}/g,
+            (match) => {
+              return match.replace(/<[^>]+>/g, "");
+            },
+          );
           zip.file(fileName, cleanedText);
         }
       }
@@ -252,11 +258,16 @@ export async function exportDocx(
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
 
-    // Đặt tên file theo tên phương án hoặc tên điểm khói
-    const cleanSessionName = (sessionName || selectedPoint.name || "kế_hoạch")
-      .trim()
-      .replace(/\s+/g, "_");
-    const fileName = `Kế_hoạch_chiến_đấu_${cleanSessionName}.docx`;
+    // Đặt tên file báo cáo theo định dạng không dấu và timestamp
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+    const timeStr = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}`;
+    const timestamp = `${dateStr}-${timeStr}`;
+
+    const slugName = sessionName ? toSlug(sessionName) : "";
+    const fileName = slugName
+      ? `ke-hoach-chien-dau-${slugName}-${timestamp}.docx`
+      : `ke-hoach-chien-dau-${timestamp}.docx`;
 
     saveAs(out, fileName);
     toast.success("Xuất thuyết minh kế hoạch thành công!");

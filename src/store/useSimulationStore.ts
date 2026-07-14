@@ -924,7 +924,8 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
     const updatedDrafts = { ...get().drafts };
     delete updatedDrafts[id];
 
-    const isActive = id === get().selectedPointId || id === get().editingPointId;
+    const isActive =
+      id === get().selectedPointId || id === get().editingPointId;
 
     if (isActive) {
       // Reset to "new point" mode and clear battlefield markers in one single state update only if deleting the active point
@@ -1782,7 +1783,9 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
             return defaults;
           }
         })(),
-        battlefieldScale: hasUnsavedPoint ? (source.battlefieldScale ?? 1) : (data.battlefieldScale ?? 1),
+        battlefieldScale: hasUnsavedPoint
+          ? (source.battlefieldScale ?? 1)
+          : (data.battlefieldScale ?? 1),
         commandPostLevel: (hasUnsavedPoint
           ? (source.commandPostLevel ?? "squad")
           : (data.commandPostLevel ?? "squad")) as
@@ -1824,9 +1827,7 @@ export const useSimulationStore = create<SimulationStoreState>((set, get) => ({
         smokeLineDiameter: hasUnsavedPoint
           ? (source.smokeLineDiameter ?? 700)
           : 700,
-        smokeLineWidth: hasUnsavedPoint
-          ? (source.smokeLineWidth ?? 300)
-          : 300,
+        smokeLineWidth: hasUnsavedPoint ? (source.smokeLineWidth ?? 300) : 300,
         reserveCoefficient: hasUnsavedPoint
           ? (source.reserveCoefficient ?? 1.2)
           : 1.2,

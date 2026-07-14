@@ -56,7 +56,8 @@ export function GasMarker({
   // Tính chiều cao hình chữ nhật cho tuyến diện (độ dài thực địa tương đương 200px của chiều dài)
   const actualLength = smokeLineLength ? Number(smokeLineLength) : 700;
   const actualWidth = smokeLineWidth ? Number(smokeLineWidth) : 300;
-  const rectHeightInSvg = actualLength > 0 ? (200 * actualWidth) / actualLength : 75;
+  const rectHeightInSvg =
+    actualLength > 0 ? (200 * actualWidth) / actualLength : 75;
 
   const yTop = 125 - rectHeightInSvg / 2;
   const yBottom = 125 + rectHeightInSvg / 2;
@@ -66,16 +67,31 @@ export function GasMarker({
     // Bù lại phép scale 0.08 của group xe để nét vẽ có độ dày thực tế đồng bộ với tuyến khói và BattlefieldMarker (nét chính ~4.5px)
     const scaleFactor = sw / 0.08;
     return (
-      <g stroke={stroke} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <g
+        stroke={stroke}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <g transform="translate(0,598) rotate(-90)">
           {/* thân mũi tên (mảnh hơn viền chai một chút: sw * 0.8) */}
-          <path d="M 255 320 L 255 160" fill="none" stroke={stroke} strokeWidth={scaleFactor * 0.8} />
+          <path
+            d="M 255 320 L 255 160"
+            fill="none"
+            stroke={stroke}
+            strokeWidth={scaleFactor * 0.8}
+          />
 
           {/* đầu mũi tên (chỉ giữ phần tam giác nhọn đầu mũi tên, cắt đuôi) */}
-          <path d="M 255 60 L 301 175 L 269 160 L 241 160 L 209 175 Z" fill={stroke} stroke="none" />
+          <path
+            d="M 255 60 L 301 175 L 269 160 L 241 160 L 209 175 Z"
+            fill={stroke}
+            stroke="none"
+          />
 
           {/* khối chính có cạnh cong (độ dày nét sw) */}
-          <path d="
+          <path
+            d="
             M 178 320
             L 332 320
             C 332 420, 360 470, 390 500
@@ -83,14 +99,24 @@ export function GasMarker({
             L 443 878
             L 178 878
             Z"
-            fill={fill} stroke={stroke} strokeWidth={scaleFactor} strokeLinejoin="round" />
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={scaleFactor}
+            strokeLinejoin="round"
+          />
 
           {/* chữ H (giữ đứng, xoay ngược lại phép xoay của nhóm, nét sw * 1.1) */}
-          <path d="
+          <path
+            d="
             M 275 622 L 275 748
             M 275 685 L 345 685
             M 345 622 L 345 748"
-            fill="none" stroke={stroke} strokeWidth={scaleFactor * 1.1} strokeLinecap="square" transform="rotate(90 310 685)" />
+            fill="none"
+            stroke={stroke}
+            strokeWidth={scaleFactor * 1.1}
+            strokeLinecap="square"
+            transform="rotate(90 310 685)"
+          />
         </g>
       </g>
     );
@@ -121,13 +147,25 @@ export function GasMarker({
       strokeLinejoin="round"
     >
       {/* ^ trái — apex cạnh trên (yTop), chân xuống (yTop + 20) */}
-      <path d={`M 81.67,${yTop + 20} L 91.67,${yTop} L 101.67,${yTop + 20}`} vectorEffect={VE} />
+      <path
+        d={`M 81.67,${yTop + 20} L 91.67,${yTop} L 101.67,${yTop + 20}`}
+        vectorEffect={VE}
+      />
       {/* ^ phải */}
-      <path d={`M 148.33,${yTop + 20} L 158.33,${yTop} L 168.33,${yTop + 20}`} vectorEffect={VE} />
+      <path
+        d={`M 148.33,${yTop + 20} L 158.33,${yTop} L 168.33,${yTop + 20}`}
+        vectorEffect={VE}
+      />
       {/* V trái — apex cạnh dưới (yBottom), chân lên (yBottom - 20) */}
-      <path d={`M 81.67,${yBottom - 20} L 91.67,${yBottom} L 101.67,${yBottom - 20}`} vectorEffect={VE} />
+      <path
+        d={`M 81.67,${yBottom - 20} L 91.67,${yBottom} L 101.67,${yBottom - 20}`}
+        vectorEffect={VE}
+      />
       {/* V phải */}
-      <path d={`M 148.33,${yBottom - 20} L 158.33,${yBottom} L 168.33,${yBottom - 20}`} vectorEffect={VE} />
+      <path
+        d={`M 148.33,${yBottom - 20} L 158.33,${yBottom} L 168.33,${yBottom - 20}`}
+        vectorEffect={VE}
+      />
     </g>
   );
 
@@ -218,7 +256,12 @@ export function GasMarker({
                   {/* Viền trong cho rect kín */}
                   <defs>
                     <clipPath id={`clip-rect-${uniqueId}`}>
-                      <rect x="25" y={yTop} width="200" height={rectHeightInSvg} />
+                      <rect
+                        x="25"
+                        y={yTop}
+                        width="200"
+                        height={rectHeightInSvg}
+                      />
                     </clipPath>
                   </defs>
                   {hasVehicle && (

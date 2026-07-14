@@ -109,7 +109,8 @@ export const TargetPanel = () => {
                 placeholder="700"
               />
               <p className="text-[10px] text-slate-400">
-                Mặc định: 700m. Thay đổi để điều chỉnh độ dài ký hiệu trên bản đồ.
+                Mặc định: 700m. Thay đổi để điều chỉnh độ dài ký hiệu trên bản
+                đồ.
               </p>
             </div>
           )}
@@ -136,7 +137,8 @@ export const TargetPanel = () => {
                 placeholder="700"
               />
               <p className="text-[10px] text-slate-400">
-                Mặc định: 700m. Thay đổi để điều chỉnh đường kính ký hiệu trên bản đồ.
+                Mặc định: 700m. Thay đổi để điều chỉnh đường kính ký hiệu trên
+                bản đồ.
               </p>
             </div>
           )}
@@ -187,7 +189,8 @@ export const TargetPanel = () => {
                 />
               </div>
               <p className="text-[10px] text-slate-400">
-                Mặc định: 700m x 300m. Thay đổi để điều chỉnh kích thước ký hiệu diện tích trên bản đồ.
+                Mặc định: 700m x 300m. Thay đổi để điều chỉnh kích thước ký hiệu
+                diện tích trên bản đồ.
               </p>
             </div>
           )}

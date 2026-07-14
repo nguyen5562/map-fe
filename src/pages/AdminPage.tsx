@@ -9,13 +9,11 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Map as MapIcon } from "lucide-react";
-import {
-  UsersTab,
-  DocumentsTab,
-  VehiclesTab,
-  MapsTab,
-  FeedbackTab,
-} from "../components/admin";
+import { UsersTab } from "../components/admin/UsersTab";
+import { DocumentsTab } from "../components/admin/DocumentsTab";
+import { VehiclesTab } from "../components/admin/VehiclesTab";
+import { MapsTab } from "../components/admin/MapsTab";
+import { FeedbackTab } from "../components/admin/FeedbackTab";
 
 type TabType =
   | "users"

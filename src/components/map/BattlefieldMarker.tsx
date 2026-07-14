@@ -151,11 +151,7 @@ function FirePointSymbol({
 
 // ── Hình 2: Bộ phận dự bị, bảo đảm ──────────────────────────────────────────
 // Hai chữ V cạnh nhau viền đen (kích thước lớn 110px ngang, H và + ngang tầm với đỉnh trái dấu căn).
-function ReserveUnitSymbol({
-  bufferColor = "none",
-}: {
-  bufferColor?: string;
-}) {
+function ReserveUnitSymbol({ bufferColor = "none" }: { bufferColor?: string }) {
   const leftColor = "#ff0000"; // Red for medical tick
   const rightColor = "#000000"; // Black for technical tick
   const swBufferOpen = SW_THICK + 6;

@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "docxtemplater": "^3.69.0",
     "file-saver": "^2.0.5",
+    "html-to-image": "^1.11.13",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.7.0",
     "pizzip": "^3.2.0",

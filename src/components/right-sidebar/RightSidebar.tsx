@@ -16,6 +16,7 @@ import {
 import { useSimulation } from "../../context/SimulationContext";
 import { exportDocx } from "../../utils/docxExport";
 import { useToast } from "../../context/ToastContext";
+import { MapExportPreview } from "../map/MapExportPreview";
 
 // ─── Helper: một hàng kết quả ─────────────────────────────────────────────────
 const ResultRow = ({
@@ -83,10 +84,12 @@ export const RightSidebar = () => {
   const sessions = useSimulation((s) => s.sessions);
   const activeSessionId = useSimulation((s) => s.activeSessionId);
 
-  const activeSession = sessions.find((sess) => sess.id === activeSessionId) ?? null;
+  const activeSession =
+    sessions.find((sess) => sess.id === activeSessionId) ?? null;
   const sessionName = activeSession?.name ?? "";
 
   const [activeTab, setActiveTab] = useState<"detail" | "summary">("detail");
+  const [showExportPreview, setShowExportPreview] = useState(false);
 
   useEffect(() => {
     if (pointsList.length < 2) {
@@ -639,6 +642,7 @@ export const RightSidebar = () => {
               XUẤT THUYẾT MINH
             </button>
             <button
+              onClick={() => setShowExportPreview(true)}
               className="flex items-center justify-center gap-1.5 h-9 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
               disabled={!hasResults}
               title="Xuất bản đồ"
@@ -662,6 +666,13 @@ export const RightSidebar = () => {
       >
         {isOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
+
+      {/* Map Export Preview Modal */}
+      <MapExportPreview
+        isOpen={showExportPreview}
+        onClose={() => setShowExportPreview(false)}
+        sessionName={sessionName}
+      />
     </div>
   );
 };

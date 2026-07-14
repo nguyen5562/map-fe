@@ -29,19 +29,17 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { BASE_URL } from "../const/apiConfig";
-import {
-  WeatherOverlay,
-  GasMarker,
-  GasLabel,
-  BattlefieldMarker,
-} from "../components/map";
+import { WeatherOverlay } from "../components/map/WeatherOverlay";
+import { GasMarker } from "../components/map/GasMarker";
+import { GasLabel } from "../components/map/GasLabel";
+import { BattlefieldMarker } from "../components/map/BattlefieldMarker";
 import {
   estimateTextWidth,
   getMainVehicleId,
   formatSmokeTimeLabel,
 } from "../components/map/GasLabel";
-import { LeftSidebar } from "../components/left-sidebar";
-import { RightSidebar } from "../components/right-sidebar";
+import { LeftSidebar } from "../components/left-sidebar/LeftSidebar";
+import { RightSidebar } from "../components/right-sidebar/RightSidebar";
 import { ConfirmChangesModal } from "../components/ui/ConfirmChangesModal";
 import { angleToDirection } from "../components/left-sidebar/BattlefieldPanel";
 import {
@@ -399,6 +397,7 @@ function SimulationInner() {
               minNativeZoom={0}
               maxNativeZoom={maxNativeZ}
               bounds={dynamicBounds}
+              crossOrigin="anonymous"
             />
             <ClickHandler onMapClick={handleMapClick} />
             <MapController
@@ -457,12 +456,14 @@ function SimulationInner() {
                 {pointsList.map((p) => {
                   const isSelected = p.id === selectedPointId;
                   // Use active store coordinates if selected, otherwise use saved coordinates
-                  const bfData = isSelected ? battlefieldData : p.battlefieldData;
+                  const bfData = isSelected
+                    ? battlefieldData
+                    : p.battlefieldData;
                   if (!bfData) return null;
 
                   const cpLevel = isSelected
                     ? commandPostLevel
-                    : (p.commandPostLevel || commandPostLevel);
+                    : p.commandPostLevel || commandPostLevel;
 
                   return (
                     <React.Fragment key={`bf-${p.id}`}>
@@ -530,7 +531,9 @@ function SimulationInner() {
                   lineType={smokeMethodData.lineType}
                   lineRole={smokeMethodData.lineRole}
                   bufferColor={smokeMethodData.bufferColor}
-                  hasVehicle={selectedVehicles.some((vid: string) => !!vehicleConfigs[vid]?.isCar)}
+                  hasVehicle={selectedVehicles.some(
+                    (vid: string) => !!vehicleConfigs[vid]?.isCar,
+                  )}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
@@ -555,8 +558,6 @@ function SimulationInner() {
                   : -1);
               const compWindAngle = baseDirAngle - 180 + pBetaVal;
               const compSmokeAngle = compWindAngle + pSmokeOffset;
-
-
 
               // Nếu đang chỉnh sửa điểm này và người dùng click vị trí mới, dùng clickedRaw làm vị trí tạm
               const isEditing = p.id === editingPointId;
@@ -584,7 +585,9 @@ function SimulationInner() {
 
               let rawWidth = 0;
               if (activeLineType === "Vòng") {
-                const actualDiameter = activeDiameter ? Number(activeDiameter) : 700;
+                const actualDiameter = activeDiameter
+                  ? Number(activeDiameter)
+                  : 700;
                 rawWidth = (actualDiameter * 1.6666667) / Math.abs(scale.x);
               } else {
                 const actualLength = activeLength ? Number(activeLength) : 700;
@@ -606,13 +609,11 @@ function SimulationInner() {
                   : (p.selectedVehicles ?? []);
                 const activeVehicleConfigs = isEditing
                   ? vehicleConfigs
-                  : (p.vehicleConfigs || vehicleConfigs);
+                  : p.vehicleConfigs || vehicleConfigs;
                 const activeCombatTime = isEditing
-                  ? (weatherData?.combatTime)
-                  : (p.weatherData?.combatTime);
-                const activeSmokeTime = isEditing
-                  ? smokeTime
-                  : p.smokeTime;
+                  ? weatherData?.combatTime
+                  : p.weatherData?.combatTime;
+                const activeSmokeTime = isEditing ? smokeTime : p.smokeTime;
 
                 const mainVid = getMainVehicleId(
                   activeSelectedVehicles,
@@ -662,9 +663,9 @@ function SimulationInner() {
                 : (p.selectedVehicles ?? []);
               const activeVehicleConfigs = isEditing
                 ? vehicleConfigs
-                : (p.vehicleConfigs || vehicleConfigs);
+                : p.vehicleConfigs || vehicleConfigs;
               const pointHasVehicle = activeSelectedVehicles.some(
-                (vid: string) => !!activeVehicleConfigs[vid]?.isCar
+                (vid: string) => !!activeVehicleConfigs[vid]?.isCar,
               );
 
               return weatherActive ? (
@@ -698,16 +699,30 @@ function SimulationInner() {
                         center={labelCenter}
                         results={p.results}
                         smokeTime={isEditing ? smokeTime : p.smokeTime}
-                        vehicleConfigs={isEditing ? vehicleConfigs : (p.vehicleConfigs || vehicleConfigs)}
-                        selectedVehicles={isEditing ? selectedVehicles : (p.selectedVehicles ?? [])}
-                        combatTime={isEditing ? weatherData?.combatTime : p.weatherData?.combatTime}
+                        vehicleConfigs={
+                          isEditing
+                            ? vehicleConfigs
+                            : p.vehicleConfigs || vehicleConfigs
+                        }
+                        selectedVehicles={
+                          isEditing
+                            ? selectedVehicles
+                            : (p.selectedVehicles ?? [])
+                        }
+                        combatTime={
+                          isEditing
+                            ? weatherData?.combatTime
+                            : p.weatherData?.combatTime
+                        }
                         smokeLineLength={activeLength}
                         smokeLineDiameter={activeDiameter}
                         smokeLineWidth={activeWidth}
                         scaleX={scale.x}
                         onClick={() => onSelectPoint(p.id)}
                         targetDefenseData={p.targetDefenseData}
-                        smokeMethodData={isEditing ? smokeMethodData : p.smokeMethodData}
+                        smokeMethodData={
+                          isEditing ? smokeMethodData : p.smokeMethodData
+                        }
                       />
                       {isSelected && (
                         <Marker

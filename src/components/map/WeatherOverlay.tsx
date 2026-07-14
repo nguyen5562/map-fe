@@ -1,3 +1,4 @@
+import React from "react";
 import { getBeaufort, getStability, renderTemp } from "../../utils/weather";
 
 const UTM_FONT = "'UTM Helvetins', 'Times New Roman', Times, serif";
@@ -10,6 +11,7 @@ export const WeatherOverlay = ({
   weatherActive,
   currentMapStatus,
   weatherData,
+  styleOverride,
 }: any) => {
   if (!weatherActive || currentMapStatus !== "ready") return null;
 
@@ -88,23 +90,23 @@ export const WeatherOverlay = ({
       })()
     : "--.--.--";
 
+  const baseStyle: React.CSSProperties = {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 1000,
+    pointerEvents: "none",
+    width: SIZE,
+    height: SIZE,
+    border: `${BORDER}px solid #0f172a`,
+    borderRadius: 0,
+    background: "transparent",
+    boxSizing: "border-box",
+    overflow: "visible",
+  };
+
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 16,
-        right: 16,
-        zIndex: 1000,
-        pointerEvents: "none",
-        width: SIZE,
-        height: SIZE,
-        border: `${BORDER}px solid #0f172a`,
-        borderRadius: 0,
-        background: "transparent",
-        boxSizing: "border-box",
-        overflow: "visible",
-      }}
-    >
+    <div style={{ ...baseStyle, ...styleOverride }}>
       {/* ── Ngày tháng ── */}
       <div
         style={{
