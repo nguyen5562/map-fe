@@ -60,8 +60,10 @@ interface PointData {
   results: {
     straightLine_routes: number;
     straightLine_vehicles: number;
+    straightLine_points: number;
     circularLine_routes: number;
     circularLine_vehicles: number;
+    circularLine_points: number;
     pointVehicles: number;
     totalVehicles: number;
     coverTime_min: number;
@@ -118,16 +120,13 @@ function mapPointToPlaceholders(selectedPoint: PointData, sessionName: string) {
     so_tuyen_khoi = results?.straightLine_routes || 0;
   }
 
-  // 7. so_diem_phat_khoi = A / a (Số lượng phương tiện trên một tuyến chia cho số lượng trên một điểm)
+  // 7. so_diem_phat_khoi = Số điểm khói trên 1 tuyến (A thuần, từ công thức 1.5/1.6/1.7)
   let so_diem_phat_khoi = 0;
-  const a = results?.pointVehicles || 0;
-  const A =
+  const pointsOnRoute =
     smokeMethodData?.lineType === "Vòng"
-      ? results?.circularLine_vehicles || 0
-      : results?.straightLine_vehicles || 0;
-  if (a > 0) {
-    so_diem_phat_khoi = Math.ceil(A / a);
-  }
+      ? results?.circularLine_points || 0
+      : results?.straightLine_points || 0;
+  so_diem_phat_khoi = pointsOnRoute;
 
   // 8. so_phuong_tien_tren_1_diem (a)
   const so_phuong_tien_tren_1_diem = results?.pointVehicles || 0;

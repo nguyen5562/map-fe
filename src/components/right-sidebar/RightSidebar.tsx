@@ -220,7 +220,12 @@ export const RightSidebar = () => {
                                 unit="tuyến"
                               />
                               <ResultRow
-                                label="Số PT bố trí trên 1 tuyến (A)"
+                                label="Số điểm khói trên 1 tuyến (A)"
+                                value={vres.straightLine_points}
+                                unit="điểm"
+                              />
+                              <ResultRow
+                                label="Số PT trên 1 tuyến (A×a)"
                                 value={vres.straightLine_vehicles}
                                 unit={vUnit}
                               />
@@ -234,7 +239,12 @@ export const RightSidebar = () => {
                                 unit="tuyến"
                               />
                               <ResultRow
-                                label="Số PT bố trí trên 1 tuyến (A)"
+                                label="Số điểm khói trên 1 tuyến (A)"
+                                value={vres.circularLine_points}
+                                unit="điểm"
+                              />
+                              <ResultRow
+                                label="Số PT trên 1 tuyến (A×a)"
                                 value={vres.circularLine_vehicles}
                                 unit={vUnit}
                               />
@@ -268,7 +278,12 @@ export const RightSidebar = () => {
                           unit="tuyến"
                         />
                         <ResultRow
-                          label="Số PT bố trí trên 1 tuyến (A)"
+                          label="Số điểm khói trên 1 tuyến (A)"
+                          value={selectedPoint.results.straightLine_points}
+                          unit="điểm"
+                        />
+                        <ResultRow
+                          label="Số PT trên 1 tuyến (A×a)"
                           value={selectedPoint.results.straightLine_vehicles}
                           unit={countUnit}
                         />
@@ -284,7 +299,12 @@ export const RightSidebar = () => {
                           unit="tuyến"
                         />
                         <ResultRow
-                          label="Số PT bố trí trên 1 tuyến (A)"
+                          label="Số điểm khói trên 1 tuyến (A)"
+                          value={selectedPoint.results.circularLine_points}
+                          unit="điểm"
+                        />
+                        <ResultRow
+                          label="Số PT trên 1 tuyến (A×a)"
                           value={selectedPoint.results.circularLine_vehicles}
                           unit={countUnit}
                         />
@@ -352,7 +372,7 @@ export const RightSidebar = () => {
                 )}
 
                 <p className="text-[10px] text-slate-400 mt-1">
-                  = A × N × hệ số dự phòng
+                  = N × A × a × hệ số dự phòng
                 </p>
               </div>
 
@@ -488,7 +508,13 @@ export const RightSidebar = () => {
                                         </span>
                                       </div>
                                       <div className="flex justify-between pl-1">
-                                        <span>Số PT/tuyến (A):</span>
+                                        <span>Số điểm/tuyến (A):</span>
+                                        <span className="font-medium text-slate-750">
+                                          {vres.straightLine_points} điểm
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between pl-1">
+                                        <span>Số PT/tuyến (A×a):</span>
                                         <span className="font-medium text-slate-750">
                                           {vres.straightLine_vehicles}{" "}
                                           {pCountUnit}
@@ -505,7 +531,13 @@ export const RightSidebar = () => {
                                         </span>
                                       </div>
                                       <div className="flex justify-between pl-1">
-                                        <span>Số PT/tuyến (A):</span>
+                                        <span>Số điểm/tuyến (A):</span>
+                                        <span className="font-medium text-slate-750">
+                                          {vres.circularLine_points} điểm
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between pl-1">
+                                        <span>Số PT/tuyến (A×a):</span>
                                         <span className="font-medium text-slate-750">
                                           {vres.circularLine_vehicles}{" "}
                                           {pCountUnit}
@@ -545,7 +577,13 @@ export const RightSidebar = () => {
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Số PT/tuyến (A):</span>
+                                  <span>Số điểm/tuyến (A):</span>
+                                  <span className="font-medium text-slate-700">
+                                    {p.results.straightLine_points} điểm
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Số PT/tuyến (A×a):</span>
                                   <span className="font-medium text-slate-700">
                                     {p.results.straightLine_vehicles}{" "}
                                     {getCountUnit(
@@ -569,7 +607,13 @@ export const RightSidebar = () => {
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Số PT/tuyến (A):</span>
+                                  <span>Số điểm/tuyến (A):</span>
+                                  <span className="font-medium text-slate-700">
+                                    {p.results.circularLine_points} điểm
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Số PT/tuyến (A×a):</span>
                                   <span className="font-medium text-slate-700">
                                     {p.results.circularLine_vehicles}{" "}
                                     {getCountUnit(

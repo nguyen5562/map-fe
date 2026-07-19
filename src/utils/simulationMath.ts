@@ -7,6 +7,17 @@ import type {
   WeatherData,
 } from "../context/SimulationContext";
 
+/**
+ * Làm tròn theo quy tắc tài liệu:
+ * - Phần thập phân <= 0.2 → làm tròn xuống (floor)
+ * - Phần thập phân > 0.2 → làm tròn lên (ceil)
+ * Ví dụ: 3.2 → 3, 3.3 → 4, 5.5 → 6
+ */
+function smokeRound(value: number): number {
+  const decimal = value - Math.floor(value);
+  return decimal > 0.2 ? Math.ceil(value) : Math.floor(value);
+}
+
 export const performCalculation = (inputs: {
   targetDefenseData: TargetDefenseData;
   smokeMethodData: SmokeMethodData;
@@ -54,8 +65,10 @@ export const performCalculation = (inputs: {
     {
       straightLine_vehicles: number;
       straightLine_routes: number;
+      straightLine_points: number;
       circularLine_vehicles: number;
       circularLine_routes: number;
+      circularLine_points: number;
       pointVehicles: number;
       totalVehicles: number;
       coverTime_min: number;
@@ -78,33 +91,45 @@ export const performCalculation = (inputs: {
     let A = 0;
 
     if (lineType === "Thẳng" || lineType === "Diện") {
-      // Công thức 1a: N = L / l
-      N = l > 0 ? Math.ceil(L / l) : 0;
+      // === TUYẾN THẲNG / DIỆN ===
 
-      // Công thức 2: Số PT trên 1 tuyến thẳng
+      // Công thức 1.2 & 1.3: Tính số tuyến khói N
       if (alpha === 90) {
-        // Trường hợp vuông góc: A = (R × T) / (r × t)
-        A = r > 0 && t > 0 ? Math.ceil((R * T) / (r * t)) : 0;
+        // Trường hợp gió vuông góc: N = L / l (công thức 1.2)
+        N = l > 0 ? smokeRound(L / l) : 0;
       } else {
-        // Trường hợp góc lệch α (cosα × l × t)
-        const cosAlpha = Math.cos((alpha * Math.PI) / 180);
-        A =
-          cosAlpha > 0 && l > 0 && t > 0
-            ? Math.ceil((L * T) / (cosAlpha * l * t))
+        // Trường hợp gió chéo góc α: N = L / (l × cosα) (công thức 1.3)
+        const cosAlphaForN = Math.cos((alpha * Math.PI) / 180);
+        N =
+          l > 0 && cosAlphaForN > 0
+            ? smokeRound(L / (l * cosAlphaForN))
             : 0;
+      }
+
+      // Công thức 1.5 & 1.6: Tính số điểm khói trên 1 tuyến A
+      if (alpha === 90) {
+        // Trường hợp gió vuông góc: A = R / r (công thức 1.5)
+        A = r > 0 ? smokeRound(R / r) : 0;
+      } else {
+        // Trường hợp gió dọc/chéo tuyến: A = L / l (công thức 1.6)
+        A = l > 0 ? smokeRound(L / l) : 0;
       }
     } else {
       // === TUYẾN VÒNG ===
-      // Công thức 1b: N = 1 + (L_vòng - l) / (2 × l)
-      const circumference = Math.PI * D;
-      N = l > 0 ? Math.ceil(1 + Math.max(0, circumference - l) / (2 * l)) : 0;
 
-      // Công thức 3: A = (π × D × T) / (r × t)
-      A = r > 0 && t > 0 ? Math.ceil((Math.PI * D * T) / (r * t)) : 0;
+      // Công thức 1.4: N = 1 + 1/2(L - l) / l, trong đó L = πD (chu vi)
+      const circumference = Math.PI * D;
+      N =
+        l > 0
+          ? smokeRound(1 + Math.max(0, circumference - l) / (2 * l))
+          : 0;
+
+      // Công thức 1.7: A = πD / r (số điểm khói trên tuyến vòng)
+      A = r > 0 ? smokeRound((Math.PI * D) / r) : 0;
     }
 
-    // Công thức 4: Số PT trên 1 điểm: a = T / t
-    const a = t > 0 ? Math.ceil(T / t) : 0;
+    // Công thức 1.8: Số PT trên 1 điểm: a = T / t
+    const a = t > 0 ? smokeRound(T / t) : 0;
 
     // Trọng số (weight)
     let weight = 100;
@@ -112,19 +137,21 @@ export const performCalculation = (inputs: {
       weight = Number(weights[vehicleId]) || 0;
     }
 
-    // Công thức 5: Tổng số PT = A * N * reserveCoeff * (weight / 100)
-    const baseTotal = A * N * reserveCoeff;
+    // Công thức 1.9: Tổng số PT = N × A × a × reserveCoeff × (weight / 100)
+    const baseTotal = N * A * a * reserveCoeff;
     const totalVehicles = Math.ceil(baseTotal * (weight / 100));
 
-    // Công thức 6: Thời gian phủ kín mục tiêu τ = l / v (giây) → ÷ 60 → phút
+    // Thời gian phủ kín mục tiêu τ = l / v (giây) → ÷ 60 → phút
     const coverTime_min = v > 0 ? Math.round((l / v / 60) * 100) / 100 : 0;
 
     vehicleBreakdown[vehicleId] = {
       straightLine_vehicles:
-        lineType === "Thẳng" || lineType === "Diện" ? A : 0,
+        lineType === "Thẳng" || lineType === "Diện" ? A * a : 0,
       straightLine_routes: lineType === "Thẳng" || lineType === "Diện" ? N : 0,
-      circularLine_vehicles: lineType === "Vòng" ? A : 0,
+      straightLine_points: lineType === "Thẳng" || lineType === "Diện" ? A : 0,
+      circularLine_vehicles: lineType === "Vòng" ? A * a : 0,
       circularLine_routes: lineType === "Vòng" ? N : 0,
+      circularLine_points: lineType === "Vòng" ? A : 0,
       pointVehicles: a,
       totalVehicles,
       coverTime_min,
@@ -150,6 +177,13 @@ export const performCalculation = (inputs: {
             0,
           )
         : 0,
+    straightLine_points:
+      lineType === "Thẳng" || lineType === "Diện"
+        ? Object.values(vehicleBreakdown).reduce(
+            (sum, v) => sum + v.straightLine_points,
+            0,
+          )
+        : 0,
     circularLine_vehicles:
       lineType === "Vòng"
         ? Object.values(vehicleBreakdown).reduce(
@@ -161,6 +195,13 @@ export const performCalculation = (inputs: {
       lineType === "Vòng"
         ? Object.values(vehicleBreakdown).reduce(
             (sum, v) => sum + v.circularLine_routes,
+            0,
+          )
+        : 0,
+    circularLine_points:
+      lineType === "Vòng"
+        ? Object.values(vehicleBreakdown).reduce(
+            (sum, v) => sum + v.circularLine_points,
             0,
           )
         : 0,
@@ -181,8 +222,10 @@ export const aggregateResults = (pointsList: any[]) => {
 
       acc.straightLine_vehicles += r.straightLine_vehicles || 0;
       acc.straightLine_routes += r.straightLine_routes || 0;
+      acc.straightLine_points += r.straightLine_points || 0;
       acc.circularLine_vehicles += r.circularLine_vehicles || 0;
       acc.circularLine_routes += r.circularLine_routes || 0;
+      acc.circularLine_points += r.circularLine_points || 0;
       acc.pointVehicles += r.pointVehicles || 0;
       acc.totalVehicles += r.totalVehicles || 0;
       acc.coverTime_min = Math.max(acc.coverTime_min, r.coverTime_min || 0);
@@ -193,8 +236,10 @@ export const aggregateResults = (pointsList: any[]) => {
           acc.vehicleBreakdown[vid] = {
             straightLine_vehicles: 0,
             straightLine_routes: 0,
+            straightLine_points: 0,
             circularLine_vehicles: 0,
             circularLine_routes: 0,
+            circularLine_points: 0,
             pointVehicles: 0,
             totalVehicles: 0,
             coverTime_min: 0,
@@ -206,10 +251,14 @@ export const aggregateResults = (pointsList: any[]) => {
           vdata.straightLine_vehicles || 0;
         acc.vehicleBreakdown[vid].straightLine_routes +=
           vdata.straightLine_routes || 0;
+        acc.vehicleBreakdown[vid].straightLine_points +=
+          vdata.straightLine_points || 0;
         acc.vehicleBreakdown[vid].circularLine_vehicles +=
           vdata.circularLine_vehicles || 0;
         acc.vehicleBreakdown[vid].circularLine_routes +=
           vdata.circularLine_routes || 0;
+        acc.vehicleBreakdown[vid].circularLine_points +=
+          vdata.circularLine_points || 0;
         acc.vehicleBreakdown[vid].pointVehicles += vdata.pointVehicles || 0;
         acc.vehicleBreakdown[vid].totalVehicles += vdata.totalVehicles || 0;
         acc.vehicleBreakdown[vid].coverTime_min = Math.max(
@@ -223,8 +272,10 @@ export const aggregateResults = (pointsList: any[]) => {
     {
       straightLine_vehicles: 0,
       straightLine_routes: 0,
+      straightLine_points: 0,
       circularLine_vehicles: 0,
       circularLine_routes: 0,
+      circularLine_points: 0,
       pointVehicles: 0,
       totalVehicles: 0,
       coverTime_min: 0,
