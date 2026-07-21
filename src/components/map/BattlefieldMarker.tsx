@@ -13,6 +13,7 @@ export function BattlefieldMarker({
   scaleX,
   commandPostLevel = "squad",
   bufferColor = "none",
+  battlefieldScale: propBattlefieldScale,
   onClick,
 }: {
   center: L.LatLng;
@@ -20,9 +21,11 @@ export function BattlefieldMarker({
   scaleX: number;
   commandPostLevel?: "squad" | "platoon" | "company";
   bufferColor?: string;
+  battlefieldScale?: number;
   onClick?: () => void;
 }) {
-  const battlefieldScale = useSimulationStore((s) => s.battlefieldScale ?? 1);
+  const storeBattlefieldScale = useSimulationStore((s) => s.battlefieldScale ?? 1);
+  const battlefieldScale = propBattlefieldScale ?? storeBattlefieldScale;
 
   // Made markers larger by increasing the base width/height to 120x80 pixels at scale
   const rawW = (120 * battlefieldScale) / Math.abs(scaleX);

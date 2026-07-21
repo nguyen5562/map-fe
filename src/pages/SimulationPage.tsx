@@ -209,10 +209,13 @@ function SimulationInner() {
   const battlefieldData = useSimulation((s) => s.battlefieldData);
   const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
   const commandPostLevel = useSimulation((s) => s.commandPostLevel);
+  const battlefieldScale = useSimulation((s) => s.battlefieldScale);
   const rawToReal = useSimulation((s) => s.rawToReal);
   // Automatically recalculate distances and directions when currentRealCoords or battlefield coords change
   useEffect(() => {
     if (!isCalibrated) return;
+    // Don't recalculate/clear distances when we're just viewing a saved point (not in edit mode)
+    if (selectedPointId !== null && editingPointId === null) return;
 
     let changed = false;
     const nextBattlefieldData = { ...battlefieldData };
@@ -264,6 +267,8 @@ function SimulationInner() {
     p2,
     rawToReal,
     setBattlefieldData,
+    selectedPointId,
+    editingPointId,
   ]);
 
   const handleMapClick = (e: L.LeafletMouseEvent) => {
@@ -430,6 +435,7 @@ function SimulationInner() {
                         type="firePoints"
                         scaleX={scale.x}
                         bufferColor={battlefieldData.firePoints.bufferColor}
+                        battlefieldScale={battlefieldScale}
                       />
                     )}
                     {battlefieldData.reserveUnit.rawCoords && (
@@ -438,6 +444,7 @@ function SimulationInner() {
                         type="reserveUnit"
                         scaleX={scale.x}
                         bufferColor={battlefieldData.reserveUnit.bufferColor}
+                        battlefieldScale={battlefieldScale}
                       />
                     )}
                     {battlefieldData.commandPost.rawCoords && (
@@ -447,6 +454,7 @@ function SimulationInner() {
                         scaleX={scale.x}
                         commandPostLevel={commandPostLevel}
                         bufferColor={battlefieldData.commandPost.bufferColor}
+                        battlefieldScale={battlefieldScale}
                       />
                     )}
                   </>
@@ -465,6 +473,10 @@ function SimulationInner() {
                     ? commandPostLevel
                     : p.commandPostLevel || commandPostLevel;
 
+                  const scaleVal = isSelected
+                    ? battlefieldScale
+                    : p.battlefieldScale || 1;
+
                   return (
                     <React.Fragment key={`bf-${p.id}`}>
                       {bfData.firePoints?.rawCoords && (
@@ -478,6 +490,7 @@ function SimulationInner() {
                           bufferColor={
                             bfData.firePoints.bufferColor || bfData.bufferColor
                           }
+                          battlefieldScale={scaleVal}
                           onClick={() => onSelectPoint(p.id)}
                         />
                       )}
@@ -492,6 +505,7 @@ function SimulationInner() {
                           bufferColor={
                             bfData.reserveUnit.bufferColor || bfData.bufferColor
                           }
+                          battlefieldScale={scaleVal}
                           onClick={() => onSelectPoint(p.id)}
                         />
                       )}
@@ -507,6 +521,7 @@ function SimulationInner() {
                           bufferColor={
                             bfData.commandPost.bufferColor || bfData.bufferColor
                           }
+                          battlefieldScale={scaleVal}
                           onClick={() => onSelectPoint(p.id)}
                         />
                       )}

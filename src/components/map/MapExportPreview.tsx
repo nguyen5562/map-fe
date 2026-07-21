@@ -68,6 +68,7 @@ export function MapExportPreview({
   const selectedPointId = useSimulation((s) => s.selectedPointId);
   const battlefieldData = useSimulation((s) => s.battlefieldData);
   const commandPostLevel = useSimulation((s) => s.commandPostLevel);
+  const battlefieldScale = useSimulation((s) => s.battlefieldScale);
   const smokeLineLength = useSimulation((s) => s.smokeLineLength);
   const smokeLineDiameter = useSimulation((s) => s.smokeLineDiameter);
   const smokeLineWidth = useSimulation((s) => s.smokeLineWidth);
@@ -309,6 +310,7 @@ export function MapExportPreview({
                     type="firePoints"
                     scaleX={scale.x}
                     bufferColor={battlefieldData.firePoints.bufferColor}
+                    battlefieldScale={battlefieldScale}
                   />
                 )}
                 {battlefieldData.reserveUnit.rawCoords && (
@@ -317,6 +319,7 @@ export function MapExportPreview({
                     type="reserveUnit"
                     scaleX={scale.x}
                     bufferColor={battlefieldData.reserveUnit.bufferColor}
+                    battlefieldScale={battlefieldScale}
                   />
                 )}
                 {battlefieldData.commandPost.rawCoords && (
@@ -326,6 +329,7 @@ export function MapExportPreview({
                     scaleX={scale.x}
                     commandPostLevel={commandPostLevel}
                     bufferColor={battlefieldData.commandPost.bufferColor}
+                    battlefieldScale={battlefieldScale}
                   />
                 )}
               </>
@@ -340,6 +344,9 @@ export function MapExportPreview({
                 const cpLevel = isSelected
                   ? commandPostLevel
                   : p.commandPostLevel || commandPostLevel;
+                const scaleVal = isSelected
+                  ? battlefieldScale
+                  : p.battlefieldScale || 1;
                 return (
                   <React.Fragment key={`bf-${p.id}`}>
                     {bfData.firePoints?.rawCoords && (
@@ -353,6 +360,7 @@ export function MapExportPreview({
                         bufferColor={
                           bfData.firePoints.bufferColor || bfData.bufferColor
                         }
+                        battlefieldScale={scaleVal}
                       />
                     )}
                     {bfData.reserveUnit?.rawCoords && (
@@ -366,6 +374,7 @@ export function MapExportPreview({
                         bufferColor={
                           bfData.reserveUnit.bufferColor || bfData.bufferColor
                         }
+                        battlefieldScale={scaleVal}
                       />
                     )}
                     {bfData.commandPost?.rawCoords && (
@@ -380,6 +389,7 @@ export function MapExportPreview({
                         bufferColor={
                           bfData.commandPost.bufferColor || bfData.bufferColor
                         }
+                        battlefieldScale={scaleVal}
                       />
                     )}
                   </React.Fragment>
