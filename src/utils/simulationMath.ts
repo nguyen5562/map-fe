@@ -11,11 +11,14 @@ import type {
  * Làm tròn theo quy tắc tài liệu:
  * - Phần thập phân <= 0.2 → làm tròn xuống (floor)
  * - Phần thập phân > 0.2 → làm tròn lên (ceil)
- * Ví dụ: 3.2 → 3, 3.3 → 4, 5.5 → 6
+ * - Ngoại lệ: Nếu có giá trị tính toán (> 0) thì tối thiểu phải làm tròn lên 1 (không thể = 0).
+ * Ví dụ: 3.2 → 3, 3.3 → 4, 0.1 → 1, 1.1 → 1
  */
 function smokeRound(value: number): number {
+  if (value <= 0) return 0;
   const decimal = value - Math.floor(value);
-  return decimal > 0.2 ? Math.ceil(value) : Math.floor(value);
+  const result = decimal > 0.2 ? Math.ceil(value) : Math.floor(value);
+  return Math.max(1, result);
 }
 
 export const performCalculation = (inputs: {
