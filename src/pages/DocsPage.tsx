@@ -277,18 +277,16 @@ export default function DocsPage() {
     documentService
       .getDocumentSections("document")
       .then((data: any[]) => {
-        // Filter out videos from items, and exclude sections that become empty
+        // Filter out videos from items, keep all sections and folders even if empty
         const filtered = (data || [])
           .filter((sec: any) => sec.type !== "video")
           .map((sec: any) => {
-            const folders = (sec.folders || [])
-              .map((f: any) => ({
-                ...f,
-                items: (f.items || []).filter(
-                  (item: any) => item.type !== "video",
-                ),
-              }))
-              .filter((f: any) => f.items.length > 0);
+            const folders = (sec.folders || []).map((f: any) => ({
+              ...f,
+              items: (f.items || []).filter(
+                (item: any) => item.type !== "video",
+              ),
+            }));
 
             const items = (sec.items || []).filter(
               (item: any) => item.type !== "video",
@@ -299,8 +297,7 @@ export default function DocsPage() {
               folders,
               items,
             };
-          })
-          .filter((sec: any) => sec.folders.length > 0 || sec.items.length > 0);
+          });
 
         setSections(filtered);
         if (filtered && filtered.length > 0) {
@@ -330,7 +327,7 @@ export default function DocsPage() {
             item.title.toLowerCase().includes(searchQuery.toLowerCase()),
           ),
         }))
-        .filter((f) => f.items.length > 0);
+        .filter((f) => searchQuery === "" || f.items.length > 0);
 
       const items = sec.items.filter((item) =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -342,7 +339,10 @@ export default function DocsPage() {
         items,
       };
     })
-    .filter((sec) => sec.folders.length > 0 || sec.items.length > 0);
+    .filter(
+      (sec) =>
+        searchQuery === "" || sec.folders.length > 0 || sec.items.length > 0,
+    );
 
   return (
     <div className="min-h-[calc(100vh-48px)] bg-slate-50/70">

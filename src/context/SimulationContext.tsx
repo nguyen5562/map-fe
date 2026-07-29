@@ -118,6 +118,13 @@ export function SimulationProvider({
               materials: v.materials || "",
               unit: v.unit || "cái",
               isCar: !!v.isCar,
+              consumptionConfig: Array.isArray(v.consumptionConfig)
+                ? v.consumptionConfig.map((item: any) => ({
+                    name: item.name || "",
+                    rate: Number(item.rate) || "",
+                    unit: item.unit || "lít/giờ",
+                  }))
+                : undefined,
             };
           });
           useSimulationStore.setState({

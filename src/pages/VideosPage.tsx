@@ -60,15 +60,13 @@ export default function VideosPage() {
                 sectionRoman: sec.roman,
               }));
 
-            if (sectionVideos.length > 0) {
-              allVideos.push(...sectionVideos);
-              validSections.push({
-                id: sec.id,
-                roman: sec.roman,
-                title: sec.title,
-                items: sectionVideos,
-              });
-            }
+            allVideos.push(...sectionVideos);
+            validSections.push({
+              id: sec.id,
+              roman: sec.roman,
+              title: sec.title,
+              items: sectionVideos,
+            });
           });
 
         setVideos(allVideos);

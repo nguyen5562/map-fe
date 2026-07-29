@@ -12,6 +12,7 @@ import {
   TriangleAlert,
   MapPin,
   BarChart3,
+  Fuel,
 } from "lucide-react";
 import { useSimulation } from "../../context/SimulationContext";
 import { exportDocx } from "../../utils/docxExport";
@@ -392,6 +393,58 @@ export const RightSidebar = () => {
                   highlight
                 />
               </div>
+
+              {/* 4. LƯỢNG TIÊU HAO KHÍ TÀI (chỉ hiện cho xe) */}
+              {selectedPoint.results.vehicleBreakdown &&
+                Object.entries(selectedPoint.results.vehicleBreakdown).some(
+                  ([, vres]: [string, any]) =>
+                    vres.consumption &&
+                    Object.keys(vres.consumption).length > 0,
+                ) && (
+                  <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/30 shadow-sm space-y-1">
+                    <div className="flex items-center gap-2 border-b border-rose-200 pb-2 mb-1">
+                      <Fuel size={15} className="text-rose-600" />
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                        Lượng tiêu hao khí tài
+                      </h3>
+                    </div>
+
+                    {Object.entries(
+                      selectedPoint.results.vehicleBreakdown,
+                    ).map(([vid, vres]: [string, any]) => {
+                      if (
+                        !vres.consumption ||
+                        Object.keys(vres.consumption).length === 0
+                      )
+                        return null;
+                      const vConfig =
+                        selectedPoint.vehicleConfigs?.[vid] ||
+                        vehicleConfigs[vid];
+                      return (
+                        <div key={vid} className="space-y-1">
+                          <div className="text-[11.5px] font-bold text-slate-650 mb-1">
+                            {vConfig?.name || vid}
+                            {vres.weight < 100 ? ` (${vres.weight}%)` : ""}
+                          </div>
+                          {Object.entries(vres.consumption).map(
+                            ([itemName, itemValue]: [string, any]) => (
+                              <ResultRow
+                                key={itemName}
+                                label={itemName}
+                                value={itemValue}
+                                unit="lít"
+                              />
+                            ),
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      = tiêu hao/giờ x T(giờ) x số xe
+                    </p>
+                  </div>
+                )}
             </>
           )}
 
@@ -660,6 +713,52 @@ export const RightSidebar = () => {
                             {p.results?.coverTime_min} phút
                           </span>
                         </div>
+
+                        {/* Tiêu hao khí tài của point */}
+                        {p.results?.vehicleBreakdown &&
+                          Object.entries(p.results.vehicleBreakdown).some(
+                            ([, vres]: [string, any]) =>
+                              vres.consumption &&
+                              Object.keys(vres.consumption).length > 0,
+                          ) && (
+                            <div className="mt-2 pt-2 border-t border-rose-100 space-y-1">
+                              <span className="text-[10px] font-bold text-rose-600 uppercase">
+                                Lượng tiêu hao khí tài
+                              </span>
+                              {Object.entries(p.results.vehicleBreakdown).map(
+                                ([vid, vres]: [string, any]) => {
+                                  if (
+                                    !vres.consumption ||
+                                    Object.keys(vres.consumption).length === 0
+                                  )
+                                    return null;
+                                  const vConfig =
+                                    p.vehicleConfigs?.[vid] ||
+                                    vehicleConfigs[vid];
+                                  return (
+                                    <div key={vid} className="pl-1">
+                                      <div className="text-[10px] font-bold text-slate-500">
+                                        {vConfig?.name || vid}
+                                      </div>
+                                      {Object.entries(vres.consumption).map(
+                                        ([itemName, itemValue]: [string, any]) => (
+                                          <div
+                                            key={itemName}
+                                            className="flex justify-between pl-2 text-rose-700"
+                                          >
+                                            <span>{itemName}:</span>
+                                            <span className="font-medium">
+                                              {itemValue} lít
+                                            </span>
+                                          </div>
+                                        ),
+                                      )}
+                                    </div>
+                                  );
+                                },
+                              )}
+                            </div>
+                          )}
                       </div>
                     </div>
                   );

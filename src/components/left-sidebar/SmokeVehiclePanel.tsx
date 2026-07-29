@@ -7,6 +7,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 
+export type ConsumptionItem = {
+  name: string;      // "Chất tạo khói", "Xăng thả khói", ...
+  rate: number | "";  // lượng tiêu hao / giờ (người dùng nhập)
+  unit: string;      // "lít/giờ"
+};
+
 export type VehicleConfig = {
   id: string;
   name: string;
@@ -17,6 +23,7 @@ export type VehicleConfig = {
   materials: string; // spec sheet consumables
   unit: string; // unit of consumption
   isCar?: boolean;
+  consumptionConfig?: ConsumptionItem[];
 };
 
 const PREFERRED_ORDER = ["HPK-2.5", "TPK", "KH-1", "TDA-M", "KHOI_UNG_DUNG"];
@@ -245,6 +252,55 @@ export const SmokeVehiclePanel = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Thông số tiêu hao - chỉ hiện cho xe (isCar) */}
+                {config.isCar &&
+                  config.consumptionConfig &&
+                  config.consumptionConfig.length > 0 && (
+                    <div className="pt-2 border-t border-slate-200/80 space-y-2">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        Lượng tiêu hao
+                      </span>
+                      <div className="grid grid-cols-2 gap-2">
+                        {config.consumptionConfig.map((item, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <label
+                              className="text-[10px] font-bold text-slate-500 block truncate"
+                              title={item.name}
+                            >
+                              {item.name}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={item.rate}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const newConfig = [
+                                    ...(config.consumptionConfig || []),
+                                  ];
+                                  newConfig[idx] = {
+                                    ...newConfig[idx],
+                                    rate:
+                                      val === "" ? "" : parseFloat(val),
+                                  };
+                                  handleConfigChange(
+                                    vehicleId,
+                                    "consumptionConfig",
+                                    newConfig,
+                                  );
+                                }}
+                                className="w-full h-8 px-2 pr-12 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-450 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
+                              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold select-none">
+                                {item.unit}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </div>
             );
           })}

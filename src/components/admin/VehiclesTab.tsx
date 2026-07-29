@@ -26,6 +26,7 @@ export const VehiclesTab = () => {
     materials: "",
     unit: "",
     isCar: false,
+    consumptionConfig: [] as any[],
   });
 
   // Delete modal state
@@ -63,6 +64,9 @@ export const VehiclesTab = () => {
         materials: veh.materials || "",
         unit: veh.unit || "",
         isCar: !!veh.isCar,
+        consumptionConfig: Array.isArray(veh.consumptionConfig)
+          ? veh.consumptionConfig
+          : [],
       });
     } else {
       setEditingVehicle(null);
@@ -76,6 +80,7 @@ export const VehiclesTab = () => {
         materials: "",
         unit: "",
         isCar: false,
+        consumptionConfig: [],
       });
     }
     setVehicleModalOpen(true);
@@ -170,7 +175,6 @@ export const VehiclesTab = () => {
               <tr className="bg-slate-50 text-slate-500 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
                 <th className="p-4">Mã khí tài</th>
                 <th className="p-4">Tên hiển thị</th>
-                <th className="p-4">Mô tả</th>
                 <th className="p-4 text-center">Độ dài L (m)</th>
                 <th className="p-4 text-center">Độ rộng R (m)</th>
                 <th className="p-4 text-center">Thời gian (phút)</th>
@@ -187,9 +191,6 @@ export const VehiclesTab = () => {
                     </td>
                     <td className="p-4">
                       <Skeleton className="h-4 w-28 rounded-full" />
-                    </td>
-                    <td className="p-4">
-                      <Skeleton className="h-4 w-36 rounded-full" />
                     </td>
                     <td className="p-4">
                       <Skeleton className="h-4 w-8 rounded-full mx-auto" />
@@ -227,14 +228,11 @@ export const VehiclesTab = () => {
                       <div className="flex items-center gap-1.5">
                         <span>{v.name}</span>
                         {v.isCar && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
-                            Xe cơ động
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
+                            Xe
                           </span>
                         )}
                       </div>
-                    </td>
-                    <td className="p-4 text-slate-500 max-w-[200px] truncate">
-                      {v.desc || "Không có"}
                     </td>
                     <td className="p-4 text-center font-mono">{v.l}</td>
                     <td className="p-4 text-center font-mono">{v.r}</td>
@@ -418,6 +416,79 @@ export const VehiclesTab = () => {
                   Là phương tiện cơ động (xe thả khói)
                 </label>
               </div>
+
+              {/* Quản lý hạng mục tiêu hao (chỉ hiện khi isCar) */}
+              {vehicleForm.isCar && (
+                <div className="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-slate-650 font-semibold">
+                      Các hạng mục tiêu hao (lít/giờ)
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setVehicleForm({
+                          ...vehicleForm,
+                          consumptionConfig: [
+                            ...(vehicleForm.consumptionConfig || []),
+                            { name: "", rate: "", unit: "lít/giờ" },
+                          ],
+                        })
+                      }
+                      className="h-6 text-[10px] px-2 py-0 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Plus size={12} className="mr-1" /> Thêm mục
+                    </Button>
+                  </div>
+                  {(!vehicleForm.consumptionConfig ||
+                    vehicleForm.consumptionConfig.length === 0) && (
+                    <p className="text-[11px] text-slate-400 italic text-center">
+                      Chưa có hạng mục nào.
+                    </p>
+                  )}
+                  {vehicleForm.consumptionConfig?.map((item: any, idx: number) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <Input
+                        value={item.name}
+                        onChange={(e: any) => {
+                          const newConf = [...vehicleForm.consumptionConfig];
+                          newConf[idx].name = e.target.value;
+                          setVehicleForm({ ...vehicleForm, consumptionConfig: newConf });
+                        }}
+                        placeholder="Tên (VD: Chất tạo khói)"
+                        className="flex-1 min-w-[120px] bg-white"
+                      />
+                      <Input
+                        type="number"
+                        value={item.rate}
+                        onChange={(e: any) => {
+                          const newConf = [...vehicleForm.consumptionConfig];
+                          newConf[idx].rate = e.target.value;
+                          setVehicleForm({ ...vehicleForm, consumptionConfig: newConf });
+                        }}
+                        placeholder="Mặc định"
+                        className="!w-24 bg-white"
+                      />
+                      <span className="text-[11px] text-slate-500 w-12 shrink-0 text-center">
+                        lít/giờ
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newConf = [...vehicleForm.consumptionConfig];
+                          newConf.splice(idx, 1);
+                          setVehicleForm({ ...vehicleForm, consumptionConfig: newConf });
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-500"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div>
                 <label className="text-slate-650 font-semibold mb-1 block">
                   Vật tư tiêu hao (Materials)

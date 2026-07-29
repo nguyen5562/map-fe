@@ -73,6 +73,7 @@ export const performCalculation = (inputs: {
       totalVehicles: number;
       coverTime_min: number;
       weight: number;
+      consumption?: Record<string, number>;
     }
   > = {};
 
@@ -144,6 +145,19 @@ export const performCalculation = (inputs: {
     // Thời gian phủ kín mục tiêu τ = l / v (giây) → ÷ 60 → phút
     const coverTime_min = v > 0 ? Math.round((l / v / 60) * 100) / 100 : 0;
 
+    // Tính tiêu hao khí tài cho xe (isCar)
+    let consumption: Record<string, number> | undefined;
+    if (config.isCar && config.consumptionConfig && config.consumptionConfig.length > 0) {
+      const T_hours = T / 60; // T đang là phút, đổi sang giờ
+      consumption = {};
+      config.consumptionConfig.forEach((item: any) => {
+        const rate = Number(item.rate) || 0;
+        if (rate > 0) {
+          consumption![item.name] = Math.round(rate * T_hours * totalVehicles * 100) / 100;
+        }
+      });
+    }
+
     vehicleBreakdown[vehicleId] = {
       straightLine_vehicles:
         lineType === "Thẳng" || lineType === "Diện" ? A * a : 0,
@@ -156,6 +170,7 @@ export const performCalculation = (inputs: {
       totalVehicles,
       coverTime_min,
       weight,
+      consumption,
     };
 
     totalVehiclesSum += totalVehicles;
@@ -244,6 +259,7 @@ export const aggregateResults = (pointsList: any[]) => {
             totalVehicles: 0,
             coverTime_min: 0,
             weight: 0,
+            consumption: undefined as Record<string, number> | undefined,
           };
         }
         const vdata = breakdown[vid];
@@ -265,6 +281,16 @@ export const aggregateResults = (pointsList: any[]) => {
           acc.vehicleBreakdown[vid].coverTime_min,
           vdata.coverTime_min || 0,
         );
+        // Gộp consumption
+        if (vdata.consumption) {
+          if (!acc.vehicleBreakdown[vid].consumption) {
+            acc.vehicleBreakdown[vid].consumption = {};
+          }
+          Object.entries(vdata.consumption).forEach(([key, val]) => {
+            acc.vehicleBreakdown[vid].consumption![key] =
+              (acc.vehicleBreakdown[vid].consumption![key] || 0) + (val as number);
+          });
+        }
       });
 
       return acc;
