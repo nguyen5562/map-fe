@@ -1,5 +1,5 @@
 import React from "react";
-import { getBeaufort, getStability, renderTemp } from "../../utils/weather";
+import { getStability, renderTemp } from "../../utils/weather";
 
 const UTM_FONT = "'UTM Helvetins', 'Times New Roman', Times, serif";
 
@@ -49,7 +49,7 @@ export const WeatherOverlay = ({
         transform={`rotate(${-angle}, ${cx + 11}, 142)`}
         style={{ fontFamily: UTM_FONT }}
       >
-        {getBeaufort(speed)}
+        {speed}
       </text>
       <text
         x={cx + 11}
@@ -61,7 +61,7 @@ export const WeatherOverlay = ({
         transform={`rotate(${-angle}, ${cx + 11}, 142)`}
         style={{ fontFamily: UTM_FONT }}
       >
-        {getBeaufort(speed)}
+        {speed}
       </text>
     </>
   );
