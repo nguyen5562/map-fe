@@ -414,6 +414,7 @@ export function MapExportPreview({
                   hasVehicle={selectedVehicles.some(
                     (vid: string) => !!vehicleConfigs[vid]?.isCar,
                   )}
+                  vehicleSide={smokeMethodData.vehicleSide}
                 />
               )}
 
@@ -459,6 +460,9 @@ export function MapExportPreview({
               const activeBufferColor = isEditing
                 ? smokeMethodData?.bufferColor
                 : p.smokeMethodData?.bufferColor;
+              const activeVehicleSide = isEditing
+                ? (smokeMethodData?.vehicleSide ?? "right")
+                : (p.smokeMethodData?.vehicleSide ?? "right");
 
               let rawWidth = 0;
               if (activeLineType === "Vòng") {
@@ -546,6 +550,7 @@ export function MapExportPreview({
                     lineRole={activeLineRole}
                     bufferColor={activeBufferColor}
                     hasVehicle={pointHasVehicle}
+                    vehicleSide={activeVehicleSide}
                   />
                   {p.results && (
                     <>

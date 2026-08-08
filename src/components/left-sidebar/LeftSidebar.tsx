@@ -437,7 +437,11 @@ export const LeftSidebar = () => {
         <div className="p-4 border-t border-slate-200 bg-slate-50/80 backdrop-blur-sm grid grid-cols-2 gap-2 shrink-0">
           <button
             onClick={handleAddPointClick}
-            disabled={!isCalibrated || (!editingPointId && !currentRealCoords) || isCalculatingUI}
+            disabled={
+              !isCalibrated ||
+              (!editingPointId && !currentRealCoords) ||
+              isCalculatingUI
+            }
             className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all border border-slate-300 hover:bg-slate-105 text-slate-700 bg-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
           >
             {editingPointId ? <Save size={14} /> : <Plus size={14} />}
@@ -446,7 +450,9 @@ export const LeftSidebar = () => {
           <button
             onClick={handleCalculateClick}
             disabled={
-              !isCalibrated || (pointsList.length === 0 && !currentRealCoords) || isCalculatingUI
+              !isCalibrated ||
+              (pointsList.length === 0 && !currentRealCoords) ||
+              isCalculatingUI
             }
             className="flex items-center justify-center gap-1.5 h-10 rounded-lg text-xs font-bold tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
             style={{
@@ -547,7 +553,10 @@ export const LeftSidebar = () => {
       {isCalculatingUI &&
         createPortal(
           <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-[2px] select-none">
-            <Loader2 size={48} className="text-white animate-spin drop-shadow-md mb-4" />
+            <Loader2
+              size={48}
+              className="text-white animate-spin drop-shadow-md mb-4"
+            />
             <h3 className="text-white font-bold tracking-wider drop-shadow-md text-lg">
               ĐANG PHÂN TÍCH VÀ TÍNH TOÁN...
             </h3>

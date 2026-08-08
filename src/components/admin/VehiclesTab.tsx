@@ -447,45 +447,56 @@ export const VehiclesTab = () => {
                       Chưa có hạng mục nào.
                     </p>
                   )}
-                  {vehicleForm.consumptionConfig?.map((item: any, idx: number) => (
-                    <div key={idx} className="flex gap-2 items-center">
-                      <Input
-                        value={item.name}
-                        onChange={(e: any) => {
-                          const newConf = [...vehicleForm.consumptionConfig];
-                          newConf[idx].name = e.target.value;
-                          setVehicleForm({ ...vehicleForm, consumptionConfig: newConf });
-                        }}
-                        placeholder="Tên (VD: Chất tạo khói)"
-                        className="flex-1 min-w-[120px] bg-white"
-                      />
-                      <Input
-                        type="number"
-                        value={item.rate}
-                        onChange={(e: any) => {
-                          const newConf = [...vehicleForm.consumptionConfig];
-                          newConf[idx].rate = e.target.value;
-                          setVehicleForm({ ...vehicleForm, consumptionConfig: newConf });
-                        }}
-                        placeholder="Mặc định"
-                        className="!w-24 bg-white"
-                      />
-                      <span className="text-[11px] text-slate-500 w-12 shrink-0 text-center">
-                        lít/giờ
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newConf = [...vehicleForm.consumptionConfig];
-                          newConf.splice(idx, 1);
-                          setVehicleForm({ ...vehicleForm, consumptionConfig: newConf });
-                        }}
-                        className="p-1 text-slate-400 hover:text-red-500"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                  {vehicleForm.consumptionConfig?.map(
+                    (item: any, idx: number) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <Input
+                          value={item.name}
+                          onChange={(e: any) => {
+                            const newConf = [...vehicleForm.consumptionConfig];
+                            newConf[idx].name = e.target.value;
+                            setVehicleForm({
+                              ...vehicleForm,
+                              consumptionConfig: newConf,
+                            });
+                          }}
+                          placeholder="Tên (VD: Chất tạo khói)"
+                          className="flex-1 min-w-[120px] bg-white"
+                        />
+                        <Input
+                          type="number"
+                          value={item.rate}
+                          onChange={(e: any) => {
+                            const newConf = [...vehicleForm.consumptionConfig];
+                            newConf[idx].rate = e.target.value;
+                            setVehicleForm({
+                              ...vehicleForm,
+                              consumptionConfig: newConf,
+                            });
+                          }}
+                          placeholder="Mặc định"
+                          className="!w-24 bg-white"
+                        />
+                        <span className="text-[11px] text-slate-500 w-12 shrink-0 text-center">
+                          lít/giờ
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newConf = [...vehicleForm.consumptionConfig];
+                            newConf.splice(idx, 1);
+                            setVehicleForm({
+                              ...vehicleForm,
+                              consumptionConfig: newConf,
+                            });
+                          }}
+                          className="p-1 text-slate-400 hover:text-red-500"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ),
+                  )}
                 </div>
               )}
 

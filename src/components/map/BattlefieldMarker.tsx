@@ -24,7 +24,9 @@ export function BattlefieldMarker({
   battlefieldScale?: number;
   onClick?: () => void;
 }) {
-  const storeBattlefieldScale = useSimulationStore((s) => s.battlefieldScale ?? 1);
+  const storeBattlefieldScale = useSimulationStore(
+    (s) => s.battlefieldScale ?? 1,
+  );
   const battlefieldScale = propBattlefieldScale ?? storeBattlefieldScale;
 
   // Made markers larger by increasing the base width/height to 120x80 pixels at scale

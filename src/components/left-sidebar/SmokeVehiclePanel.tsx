@@ -5,12 +5,14 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 
 export type ConsumptionItem = {
-  name: string;      // "Chất tạo khói", "Xăng thả khói", ...
-  rate: number | "";  // lượng tiêu hao / giờ (người dùng nhập)
-  unit: string;      // "lít/giờ"
+  name: string; // "Chất tạo khói", "Xăng thả khói", ...
+  rate: number | ""; // lượng tiêu hao / giờ (người dùng nhập)
+  unit: string; // "lít/giờ"
 };
 
 export type VehicleConfig = {
@@ -41,7 +43,13 @@ export const SmokeVehiclePanel = () => {
   const setReserveCoefficient = useSimulation((s) => s.setReserveCoefficient);
   const vehicleWeights = useSimulation((s) => s.vehicleWeights);
   const setVehicleWeights = useSimulation((s) => s.setVehicleWeights);
+  const smokeMethodData = useSimulation((s) => s.smokeMethodData);
+  const setSmokeMethodData = useSimulation((s) => s.setSmokeMethodData);
   const [showPanel, setShowPanel] = useState(true);
+
+  const hasCarSelected = selectedVehicles.some(
+    (vid) => !!vehicleConfigs[vid]?.isCar,
+  );
 
   const sortedVehicles = Object.values(vehicleConfigs).sort((a, b) => {
     const indexA = PREFERRED_ORDER.indexOf(a.id);
@@ -138,6 +146,49 @@ export const SmokeVehiclePanel = () => {
               );
             })}
           </div>
+
+          {/* Hướng xe - chỉ hiển thị khi có ít nhất 1 xe (isCar) được chọn */}
+          {hasCarSelected && (
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                Hướng xe
+              </span>
+              <div className="flex gap-1.5 flex-1">
+                <button
+                  onClick={() =>
+                    setSmokeMethodData({
+                      ...smokeMethodData,
+                      vehicleSide: "left",
+                    })
+                  }
+                  className={`flex-1 h-8 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1 ${
+                    smokeMethodData.vehicleSide === "left"
+                      ? "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-200/50"
+                      : "bg-white text-slate-600 border-slate-300 hover:border-orange-400 hover:text-orange-600"
+                  }`}
+                >
+                  <ArrowLeft size={12} />
+                  Trái
+                </button>
+                <button
+                  onClick={() =>
+                    setSmokeMethodData({
+                      ...smokeMethodData,
+                      vehicleSide: "right",
+                    })
+                  }
+                  className={`flex-1 h-8 rounded-lg text-xs font-bold border transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1 ${
+                    (smokeMethodData.vehicleSide || "right") === "right"
+                      ? "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-200/50"
+                      : "bg-white text-slate-600 border-slate-300 hover:border-orange-400 hover:text-orange-600"
+                  }`}
+                >
+                  Phải
+                  <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {selectedVehicles.map((vehicleId) => {
             const config = vehicleConfigs[vehicleId];
@@ -281,8 +332,7 @@ export const SmokeVehiclePanel = () => {
                                   ];
                                   newConfig[idx] = {
                                     ...newConfig[idx],
-                                    rate:
-                                      val === "" ? "" : parseFloat(val),
+                                    rate: val === "" ? "" : parseFloat(val),
                                   };
                                   handleConfigChange(
                                     vehicleId,

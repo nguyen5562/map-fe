@@ -14,6 +14,7 @@ export function GasMarker({
   bufferColor = "none",
   onClick,
   hasVehicle = false,
+  vehicleSide = "right",
 }: {
   center: L.LatLng;
   angle: number;
@@ -26,6 +27,7 @@ export function GasMarker({
   bufferColor?: string;
   onClick?: () => void;
   hasVehicle?: boolean;
+  vehicleSide?: "left" | "right";
 }) {
   // Tính chiều rộng overlay dựa trên loại tuyến khói.
   // Tuyến thẳng: SVG width 250px, line dài 200px (80%), nên overlay = length / 0.8 = length * 1.25
@@ -63,61 +65,70 @@ export function GasMarker({
   const yBottom = 125 + rectHeightInSvg / 2;
 
   // Helper render functions
-  const renderVehicle = (stroke: string, sw: number, fill: string = "none") => {
-    // Bù lại phép scale 0.08 của group xe để nét vẽ có độ dày thực tế đồng bộ với tuyến khói và BattlefieldMarker (nét chính ~4.5px)
+  const renderVehicle = (
+    strokeColor: string,
+    sw: number,
+    fillColor = "none",
+  ) => {
+    // Bù lại phép scale 0.08 của group xe để nét vẽ có độ dày thực tế đồng bộ với tuyến khói
     const scaleFactor = sw / 0.08;
+
     return (
       <g
-        stroke={stroke}
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        stroke={strokeColor}
+        strokeWidth={scaleFactor}
+        fill={fillColor}
+        strokeLinejoin="miter"
+        strokeMiterlimit="4"
+        strokeLinecap="square"
       >
-        <g transform="translate(0,598) rotate(-90)">
-          {/* thân mũi tên (mảnh hơn viền chai một chút: sw * 0.8) */}
-          <path
-            d="M 255 320 L 255 160"
-            fill="none"
-            stroke={stroke}
-            strokeWidth={scaleFactor * 0.8}
-          />
-
-          {/* đầu mũi tên (chỉ giữ phần tam giác nhọn đầu mũi tên, cắt đuôi) */}
-          <path
-            d="M 255 60 L 301 175 L 269 160 L 241 160 L 209 175 Z"
-            fill={stroke}
-            stroke="none"
-          />
-
-          {/* khối chính có cạnh cong (độ dày nét sw) */}
-          <path
-            d="
-            M 178 320
-            L 332 320
-            C 332 420, 360 470, 390 500
-            C 410 530, 430 545, 443 570
-            L 443 878
-            L 178 878
-            Z"
-            fill={fill}
-            stroke={stroke}
-            strokeWidth={scaleFactor}
-            strokeLinejoin="round"
-          />
-
-          {/* chữ H (giữ đứng, xoay ngược lại phép xoay của nhóm, nét sw * 1.1) */}
-          <path
-            d="
-            M 275 622 L 275 748
-            M 275 685 L 345 685
-            M 345 622 L 345 748"
-            fill="none"
-            stroke={stroke}
-            strokeWidth={scaleFactor * 1.1}
-            strokeLinecap="square"
-            transform="rotate(90 310 685)"
-          />
-        </g>
+        {vehicleSide === "right" ? (
+          <>
+            <path d="M 0 -25 L 0 375 L 1000 375 L 1000 175 L 800 175 L 650 -25 Z" />
+            <path d="M 1000 275 L 1250 275" />
+            <path
+              d="M 1200 200 L 1400 275 L 1200 350 Z"
+              fill={strokeColor}
+              stroke="none"
+            />
+            <text
+              x="360"
+              y="175"
+              fontFamily='"Arial Black", Arial, sans-serif'
+              fontWeight="900"
+              fontSize="260"
+              fill={strokeColor}
+              stroke="none"
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              K
+            </text>
+          </>
+        ) : (
+          <>
+            <path d="M 1400 -25 L 1400 375 L 400 375 L 400 175 L 600 175 L 750 -25 Z" />
+            <path d="M 400 275 L 200 275" />
+            <path
+              d="M 200 200 L 0 275 L 200 350 Z"
+              fill={strokeColor}
+              stroke="none"
+            />
+            <text
+              x="1040"
+              y="175"
+              fontFamily='"Arial Black", Arial, sans-serif'
+              fontWeight="900"
+              fontSize="260"
+              fill={strokeColor}
+              stroke="none"
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              K
+            </text>
+          </>
+        )}
       </g>
     );
   };
@@ -233,7 +244,7 @@ export function GasMarker({
 
   return (
     <SVGOverlay
-      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${smokeLineDiameter}-${smokeLineWidth}-${lineType}-${lineRole}-${bufferColor}`}
+      key={`${center.lat}-${center.lng}-${angle}-${smokeLineLength}-${smokeLineDiameter}-${smokeLineWidth}-${lineType}-${lineRole}-${bufferColor}-${vehicleSide}`}
       bounds={bounds}
       attributes={{ viewBox: "0 0 250 250", style: "overflow: visible;" }}
       eventHandlers={onClick ? { click: onClick } : undefined}
@@ -265,7 +276,13 @@ export function GasMarker({
                     </clipPath>
                   </defs>
                   {hasVehicle && (
-                    <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+                    <g
+                      transform={
+                        vehicleSide === "left"
+                          ? "translate(225, 103) scale(0.08, 0.08)"
+                          : "translate(-87, 103) scale(0.08, 0.08)"
+                      }
+                    >
                       <g transform="translate(2, 2)">
                         {renderVehicle(finalBufferColor, SW_MAIN + 6, "none")}
                       </g>
@@ -291,7 +308,13 @@ export function GasMarker({
                   </defs>
                   {hasVehicle && (
                     <g transform="translate(2, 2)">
-                      <g transform="translate(51, 97.56) scale(-0.08, 0.08)">
+                      <g
+                        transform={
+                          vehicleSide === "left"
+                            ? "translate(225, 103) scale(0.08, 0.08)"
+                            : "translate(-87, 103) scale(0.08, 0.08)"
+                        }
+                      >
                         {renderVehicle(finalBufferColor, SW_MAIN + 6, "none")}
                       </g>
                     </g>
@@ -310,7 +333,13 @@ export function GasMarker({
                 /* Nét đệm dịch chuyển cho toàn bộ tuyến thẳng */
                 <>
                   {hasVehicle && (
-                    <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+                    <g
+                      transform={
+                        vehicleSide === "left"
+                          ? "translate(225, 103) scale(0.08, 0.08)"
+                          : "translate(-87, 103) scale(0.08, 0.08)"
+                      }
+                    >
                       <g transform="translate(2, 2)">
                         {renderVehicle(finalBufferColor, SW_MAIN + 6, "none")}
                       </g>
@@ -329,7 +358,13 @@ export function GasMarker({
         {lineType === "Diện" ? (
           <>
             {hasVehicle && (
-              <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+              <g
+                transform={
+                  vehicleSide === "left"
+                    ? "translate(225, 103) scale(0.08, 0.08)"
+                    : "translate(-87, 103) scale(0.08, 0.08)"
+                }
+              >
                 {renderVehicle(strokeColor, SW_MAIN, "none")}
               </g>
             )}
@@ -339,7 +374,13 @@ export function GasMarker({
         ) : lineType === "Vòng" ? (
           <>
             {hasVehicle && (
-              <g transform="translate(51, 97.56) scale(-0.08, 0.08)">
+              <g
+                transform={
+                  vehicleSide === "left"
+                    ? "translate(225, 103) scale(0.08, 0.08)"
+                    : "translate(-87, 103) scale(0.08, 0.08)"
+                }
+              >
                 {renderVehicle(strokeColor, SW_MAIN, "none")}
               </g>
             )}
@@ -349,7 +390,13 @@ export function GasMarker({
         ) : (
           <>
             {hasVehicle && (
-              <g transform="translate(26, 97.56) scale(-0.08, 0.08)">
+              <g
+                transform={
+                  vehicleSide === "left"
+                    ? "translate(225, 103) scale(0.08, 0.08)"
+                    : "translate(-87, 103) scale(0.08, 0.08)"
+                }
+              >
                 {renderVehicle(strokeColor, SW_MAIN, "none")}
               </g>
             )}

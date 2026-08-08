@@ -1,8 +1,51 @@
+import { useState, useEffect } from "react";
 import { Settings, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
 import { useSimulation } from "../../context/SimulationContext";
+
+const KmInput = ({ value, onChange, placeholder, disabled }: any) => {
+  const [internalValue, setInternalValue] = useState(() => {
+    if (!value) return "";
+    const num = parseFloat(value);
+    return isNaN(num) ? "" : String(num / 1000);
+  });
+
+  useEffect(() => {
+    if (value) {
+      const currentNum = parseFloat(internalValue) * 1000;
+      const propNum = parseFloat(value);
+      if (isNaN(currentNum) || Math.abs(currentNum - propNum) > 0.0001) {
+        setInternalValue(String(propNum / 1000));
+      }
+    } else {
+      setInternalValue("");
+    }
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleChange = (e: any) => {
+    setInternalValue(e.target.value);
+    if (e.target.value === "") {
+      onChange("");
+    } else {
+      const num = parseFloat(e.target.value);
+      if (!isNaN(num)) {
+        onChange(String(num * 1000));
+      }
+    }
+  };
+
+  return (
+    <Input
+      type="number"
+      value={internalValue}
+      onChange={handleChange}
+      placeholder={placeholder}
+      disabled={disabled}
+    />
+  );
+};
 
 export const CalibrationPanel = () => {
   const isCalibrated = useSimulation((s) => s.isCalibrated);
@@ -65,7 +108,7 @@ export const CalibrationPanel = () => {
         <div className="px-4 pb-4 pt-2 space-y-4">
           {!isCalibrated && (
             <p className="text-xs text-slate-600 my-2">
-              Áp 2 điểm mốc để quy đổi từ tọa độ ảnh sang Mét (VN-2000).
+              Áp 2 điểm mốc để quy đổi từ tọa độ ảnh sang Km (tính toán nội bộ theo VN-2000 Mét).
             </p>
           )}
 
@@ -90,18 +133,16 @@ export const CalibrationPanel = () => {
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <Input
-                type="number"
+              <KmInput
                 value={p1.realX}
-                onChange={(e: any) => setP1({ ...p1, realX: e.target.value })}
-                placeholder="X thật"
+                onChange={(val: string) => setP1({ ...p1, realX: val })}
+                placeholder="X thật (km)"
                 disabled={isCalibrated}
               />
-              <Input
-                type="number"
+              <KmInput
                 value={p1.realY}
-                onChange={(e: any) => setP1({ ...p1, realY: e.target.value })}
-                placeholder="Y thật"
+                onChange={(val: string) => setP1({ ...p1, realY: val })}
+                placeholder="Y thật (km)"
                 disabled={isCalibrated}
               />
             </div>
@@ -128,18 +169,16 @@ export const CalibrationPanel = () => {
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <Input
-                type="number"
+              <KmInput
                 value={p2.realX}
-                onChange={(e: any) => setP2({ ...p2, realX: e.target.value })}
-                placeholder="X thật"
+                onChange={(val: string) => setP2({ ...p2, realX: val })}
+                placeholder="X thật (km)"
                 disabled={isCalibrated}
               />
-              <Input
-                type="number"
+              <KmInput
                 value={p2.realY}
-                onChange={(e: any) => setP2({ ...p2, realY: e.target.value })}
-                placeholder="Y thật"
+                onChange={(val: string) => setP2({ ...p2, realY: val })}
+                placeholder="Y thật (km)"
                 disabled={isCalibrated}
               />
             </div>

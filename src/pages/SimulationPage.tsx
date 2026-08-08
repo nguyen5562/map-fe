@@ -549,6 +549,7 @@ function SimulationInner() {
                   hasVehicle={selectedVehicles.some(
                     (vid: string) => !!vehicleConfigs[vid]?.isCar,
                   )}
+                  vehicleSide={smokeMethodData.vehicleSide}
                 />
               ) : (
                 <Marker position={clickedRaw} opacity={0.6} />
@@ -597,6 +598,9 @@ function SimulationInner() {
               const activeBufferColor = isEditing
                 ? smokeMethodData?.bufferColor
                 : p.smokeMethodData?.bufferColor;
+              const activeVehicleSide = isEditing
+                ? (smokeMethodData?.vehicleSide ?? "right")
+                : (p.smokeMethodData?.vehicleSide ?? "right");
 
               let rawWidth = 0;
               if (activeLineType === "Vòng") {
@@ -697,6 +701,7 @@ function SimulationInner() {
                     bufferColor={activeBufferColor}
                     onClick={() => onSelectPoint(p.id)}
                     hasVehicle={pointHasVehicle}
+                    vehicleSide={activeVehicleSide}
                   />
                   {p.results && (
                     <>

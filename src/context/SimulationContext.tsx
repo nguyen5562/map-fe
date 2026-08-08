@@ -26,6 +26,7 @@ export interface SmokeMethodData {
   lineType: "Thẳng" | "Vòng" | "Diện";
   lineRole?: "Chính" | "Dự bị";
   bufferColor?: string;
+  vehicleSide?: "left" | "right";
 }
 
 export interface WeatherData {

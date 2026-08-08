@@ -409,36 +409,36 @@ export const RightSidebar = () => {
                       </h3>
                     </div>
 
-                    {Object.entries(
-                      selectedPoint.results.vehicleBreakdown,
-                    ).map(([vid, vres]: [string, any]) => {
-                      if (
-                        !vres.consumption ||
-                        Object.keys(vres.consumption).length === 0
-                      )
-                        return null;
-                      const vConfig =
-                        selectedPoint.vehicleConfigs?.[vid] ||
-                        vehicleConfigs[vid];
-                      return (
-                        <div key={vid} className="space-y-1">
-                          <div className="text-[11.5px] font-bold text-slate-650 mb-1">
-                            {vConfig?.name || vid}
-                            {vres.weight < 100 ? ` (${vres.weight}%)` : ""}
+                    {Object.entries(selectedPoint.results.vehicleBreakdown).map(
+                      ([vid, vres]: [string, any]) => {
+                        if (
+                          !vres.consumption ||
+                          Object.keys(vres.consumption).length === 0
+                        )
+                          return null;
+                        const vConfig =
+                          selectedPoint.vehicleConfigs?.[vid] ||
+                          vehicleConfigs[vid];
+                        return (
+                          <div key={vid} className="space-y-1">
+                            <div className="text-[11.5px] font-bold text-slate-650 mb-1">
+                              {vConfig?.name || vid}
+                              {vres.weight < 100 ? ` (${vres.weight}%)` : ""}
+                            </div>
+                            {Object.entries(vres.consumption).map(
+                              ([itemName, itemValue]: [string, any]) => (
+                                <ResultRow
+                                  key={itemName}
+                                  label={itemName}
+                                  value={itemValue}
+                                  unit="lít"
+                                />
+                              ),
+                            )}
                           </div>
-                          {Object.entries(vres.consumption).map(
-                            ([itemName, itemValue]: [string, any]) => (
-                              <ResultRow
-                                key={itemName}
-                                label={itemName}
-                                value={itemValue}
-                                unit="lít"
-                              />
-                            ),
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      },
+                    )}
 
                     <p className="text-[10px] text-slate-400 mt-1">
                       = tiêu hao/giờ x T(giờ) x số xe
@@ -741,7 +741,10 @@ export const RightSidebar = () => {
                                         {vConfig?.name || vid}
                                       </div>
                                       {Object.entries(vres.consumption).map(
-                                        ([itemName, itemValue]: [string, any]) => (
+                                        ([itemName, itemValue]: [
+                                          string,
+                                          any,
+                                        ]) => (
                                           <div
                                             key={itemName}
                                             className="flex justify-between pl-2 text-rose-700"

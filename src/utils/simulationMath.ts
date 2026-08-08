@@ -104,10 +104,7 @@ export const performCalculation = (inputs: {
       } else {
         // Trường hợp gió chéo góc α: N = L / (l × cosα) (công thức 1.3)
         const cosAlphaForN = Math.cos((alpha * Math.PI) / 180);
-        N =
-          l > 0 && cosAlphaForN > 0
-            ? smokeRound(L / (l * cosAlphaForN))
-            : 0;
+        N = l > 0 && cosAlphaForN > 0 ? smokeRound(L / (l * cosAlphaForN)) : 0;
       }
 
       // Công thức 1.5 & 1.6: Tính số điểm khói trên 1 tuyến A
@@ -123,10 +120,7 @@ export const performCalculation = (inputs: {
 
       // Công thức 1.4: N = 1 + 1/2(L - l) / l, trong đó L = πD (chu vi)
       const circumference = Math.PI * D;
-      N =
-        l > 0
-          ? smokeRound(1 + Math.max(0, circumference - l) / (2 * l))
-          : 0;
+      N = l > 0 ? smokeRound(1 + Math.max(0, circumference - l) / (2 * l)) : 0;
 
       // Công thức 1.7: A = πD / r (số điểm khói trên tuyến vòng)
       A = r > 0 ? smokeRound((Math.PI * D) / r) : 0;
@@ -150,13 +144,18 @@ export const performCalculation = (inputs: {
 
     // Tính tiêu hao khí tài cho xe (isCar)
     let consumption: Record<string, number> | undefined;
-    if (config.isCar && config.consumptionConfig && config.consumptionConfig.length > 0) {
+    if (
+      config.isCar &&
+      config.consumptionConfig &&
+      config.consumptionConfig.length > 0
+    ) {
       const T_hours = T / 60; // T đang là phút, đổi sang giờ
       consumption = {};
       config.consumptionConfig.forEach((item: any) => {
         const rate = Number(item.rate) || 0;
         if (rate > 0) {
-          consumption![item.name] = Math.round(rate * T_hours * totalVehicles * 100) / 100;
+          consumption![item.name] =
+            Math.round(rate * T_hours * totalVehicles * 100) / 100;
         }
       });
     }
@@ -291,7 +290,8 @@ export const aggregateResults = (pointsList: any[]) => {
           }
           Object.entries(vdata.consumption).forEach(([key, val]) => {
             acc.vehicleBreakdown[vid].consumption![key] =
-              (acc.vehicleBreakdown[vid].consumption![key] || 0) + (val as number);
+              (acc.vehicleBreakdown[vid].consumption![key] || 0) +
+              (val as number);
           });
         }
       });

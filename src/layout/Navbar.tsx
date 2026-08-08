@@ -155,7 +155,7 @@ export default function Navbar() {
 
   const navItems = [
     { path: "/simulation", label: "TÍNH TOÁN", icon: Map },
-    { path: "/videos", label: "MÔ PHỎNG", icon: Film },
+    { path: "/videos", label: "MÔ PHỎNG 3D", icon: Film },
     { path: "/docs", label: "TÀI LIỆU", icon: BookOpen },
   ];
 
@@ -214,7 +214,7 @@ export default function Navbar() {
       <div className="flex items-center gap-2 mr-4">
         <img src="/favicon.ico" alt="Logo" className="w-7 h-7 object-contain" />
         <span className="text-white font-bold text-sm tracking-wide hidden sm:block">
-          CHƯƠNG TRÌNH TÍNH TOÁN MÔ PHỎNG KHÍ TÀI PHÁT KHÓI{" "}
+          TÍNH TOÁN, MÔ PHỎNG 3D KHÍ TÀI PHÁT KHÓI{" "}
         </span>
       </div>
 
