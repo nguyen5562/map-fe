@@ -194,6 +194,7 @@ function SimulationInner() {
   const smokeTime = useSimulation((s) => s.smokeTime);
   const selectedVehicles = useSimulation((s) => s.selectedVehicles);
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
+  const hasCarSelected = selectedVehicles.some((vid) => !!vehicleConfigs[vid]?.isCar);
   const editingPointId = useSimulation((s) => s.editingPointId);
   const selectedPointId = useSimulation((s) => s.selectedPointId);
   const onSelectPoint = useSimulation((s) => s.onSelectPoint);
@@ -429,7 +430,7 @@ function SimulationInner() {
                 {/* 1. Active / Draft Battlefield Position Markers (only when no point is selected) */}
                 {!selectedPointId && (
                   <>
-                    {battlefieldData.firePoints.rawCoords && (
+                    {!hasCarSelected && battlefieldData.firePoints.rawCoords && (
                       <BattlefieldMarker
                         center={battlefieldData.firePoints.rawCoords}
                         type="firePoints"
@@ -479,7 +480,12 @@ function SimulationInner() {
 
                   return (
                     <React.Fragment key={`bf-${p.id}`}>
-                      {bfData.firePoints?.rawCoords && (
+                      {(() => {
+                        const ptHasCar = (isSelected ? selectedVehicles : p.selectedVehicles)?.some((vid: string) => {
+                          const configs = isSelected ? vehicleConfigs : p.vehicleConfigs;
+                          return !!configs?.[vid]?.isCar;
+                        });
+                        return !ptHasCar && bfData.firePoints?.rawCoords && (
                         <BattlefieldMarker
                           center={L.latLng(
                             bfData.firePoints.rawCoords.lat,
@@ -493,7 +499,8 @@ function SimulationInner() {
                           battlefieldScale={scaleVal}
                           onClick={() => onSelectPoint(p.id)}
                         />
-                      )}
+                        );
+                      })()}
                       {bfData.reserveUnit?.rawCoords && (
                         <BattlefieldMarker
                           center={L.latLng(

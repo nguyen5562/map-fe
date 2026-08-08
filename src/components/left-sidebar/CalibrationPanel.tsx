@@ -108,7 +108,8 @@ export const CalibrationPanel = () => {
         <div className="px-4 pb-4 pt-2 space-y-4">
           {!isCalibrated && (
             <p className="text-xs text-slate-600 my-2">
-              Áp 2 điểm mốc để quy đổi từ tọa độ ảnh sang Km (tính toán nội bộ theo VN-2000 Mét).
+              Áp 2 điểm mốc để quy đổi từ tọa độ ảnh sang Km (tính toán nội bộ
+              theo VN-2000 Mét).
             </p>
           )}
 

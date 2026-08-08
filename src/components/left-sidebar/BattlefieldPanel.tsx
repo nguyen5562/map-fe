@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Layers,
   ChevronDown,
@@ -96,6 +96,43 @@ const FIELD_CONFIG: {
   },
 ];
 
+const DistanceInput = ({
+  value,
+  onChange,
+  disabled
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  disabled: boolean;
+}) => {
+  const [localVal, setLocalVal] = useState(value);
+  
+  useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  return (
+    <input
+      type="number"
+      min="0"
+      disabled={disabled}
+      value={localVal}
+      onChange={(e) => setLocalVal(e.target.value)}
+      onBlur={() => {
+        if (localVal !== value) {
+          onChange(localVal);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur();
+        }
+      }}
+      className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-50 disabled:bg-slate-50"
+    />
+  );
+};
+
 // ── Panel component ───────────────────────────────────────────────────────────
 export const BattlefieldPanel = () => {
   const isCalibrated = useSimulation((s) => s.isCalibrated);
@@ -107,7 +144,48 @@ export const BattlefieldPanel = () => {
   const commandPostLevel = useSimulation((s) => s.commandPostLevel);
   const setCommandPostLevel = useSimulation((s) => s.setCommandPostLevel);
   const setBattlefieldData = useSimulation((s) => s.setBattlefieldData);
+  const currentRealCoords = useSimulation((s) => s.currentRealCoords);
+  const realToRaw = useSimulation((s) => s.realToRaw);
+  const selectedVehicles = useSimulation((s) => s.selectedVehicles);
+  const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
   const [showPanel, setShowPanel] = useState(true);
+
+  const hasCarSelected = selectedVehicles.some(
+    (vid) => !!vehicleConfigs[vid]?.isCar,
+  );
+
+  const handleUpdateCoords = (
+    key: BattlefieldKey,
+    distStr: string,
+    dirStr: string
+  ) => {
+    const entry = battlefieldData[key];
+    const dist = parseFloat(distStr);
+    
+    const compassAngle = Math.max(0, DIRECTIONS.indexOf(dirStr)) * 45;
+    const mathAngle = 90 - compassAngle;
+
+    let newRaw = entry.rawCoords;
+    if (isNaN(dist) || distStr.trim() === "") {
+      newRaw = null;
+    } else if (currentRealCoords) {
+      const dx = dist * Math.cos(mathAngle * (Math.PI / 180));
+      const dy = dist * Math.sin(mathAngle * (Math.PI / 180));
+      const realX = currentRealCoords.x + dx;
+      const realY = currentRealCoords.y + dy;
+      newRaw = realToRaw(realX, realY);
+    }
+
+    setBattlefieldData({
+      ...battlefieldData,
+      [key]: {
+        ...entry,
+        distance: isNaN(dist) || distStr.trim() === "" ? "" : dist.toString(),
+        direction: dirStr,
+        rawCoords: newRaw,
+      },
+    });
+  };
 
   return (
     <div
@@ -164,7 +242,9 @@ export const BattlefieldPanel = () => {
             />
           </div>
 
-          {FIELD_CONFIG.map(({ key, label, selectingKey }) => {
+          {FIELD_CONFIG.filter(
+            (config) => !(config.key === "firePoints" && hasCarSelected)
+          ).map(({ key, label, selectingKey }) => {
             const entry = battlefieldData[key] as PositionEntry;
             const isSelecting = isSelectingFor === selectingKey;
             const hasCoords = entry.rawCoords !== null;
@@ -214,32 +294,33 @@ export const BattlefieldPanel = () => {
                 </div>
 
                 {/* Info display: distance + direction */}
-                {hasCoords ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        Cách (m)
-                      </span>
-                      <div className="h-8 rounded-md border border-slate-200 bg-white px-2 flex items-center text-xs font-semibold text-slate-700">
-                        {entry.distance}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        Hướng
-                      </span>
-                      <div className="h-8 rounded-md border border-slate-200 bg-white px-2 flex items-center text-xs font-semibold text-slate-700">
-                        {entry.direction}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-8 rounded-md border border-dashed border-slate-300 bg-white flex items-center justify-center">
-                    <span className="text-xs text-slate-400">
-                      Chưa chọn vị trí
+                <div className={`grid grid-cols-2 gap-2 transition-opacity ${!currentRealCoords ? "opacity-50 pointer-events-none" : ""}`}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Cách (m)
                     </span>
+                    <DistanceInput 
+                      value={entry.distance || ""}
+                      onChange={(val) => handleUpdateCoords(key, val, entry.direction)}
+                      disabled={!currentRealCoords}
+                    />
                   </div>
-                )}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Hướng
+                    </span>
+                    <select
+                      value={entry.direction || "Bắc"}
+                      onChange={(e) => handleUpdateCoords(key, entry.distance, e.target.value)}
+                      disabled={!currentRealCoords}
+                      className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-50 disabled:bg-slate-50"
+                    >
+                      {DIRECTIONS.map(dir => (
+                        <option key={dir} value={dir}>{dir}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
                 {/* Màu đệm của riêng ký hiệu này */}
                 <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-100">

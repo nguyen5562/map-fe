@@ -77,6 +77,7 @@ export function MapExportPreview({
   const selectedVehicles = useSimulation((s) => s.selectedVehicles);
   const vehicleConfigs = useSimulation((s) => s.vehicleConfigs);
   const isCalibrated = useSimulation((s) => s.isCalibrated);
+  const hasCarSelected = selectedVehicles.some((vid) => !!vehicleConfigs[vid]?.isCar);
 
   // ── Weather overlay drag/scale state ──────────────────────────────────────
   const [weatherPos, setWeatherPos] = useState({ x: -1, y: -1 }); // -1 = uninitialized
@@ -304,7 +305,7 @@ export function MapExportPreview({
             {/* ── Battlefield markers (active draft, no point selected) ── */}
             {isCalibrated && !selectedPointId && (
               <>
-                {battlefieldData.firePoints.rawCoords && (
+                {!hasCarSelected && battlefieldData.firePoints.rawCoords && (
                   <BattlefieldMarker
                     center={battlefieldData.firePoints.rawCoords}
                     type="firePoints"
@@ -349,7 +350,12 @@ export function MapExportPreview({
                   : p.battlefieldScale || 1;
                 return (
                   <React.Fragment key={`bf-${p.id}`}>
-                    {bfData.firePoints?.rawCoords && (
+                    {(() => {
+                      const ptHasCar = (isSelected ? selectedVehicles : p.selectedVehicles)?.some((vid: string) => {
+                        const configs = isSelected ? vehicleConfigs : p.vehicleConfigs;
+                        return !!configs?.[vid]?.isCar;
+                      });
+                      return !ptHasCar && bfData.firePoints?.rawCoords && (
                       <BattlefieldMarker
                         center={L.latLng(
                           bfData.firePoints.rawCoords.lat,
@@ -362,7 +368,8 @@ export function MapExportPreview({
                         }
                         battlefieldScale={scaleVal}
                       />
-                    )}
+                      );
+                    })()}
                     {bfData.reserveUnit?.rawCoords && (
                       <BattlefieldMarker
                         center={L.latLng(
@@ -615,28 +622,30 @@ export function MapExportPreview({
               onMouseDown={handleMouseDown}
             >
               {/* Drag handle indicator */}
-              <div
-                className="weather-drag-handle"
-                style={{
-                  position: "absolute",
-                  top: -20,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  background: "rgba(15,23,42,0.75)",
-                  color: "#fff",
-                  padding: "2px 8px",
-                  borderRadius: 6,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  pointerEvents: "none",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <Move size={10} /> Kéo thả
-              </div>
+              {!isExporting && (
+                <div
+                  className="weather-drag-handle"
+                  style={{
+                    position: "absolute",
+                    top: -20,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "rgba(15,23,42,0.75)",
+                    color: "#fff",
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    pointerEvents: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Move size={10} /> Kéo thả
+                </div>
+              )}
 
               {/* Render WeatherOverlay with overridden positioning */}
               <div style={{ position: "relative", width: 280, height: 280 }}>
