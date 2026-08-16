@@ -609,17 +609,10 @@ function SimulationInner() {
                 ? (smokeMethodData?.vehicleSide ?? "right")
                 : (p.smokeMethodData?.vehicleSide ?? "right");
 
-              let rawWidth = 0;
-              if (activeLineType === "Vòng") {
-                const actualDiameter = activeDiameter
-                  ? Number(activeDiameter)
-                  : 700;
-                rawWidth = (actualDiameter * 1.6666667) / Math.abs(scale.x);
-              } else {
-                const actualLength = activeLength ? Number(activeLength) : 700;
-                rawWidth = (actualLength * 1.25) / Math.abs(scale.x);
-              }
-              const rawHeight = rawWidth * (120 / 250);
+              // Label overlay: chiều cao cố định 300m, chiều rộng theo tỷ lệ viewBox (khớp với GasLabel)
+              const FIXED_HEIGHT_METERS = 400;
+              const rawHeight = FIXED_HEIGHT_METERS / Math.abs(scale.x);
+              const rawWidth = rawHeight * (250 / 120);
 
               const labelLat =
                 p.labelCoords?.lat ?? markerCoords.lat + rawHeight * 0.7;
