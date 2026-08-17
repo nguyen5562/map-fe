@@ -252,13 +252,8 @@ export default function LoginPage() {
 
             {/* User Manual Button */}
             <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                toast.info(
-                  "Chức năng tải tài liệu hướng dẫn sẽ khả dụng khi tệp tin được cập nhật.",
-                );
-              }}
+              href="/Hướng dẫn sử dụng phần mềm phát khói.pdf"
+              download="HDSD_PhanMemPhatKhoi.pdf"
               className="flex items-center justify-between bg-white/5 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/20 text-white/80 hover:text-emerald-300 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-200 active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
